@@ -3,4 +3,4 @@ if exists('g:loaded_please')
 endif
 let g:loaded_please = 1
 
-command PleaseTest lua require('please').test()
+command -nargs=1 Please lua require('please.command').run_command(<f-args>)

@@ -1,0 +1,4 @@
+python_binary(
+    name = "hello",
+    main = "hello.py",
+)
