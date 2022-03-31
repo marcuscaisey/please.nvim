@@ -172,7 +172,6 @@ describe('whatinputs', function()
 
     assert.is_nil(targets, 'expected no targets')
     assert.is_not_nil(err, 'expected error')
-    -- TODO: should add test helpers for these checks
     assert.are.equal('string', type(err), 'expected error to be string')
     assert.is_truthy(err:match 'not a source', string.format('expected error to contain "not a source", got %s', err))
   end)
