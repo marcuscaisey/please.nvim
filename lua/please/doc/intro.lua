@@ -13,7 +13,7 @@
 --- Commands are exported by the `please` module, which can then be called like
 --- `require("please").$command_name(<args>)`
 ---
---- For example, `jump_to_target` can be executed with
+--- For example, jump_to_target can be executed with
 --- <code>
 ---   require("please").jump_to_target()
 --- </code>
@@ -21,7 +21,7 @@
 --- VimL API~<br>
 --- Commands are called like `:Please $command_name <args>`
 ---
---- For example, `jump_to_target` can be executed with
+--- For example, jump_to_target can be executed with
 --- <code>
 ---   :Please jump_to_target
 --- </code>

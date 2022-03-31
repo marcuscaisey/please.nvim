@@ -12,7 +12,7 @@ Lua API~
 Commands are exported by the `please` module, which can then be called like
 `require("please").$command_name(<args>)`
 
-For example, `jump_to_target` can be executed with
+For example, jump_to_target can be executed with
 >
   require("please").jump_to_target()
 <
@@ -20,7 +20,7 @@ For example, `jump_to_target` can be executed with
 VimL API~
 Commands are called like `:Please $command_name <args>`
 
-For example, `jump_to_target` can be executed with
+For example, jump_to_target can be executed with
 >
   :Please jump_to_target
 <
@@ -63,9 +63,9 @@ please.jump_to_target()                              *please.jump_to_target()*
     If there are multiple targets which use the open file as an input, then
     you'll be prompted for which one to jump to. This prompt uses
     |vim.ui.select()| which allows you to customise the appearance to your
-    taste (see https://github.com/stevearc/dressing.nvim for example).
+    taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
 
 
 
-vim:tw=78:ts=8:ft=help:norl:
+ vim:tw=78:ts=8:ft=help:norl:
