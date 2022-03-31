@@ -81,12 +81,10 @@ describe('whatinputs', function()
     teardowns:add(teardown)
     local filepath = 'foo/foo.txt'
 
-    -- TODO: we call these targets in some places and labels in others, i think we should just call them labels
-    -- everywhere
-    local targets, err = query.whatinputs(repo_root, filepath)
+    local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
-    assert.are.same({ '//foo:foo' }, targets, 'incorrect targets')
+    assert.are.same({ '//foo:foo' }, labels, 'incorrect labels')
   end)
 
   it('should return target when filepath is absolute', function()
@@ -104,13 +102,13 @@ describe('whatinputs', function()
     teardowns:add(teardown)
     local filepath = repo_root .. '/foo/foo.txt'
 
-    local targets, err = query.whatinputs(repo_root, filepath)
+    local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
-    assert.are.same({ '//foo:foo' }, targets, 'incorrect targets')
+    assert.are.same({ '//foo:foo' }, labels, 'incorrect labels')
   end)
 
-  it('should return multiple targets if they exist', function()
+  it('should return the labels of multiple targets if they exist', function()
     local repo_root, teardown = temptree.create_temp_tree {
       '.plzconfig',
       ['foo/'] = {
@@ -129,10 +127,10 @@ describe('whatinputs', function()
     teardowns:add(teardown)
     local filepath = 'foo/foo.txt'
 
-    local targets, err = query.whatinputs(repo_root, filepath)
+    local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
-    assert.are.same({ '//foo:foo1', '//foo:foo2' }, targets, 'incorrect targets')
+    assert.are.same({ '//foo:foo1', '//foo:foo2' }, labels, 'incorrect labels')
   end)
 
   it('should return error if no targets exist for a file which is not in a package', function()
@@ -145,9 +143,9 @@ describe('whatinputs', function()
     teardowns:add(teardown)
     local filepath = 'foo/not_used.txt'
 
-    local targets, err = query.whatinputs(repo_root, filepath)
+    local labels, err = query.whatinputs(repo_root, filepath)
 
-    assert.is_nil(targets, 'expected no targets')
+    assert.is_nil(labels, 'expected no labels')
     assert.is_not_nil(err, 'expected error')
     -- TODO: should add test helpers for these checks
     assert.are.equal('string', type(err), 'expected error to be string')
@@ -168,9 +166,9 @@ describe('whatinputs', function()
     teardowns:add(teardown)
     local filepath = 'foo/not_used.txt'
 
-    local targets, err = query.whatinputs(repo_root, filepath)
+    local labels, err = query.whatinputs(repo_root, filepath)
 
-    assert.is_nil(targets, 'expected no targets')
+    assert.is_nil(labels, 'expected no labels')
     assert.is_not_nil(err, 'expected error')
     assert.are.equal('string', type(err), 'expected error to be string')
     assert.is_truthy(err:match 'not a source', string.format('expected error to contain "not a source", got %s', err))

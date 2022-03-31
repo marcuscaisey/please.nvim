@@ -34,11 +34,11 @@ query.reporoot = function(path)
   return stdout[1]
 end
 
----Wrapper around plz query whatinputs which returns the build targets in a repo which filepath is an input for.
+---Wrapper around plz query whatinputs which returns the labels of the build targets which filepath is an input for.
 ---@param root string: an absolute path to the repo root
 ---@param filepath string: an absolute path or path relative to the repo root
----@return table: build targets
----@return string|nil: error if any, this should be checked before using the build targets
+---@return table: build target labels
+---@return string|nil: error if any, this should be checked before using the labels
 query.whatinputs = function(root, filepath)
   local root_obj = Path:new(root)
   local filepath_obj = Path:new(filepath)
