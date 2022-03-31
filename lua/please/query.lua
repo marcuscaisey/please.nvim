@@ -1,3 +1,6 @@
+-- The exported functions of this module are undocumented (not including in the help file) so that i can change their
+-- API if I need to. At some point, they'll probably stablise and i'll add them to the help file since they may be
+-- useful for people wanting to implement their own Please integrations.
 local Path = require 'plenary.path'
 local Job = require 'plenary.job'
 
@@ -5,8 +8,8 @@ local query = {}
 
 ---Wrapper around plz query reporoot which returns the root of the repo that the given path is in.
 ---@param path string: an absolute path
----@return string|nil: an absolute path
----@return string|nil: error if any
+---@return string: an absolute path
+---@return string|nil: error if any, this should be checked before using the repo root
 query.reporoot = function(path)
   local path_obj = Path:new(path)
 
@@ -34,8 +37,8 @@ end
 ---Wrapper around plz query whatinputs which returns the build targets in a repo which filepath is an input for.
 ---@param root string: an absolute path to the repo root
 ---@param filepath string: an absolute path or path relative to the repo root
----@return table|nil: build targets
----@return string|nil: error if any
+---@return table: build targets
+---@return string|nil: error if any, this should be checked before using the build targets
 query.whatinputs = function(root, filepath)
   local root_obj = Path:new(root)
   local filepath_obj = Path:new(filepath)

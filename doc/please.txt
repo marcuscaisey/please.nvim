@@ -1,66 +1,70 @@
 ================================================================================
+                                                                   *please.nvim*
+
+please.nvim is a plugin which allows you interact with your Please repository
+from the comfort of NeoVim.
+
+COMMANDS                                               *please-commands-intro*
+
+Commands can be called either through the Lua or the VimL API.
+
+Lua API~
+Commands are exported by the `please` module, which can then be called like
+`require("please").$command_name(<args>)`
+
+For example, `jump_to_target` can be executed with
+>
+  require("please").jump_to_target()
+<
+
+VimL API~
+Commands are called like `:Please $command_name <args>`
+
+For example, `jump_to_target` can be executed with
+>
+  :Please jump_to_target
+<
+
+Available Commands~
+jump_to_target : jump to the build target which uses the current file
+
+See |please-commands| for more detailed descriptions of each command.
+
+MAPPINGS                                                     *please-mappings*
+
+please.nvim doesn't come with any mappings defined out of the box so that you
+can customise how you use it. Below are some examples for each command to get
+you started.
+
+Example Mappings~
+Lua:
+>
+  vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
+<
+
+VimL:
+>
+  nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
+<
+
+
+================================================================================
+                                                               *please-commands*
+
 please.jump_to_target()                              *please.jump_to_target()*
     Jumps to the location of the build target which takes the file open in the
     current buffer as input.
 
     The cursor will be moved to the starting position of the target's build
-    rule invocation if it can be found which *should* be the case for all
-    targets except for those with names which are generated when the BUILD file
-    is executed.
+    rule invocation if it can be found which should be the case for all targets
+    except for those with names which are generated when the BUILD file is
+    executed.
 
     If there are multiple targets which use the open file as an input, then
-    you'll be prompted for which one to jump to. This prompt uses vim.ui.select
-    which allows you to customise the appearance to your taste (see
-    https://github.com/stevearc/dressing.nvim for example).
+    you'll be prompted for which one to jump to. This prompt uses
+    |vim.ui.select()| which allows you to customise the appearance to your
+    taste (see https://github.com/stevearc/dressing.nvim for example).
 
-
-
-
-================================================================================
-targets.locate_build_target({label})           *targets.locate_build_target()*
-    Returns the location of a build target. If the location of the target in
-    the BUILD file can't be found (might be dynamically created), then line and
-    column will be 1 and 1.
-
-
-    Parameters: ~
-        {label} (string)  a build label of the form //path/to/pkg:target
-
-    Return: ~
-        string|nil: an absolute path to the BUILD file
-        number|nil: the line that the build target definition starts
-        number|nil: the column that the build target definition starts
-        string|nil: error if any
-
-
-
-================================================================================
-query.reporoot({path})                                      *query.reporoot()*
-    Wrapper around plz query reporoot which returns the root of the repo that
-    the given path is in.
-
-
-    Parameters: ~
-        {path} (string)  an absolute path
-
-    Return: ~
-        string|nil: an absolute path
-        string|nil: error if any
-
-
-query.whatinputs({root}, {filepath})                      *query.whatinputs()*
-    Wrapper around plz query whatinputs which returns the build targets in a
-    repo which filepath is an input for.
-
-
-    Parameters: ~
-        {root}     (string)  an absolute path to the repo root
-        {filepath} (string)  an absolute path or path relative to the repo
-                             root
-
-    Return: ~
-        table|nil: build targets
-        string|nil: error if any
 
 
 

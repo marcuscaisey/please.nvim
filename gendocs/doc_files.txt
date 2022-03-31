@@ -1,3 +1,2 @@
+doc/intro.lua
 init.lua
-targets.lua
-query.lua

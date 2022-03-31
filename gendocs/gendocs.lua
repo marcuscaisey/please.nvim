@@ -12,5 +12,5 @@ for _, input in ipairs(inputs) do
   docgen.write(input, output_handle)
 end
 
-output_handle:write 'vim:tw=78:ts=8:ft=help:norl:\n'
+output_handle:write ' vim:tw=78:ts=8:ft=help:norl:\n'
 output_handle:close()

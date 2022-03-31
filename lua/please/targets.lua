@@ -1,3 +1,6 @@
+-- The exported functions of this module are undocumented (not including in the help file) so that i can change their
+-- API if I need to. At some point, they'll probably stablise and i'll add them to the help file since they may be
+-- useful for people wanting to implement their own Please integrations.
 local Path = require 'plenary.path'
 local treesitter = require 'vim.treesitter'
 local treesitter_query = require 'vim.treesitter.query'
@@ -45,10 +48,10 @@ end
 ---dynamically created), then line and column will be 1 and 1.
 ---@param root string an absolute path to the repo root
 ---@param label string: a build label of the form //path/to/pkg:target
----@return string|nil: an absolute path to the BUILD file
----@return number|nil: the line that the build target definition starts
----@return number|nil: the column that the build target definition starts
----@return string|nil: error if any
+---@return string: an absolute path to the BUILD file
+---@return number: the line that the build target definition starts
+---@return number: the column that the build target definition starts
+---@return string|nil: error if any, this should be checked before using the other return values
 targets.locate_build_target = function(root, label)
   -- TODO: should we document |nil for things which can be nil if an error occurs? or just leave it as it's implied?
   local root_obj = Path:new(root)

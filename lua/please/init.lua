@@ -1,6 +1,8 @@
 local query = require 'please.query'
 local targets = require 'please.targets'
 
+---@tag please-commands
+
 local please = {}
 
 local jump_to_target = function(root, label)
@@ -16,11 +18,11 @@ end
 ---Jumps to the location of the build target which takes the file open in the current buffer as input.
 ---
 ---The cursor will be moved to the starting position of the target's build rule invocation if it can be found which
----*should* be the case for all targets except for those with names which are generated when the BUILD file is executed.
+---should be the case for all targets except for those with names which are generated when the BUILD file is executed.
 ---
 ---If there are multiple targets which use the open file as an input, then you'll be prompted for which one to jump to.
----This prompt uses vim.ui.select which allows you to customise the appearance to your taste (see
----https://github.com/stevearc/dressing.nvim for example).
+---This prompt uses |vim.ui.select()| which allows you to customise the appearance to your taste (see
+---https://github.com/stevearc/dressing.nvim and |lua-ui|).
 please.jump_to_target = function()
   local filepath = vim.fn.expand '%:p'
   local root, err = query.reporoot(filepath)
