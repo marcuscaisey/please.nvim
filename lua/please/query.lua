@@ -1,13 +1,13 @@
 local Path = require 'plenary.path'
 local Job = require 'plenary.job'
 
-local M = {}
+local query = {}
 
 ---Wrapper around plz query reporoot which returns the root of the repo that the given path is in.
----@param path string an absolute path
----@return string|nil root an absolute path
----@return string|nil error
-M.reporoot = function(path)
+---@param path string: an absolute path
+---@return string|nil: an absolute path
+---@return string|nil: error if any
+query.reporoot = function(path)
   local path_obj = Path:new(path)
 
   if not path_obj:is_absolute() then
@@ -32,11 +32,11 @@ M.reporoot = function(path)
 end
 
 ---Wrapper around plz query whatinputs which returns the build targets in a repo which filepath is an input for.
----@param root string an absolute path to the repo root
----@param filepath string an absolute path or path relative to the repo root
----@return table|nil targets
----@return string|nil error
-M.whatinputs = function(root, filepath)
+---@param root string: an absolute path to the repo root
+---@param filepath string: an absolute path or path relative to the repo root
+---@return table|nil: build targets
+---@return string|nil: error if any
+query.whatinputs = function(root, filepath)
   local root_obj = Path:new(root)
   local filepath_obj = Path:new(filepath)
 
@@ -70,4 +70,4 @@ M.whatinputs = function(root, filepath)
   return stdout, nil
 end
 
-return M
+return query

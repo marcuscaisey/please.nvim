@@ -1,15 +1,15 @@
 local query = require 'please.query'
-local lib = require 'please.lib'
+local targets = require 'please.targets'
 
-local M = {}
+local please = {}
 
-local jump_to_target = function(root, target)
-  local build_file_path, line, col, err = lib.locate_build_target(root, target)
+local jump_to_target = function(root, label)
+  local filepath, line, col, err = targets.locate_build_target(root, label)
   if err then
     print(err)
     return
   end
-  vim.cmd('edit ' .. build_file_path)
+  vim.cmd('edit ' .. filepath)
   vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
 end
 
@@ -21,25 +21,25 @@ end
 ---If there are multiple targets which use the open file as an input, then you'll be prompted for which one to jump to.
 ---This prompt uses vim.ui.select which allows you to customise the appearance to your taste (see
 ---https://github.com/stevearc/dressing.nvim for example).
-M.jump_to_target = function()
+please.jump_to_target = function()
   local filepath = vim.fn.expand '%:p'
   local root, err = query.reporoot(filepath)
   if err then
     print(err)
     return
   end
-  local targets, err = query.whatinputs(root, filepath)
+  local labels, err = query.whatinputs(root, filepath)
   if err then
     print(err)
     return
   end
-  if #targets > 1 then
-    vim.ui.select(targets, { prompt = 'Select target' }, function(target)
-      jump_to_target(root, target)
+  if #labels > 1 then
+    vim.ui.select(labels, { prompt = 'Select target' }, function(selected)
+      jump_to_target(root, selected)
     end)
   else
-    jump_to_target(root, targets[1])
+    jump_to_target(root, labels[1])
   end
 end
 
-return M
+return please

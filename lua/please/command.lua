@@ -1,10 +1,10 @@
 local please = require 'please'
 
-local M = {}
+local command = {}
 
 ---Runs a please.nvim command by name.
----@param name string name of the command
-M.run_command = function(name)
+---@param name string: name of the command
+command.run_command = function(name)
   local cmd = please[name]
   if not cmd then
     print(string.format("'%s' is not a Please command", name))
@@ -13,4 +13,4 @@ M.run_command = function(name)
   cmd()
 end
 
-return M
+return command

@@ -3,7 +3,7 @@ local treesitter = require 'vim.treesitter'
 local treesitter_query = require 'vim.treesitter.query'
 local ts_utils = require 'nvim-treesitter.ts_utils'
 
-local M = {}
+local targets = {}
 
 -- selects calls which have a kwarg / value pair of the form `name = %s` where %s is the name of the target we are
 -- looking for
@@ -44,12 +44,12 @@ end
 ---Returns the location of a build target. If the location of the target in the BUILD file can't be found (might be
 ---dynamically created), then line and column will be 1 and 1.
 ---@param root string an absolute path to the repo root
----@param label string a build label of the form //path/to/pkg:target
----@return string|nil filepath an absolute path to the BUILD file
----@return number|nil line the line that the build target definition starts
----@return number|nil column the column that the build target definition starts
----@return string|nil error
-M.locate_build_target = function(root, label)
+---@param label string: a build label of the form //path/to/pkg:target
+---@return string|nil: an absolute path to the BUILD file
+---@return number|nil: the line that the build target definition starts
+---@return number|nil: the column that the build target definition starts
+---@return string|nil: error if any
+targets.locate_build_target = function(root, label)
   -- TODO: should we document |nil for things which can be nil if an error occurs? or just leave it as it's implied?
   local root_obj = Path:new(root)
   if not root_obj:is_absolute() then
@@ -80,4 +80,4 @@ M.locate_build_target = function(root, label)
   return nil, nil, nil, string.format('no build file exists for package "%s"', pkg)
 end
 
-return M
+return targets
