@@ -45,4 +45,4 @@ nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
 ```
 
 ### Documentation
-Documentation can be found in the help file by running `:help please.nvim`.
+Detailed documentation can be found in the help file by running `:help please.nvim`.
