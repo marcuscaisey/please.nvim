@@ -1,5 +1,0 @@
-go_library(
-    name = "bar",
-    srcs = glob(["*.go"], exclude = ["*_test.go"]),
-    visibility = ["//foo/bar/..."],
-)
