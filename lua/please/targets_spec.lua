@@ -93,7 +93,6 @@ describe('locate_build_target', function()
     assert.is_nil(filepath, 'expected no filepath')
     assert.is_nil(line, 'expected no line')
     assert.is_nil(col, 'expected no col')
-    -- TODO: should this be a different error message to make the two not exists cases distinct?
     assert.are.equal('no build file exists for package "does/not/exist"', err)
   end)
 
