@@ -31,7 +31,13 @@ query.reporoot = function(path)
     return nil, table.concat(job:stderr_result(), '\n')
   end
 
-  return stdout[1]
+  local root = vim.fn.resolve(stdout[1])
+  -- If root is not a parent of path, then it must have come from the global plzconfig. We shouldn't return it in this
+  -- case since it won't be of any use for doing stuff with the current path.
+  if not vim.fn.resolve(path):match('^' .. root) then
+    return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
+  end
+  return root
 end
 
 ---Wrapper around plz query whatinputs which returns the labels of the build targets which filepath is an input for.
