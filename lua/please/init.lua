@@ -1,47 +1,57 @@
-local query = require 'please.query'
-local targets = require 'please.targets'
+---@tag please.nvim
 
----@tag please-commands
-
-local please = {}
-
-local jump_to_target = function(root, label)
-  local filepath, line, col, err = targets.locate_build_target(root, label)
-  if err then
-    print(err)
-    return
-  end
-  vim.cmd('edit ' .. filepath)
-  vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
-end
-
----Jumps to the location of the build target which takes the file open in the current buffer as input.
+---@brief [[
+--- please.nvim is a plugin which allows you interact with your Please repository from the comfort of NeoVim.
 ---
----The cursor will be moved to the starting position of the target's build rule invocation if it can be found which
----should be the case for all targets except for those with names which are generated when the BUILD file is executed.
+--- <pre>
+--- COMMANDS                                               *please-commands-intro*
+--- </pre>
 ---
----If there are multiple targets which use the open file as an input, then you'll be prompted for which one to jump to.
----This prompt uses |vim.ui.select()| which allows you to customise the appearance to your taste (see
----https://github.com/stevearc/dressing.nvim and |lua-ui|).
-please.jump_to_target = function()
-  local filepath = vim.fn.expand '%:p'
-  local root, err = query.reporoot(filepath)
-  if err then
-    print(err)
-    return
-  end
-  local labels, err = query.whatinputs(root, filepath)
-  if err then
-    print(err)
-    return
-  end
-  if #labels > 1 then
-    vim.ui.select(labels, { prompt = 'Select target' }, function(selected)
-      jump_to_target(root, selected)
-    end)
-  else
-    jump_to_target(root, labels[1])
-  end
-end
+--- Commands can be called either through the Lua or the VimL API.
+---
+--- Lua API~<br>
+--- Commands are exported by the `please` module, which can then be called like
+--- `require("please").$command_name(<args>)`
+---
+--- For example, jump_to_target can be executed with
+--- <code>
+---   require("please").jump_to_target()
+--- </code>
+---
+--- VimL API~<br>
+--- Commands are called like `:Please $command_name <args>`
+---
+--- For example, jump_to_target can be executed with
+--- <code>
+---   :Please jump_to_target
+--- </code>
+---
+--- Available Commands~<br>
+--- jump_to_target : jump to the build target which uses the current file
+---
+--- See |please-commands| for more detailed descriptions of each command.
+---
+--- <pre>
+--- MAPPINGS                                                     *please-mappings*
+--- </pre>
+---
+--- please.nvim doesn't come with any mappings defined out of the box so that you can customise how you use it. Below
+--- are some examples for each command to get you started.
+---
+--- Example Mappings~<br>
+--- Lua:
+--- <code>
+---   vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
+--- </code>
+---
+--- VimL:
+--- <code>
+---   nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
+--- </code>
+---@brief ]]
 
-return please
+local please = require 'please.please'
+
+return {
+  jump_to_target = please.jump_to_target,
+}
