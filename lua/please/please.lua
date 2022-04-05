@@ -15,7 +15,7 @@ local jump_to_target = function(root, label)
   vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
 end
 
----Jumps to the location of the build target which takes the file open in the current buffer as input.
+---Jumps to the location of the build target which takes the current file as input.
 ---
 ---The cursor will be moved to the starting position of the target's build rule invocation if it can be found which
 ---should be the case for all targets except for those with names which are generated when the BUILD file is executed.

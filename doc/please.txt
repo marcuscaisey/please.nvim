@@ -52,8 +52,8 @@ VimL:
                                                                *please-commands*
 
 please.jump_to_target()                              *please.jump_to_target()*
-    Jumps to the location of the build target which takes the file open in the
-    current buffer as input.
+    Jumps to the location of the build target which takes the current file as
+    input.
 
     The cursor will be moved to the starting position of the target's build
     rule invocation if it can be found which should be the case for all targets

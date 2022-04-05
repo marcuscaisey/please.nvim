@@ -25,7 +25,7 @@ describe('jump_to_target', function()
     }
     teardowns:add(teardown)
 
-    -- GIVEN we're editing a file in a buffer
+    -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo2.txt')
 
     -- WHEN we jump_to_target
@@ -54,7 +54,7 @@ describe('jump_to_target', function()
     }
     teardowns:add(teardown)
 
-    -- GIVEN we're editing a file in a buffer
+    -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo.txt')
     -- AND the file is an input for two build targets
     local stubbed_select = stub(vim.ui, 'select', function(items, _, on_choice)
