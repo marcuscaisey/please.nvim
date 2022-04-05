@@ -34,7 +34,7 @@ query.reporoot = function(path)
   local root = vim.fn.resolve(stdout[1])
   -- If root is not a parent of path, then it must have come from the global plzconfig. We shouldn't return it in this
   -- case since it won't be of any use for doing stuff with the current path.
-  if not vim.fn.resolve(path):match('^' .. root) then
+  if not vim.fn.resolve(path):sub(1, #root) == root then
     return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
   end
   return root
