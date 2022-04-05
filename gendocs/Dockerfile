@@ -16,7 +16,7 @@ RUN make install
 
 FROM alpine:edge
 
-COPY --from=builder /usr/lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6 /usr/lib
+COPY --from=builder /usr/lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6 /usr/lib/
 COPY --from=builder /usr/local/share/nvim /usr/local/share/nvim
 COPY --from=builder /usr/local/bin/nvim /usr/local/bin/nvim
 
@@ -24,7 +24,7 @@ COPY --from=builder /plenary.nvim /plenary.nvim
 COPY --from=builder /tree-sitter-lua /tree-sitter-lua
 
 RUN mkdir /gendocs
-COPY ./init.vim ./gendocs.lua /gendocs
+COPY ./init.vim ./gendocs.lua /gendocs/
 
 ENTRYPOINT ["/usr/local/bin/nvim", "--headless", "--noplugin", "-u", "/gendocs/init.vim", "-c", "luafile /gendocs/gendocs.lua", "-c", "qa"]
 

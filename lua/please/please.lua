@@ -1,5 +1,6 @@
 local query = require 'please.query'
 local targets = require 'please.targets'
+local runners = require 'please.runners'
 
 ---@tag please-commands
 
@@ -41,6 +42,32 @@ please.jump_to_target = function()
     end)
   else
     jump_to_target(root, labels[1])
+  end
+end
+
+---Builds the target which takes the current file as input.
+---
+---If there are multiple targets which use the open file as an input, then you'll be prompted for which one to build.
+---This prompt uses |vim.ui.select()| which allows you to customise the appearance to your taste (see
+---https://github.com/stevearc/dressing.nvim and |lua-ui|).
+please.build_target = function()
+  local filepath = vim.fn.expand '%:p'
+  local root, err = query.reporoot(filepath)
+  if err then
+    print(err)
+    return
+  end
+  local labels, err = query.whatinputs(root, filepath)
+  if err then
+    print(err)
+    return
+  end
+  if #labels > 1 then
+    vim.ui.select(labels, { prompt = 'Select target' }, function(selected)
+      runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', 'build', selected })
+    end)
+  else
+    runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', 'build', labels[1] })
   end
 end
 

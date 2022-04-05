@@ -27,6 +27,7 @@ For example, jump_to_target can be executed with
 
 Available Commands~
 jump_to_target : jump to the build target which uses the current file
+build_target : build the target which uses the current file
 
 See |please-commands| for more detailed descriptions of each command.
 
@@ -40,11 +41,13 @@ Example Mappings~
 Lua:
 >
   vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
+  vim.keymap.set('n', '<leader>pb', require("please").build_target, { silent = true })
 <
 
 VimL:
 >
   nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
+  nnoremap <leader>pj silent <cmd>Please build_target<cr>
 <
 
 
@@ -62,6 +65,16 @@ please.jump_to_target()                              *please.jump_to_target()*
 
     If there are multiple targets which use the open file as an input, then
     you'll be prompted for which one to jump to. This prompt uses
+    |vim.ui.select()| which allows you to customise the appearance to your
+    taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
+
+
+
+please.build_target()                                  *please.build_target()*
+    Builds the target which takes the current file as input.
+
+    If there are multiple targets which use the open file as an input, then
+    you'll be prompted for which one to build. This prompt uses
     |vim.ui.select()| which allows you to customise the appearance to your
     taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
