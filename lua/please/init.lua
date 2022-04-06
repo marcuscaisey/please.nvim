@@ -27,8 +27,8 @@
 --- </code>
 ---
 --- Available Commands~<br>
---- jump_to_target : jump to the build target which uses the current file
---- build_target : build the target which uses the current file
+--- jump_to_target : jump to the build target which uses the current file<br>
+--- build_target : build the target which uses the current file<br>
 --- test_target : test the target which uses the current file
 ---
 --- See |please-commands| for more detailed descriptions of each command.

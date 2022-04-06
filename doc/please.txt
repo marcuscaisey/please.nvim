@@ -28,6 +28,7 @@ For example, jump_to_target can be executed with
 Available Commands~
 jump_to_target : jump to the build target which uses the current file
 build_target : build the target which uses the current file
+test_target : test the target which uses the current file
 
 See |please-commands| for more detailed descriptions of each command.
 
@@ -42,17 +43,25 @@ Lua:
 >
   vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
   vim.keymap.set('n', '<leader>pb', require("please").build_target, { silent = true })
+  vim.keymap.set('n', '<leader>pt', require("please").test_target, { silent = true })
 <
 
 VimL:
 >
   nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
-  nnoremap <leader>pj silent <cmd>Please build_target<cr>
+  nnoremap <leader>pb silent <cmd>Please build_target<cr>
+  nnoremap <leader>pt silent <cmd>Please test_target<cr>
 <
 
 
 ================================================================================
                                                                *please-commands*
+
+When using a command which involves the build target of the current file, there
+may be multiple targets found if the file is referenced in multiple places. In
+such cases, you'll be prompted for which one to use. This prompt uses
+|vim.ui.select()| which allows you to customise the appearance to your taste
+(see https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
 please.jump_to_target()                              *please.jump_to_target()*
     Jumps to the location of the build target which takes the current file as
@@ -63,20 +72,15 @@ please.jump_to_target()                              *please.jump_to_target()*
     except for those with names which are generated when the BUILD file is
     executed.
 
-    If there are multiple targets which use the open file as an input, then
-    you'll be prompted for which one to jump to. This prompt uses
-    |vim.ui.select()| which allows you to customise the appearance to your
-    taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
-
 
 
 please.build_target()                                  *please.build_target()*
     Builds the target which takes the current file as input.
 
-    If there are multiple targets which use the open file as an input, then
-    you'll be prompted for which one to build. This prompt uses
-    |vim.ui.select()| which allows you to customise the appearance to your
-    taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
+
+
+please.test_target()                                    *please.test_target()*
+    Tests the target which takes the current file as input.
 
 
 
