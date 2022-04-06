@@ -1,6 +1,3 @@
--- The exported functions of this module are undocumented (not including in the help file) so that i can change their
--- API if I need to. At some point, they'll probably stablise and i'll add them to the help file since they may be
--- useful for people wanting to implement their own Please integrations.
 local Path = require 'plenary.path'
 local treesitter = require 'vim.treesitter'
 local treesitter_query = require 'vim.treesitter.query'
