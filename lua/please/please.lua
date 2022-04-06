@@ -6,14 +6,14 @@ local runners = require 'please.runners'
 
 local please = {}
 
-local jump_to_target = function(root, label)
-  local filepath, line, col, err = targets.locate_build_target(root, label)
-  if err then
-    print(err)
-    return
+local run_with_selected = function(options, prompt, func)
+  if #options > 1 then
+    vim.ui.select(options, { prompt = prompt }, function(selected)
+      func(selected)
+    end)
+  else
+    func(options[1])
   end
-  vim.cmd('edit ' .. filepath)
-  vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
 end
 
 ---Jumps to the location of the build target which takes the current file as input.
@@ -36,13 +36,15 @@ please.jump_to_target = function()
     print(err)
     return
   end
-  if #labels > 1 then
-    vim.ui.select(labels, { prompt = 'Select target' }, function(selected)
-      jump_to_target(root, selected)
-    end)
-  else
-    jump_to_target(root, labels[1])
-  end
+  run_with_selected(labels, 'Select target to jump to', function(label)
+    local filepath, line, col, err = targets.locate_build_target(root, label)
+    if err then
+      print(err)
+      return
+    end
+    vim.cmd('edit ' .. filepath)
+    vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
+  end)
 end
 
 ---Builds the target which takes the current file as input.
@@ -62,13 +64,9 @@ please.build_target = function()
     print(err)
     return
   end
-  if #labels > 1 then
-    vim.ui.select(labels, { prompt = 'Select target' }, function(selected)
-      runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', 'build', selected })
-    end)
-  else
-    runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', 'build', labels[1] })
-  end
+  run_with_selected(labels, 'Select target to build', function(label)
+    runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', 'build', label })
+  end)
 end
 
 ---Tests the target which takes the current file as input.
@@ -88,13 +86,9 @@ please.test_target = function()
     print(err)
     return
   end
-  if #labels > 1 then
-    vim.ui.select(labels, { prompt = 'Select target' }, function(selected)
-      runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', selected })
-    end)
-  else
-    runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', labels[1] })
-  end
+  run_with_selected(labels, 'Select target to test', function(label)
+    runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', label })
+  end)
 end
 
 return please
