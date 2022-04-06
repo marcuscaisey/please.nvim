@@ -29,6 +29,7 @@
 --- Available Commands~<br>
 --- jump_to_target : jump to the build target which uses the current file
 --- build_target : build the target which uses the current file
+--- test_target : test the target which uses the current file
 ---
 --- See |please-commands| for more detailed descriptions of each command.
 ---
@@ -44,12 +45,14 @@
 --- <code>
 ---   vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
 ---   vim.keymap.set('n', '<leader>pb', require("please").build_target, { silent = true })
+---   vim.keymap.set('n', '<leader>pt', require("please").test_target, { silent = true })
 --- </code>
 ---
 --- VimL:
 --- <code>
 ---   nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
----   nnoremap <leader>pj silent <cmd>Please build_target<cr>
+---   nnoremap <leader>pb silent <cmd>Please build_target<cr>
+---   nnoremap <leader>pt silent <cmd>Please test_target<cr>
 --- </code>
 ---@brief ]]
 
@@ -58,4 +61,5 @@ local please = require 'please.please'
 return {
   jump_to_target = please.jump_to_target,
   build_target = please.build_target,
+  test_target = please.test_target,
 }

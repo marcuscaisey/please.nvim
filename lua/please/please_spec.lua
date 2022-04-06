@@ -156,4 +156,85 @@ describe('build_target', function()
   end)
 end)
 
+describe('test_target', function()
+  it('should test target which uses file as input in a popup', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )]],
+      ['foo.txt'] = 'foo content',
+    }
+    teardowns:add(teardown)
+
+    local called_cmd, called_args
+    local stubbed_popup = stub(runners, 'popup', function(cmd, args)
+      called_cmd, called_args = cmd, args
+    end)
+
+    -- GIVEN we're editing a file
+    vim.cmd('edit ' .. root .. '/foo.txt')
+
+    -- WHEN we test_target
+    please.test_target()
+
+    -- THEN the target is built in a popup
+    assert.are.equal('plz', called_cmd, 'incorrect command passed to popup')
+    assert.are.same(
+      { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', '//:foo' },
+      called_args,
+      'incorrect args passed to popup'
+    )
+
+    stubbed_popup:revert()
+  end)
+
+  it('should prompt for choice of target when multiple targets exist', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo1",
+            src = "foo.txt",
+        )
+
+        export_file(
+            name = "foo2",
+            src = "foo.txt",
+        )]],
+      ['foo.txt'] = 'foo content',
+    }
+    teardowns:add(teardown)
+
+    local called_cmd, called_args
+    local stubbed_popup = stub(runners, 'popup', function(cmd, args)
+      called_cmd, called_args = cmd, args
+    end)
+
+    -- GIVEN we're editing a file
+    vim.cmd('edit ' .. root .. '/foo.txt')
+    -- AND the file is an input for two build targets
+    local stubbed_select = stub(vim.ui, 'select', function(items, _, on_choice)
+      assert.are.same({ '//:foo1', '//:foo2' }, items, 'incorrect items passed to vim.ui.select')
+      on_choice '//:foo2'
+    end)
+
+    -- WHEN we test_target
+    please.test_target()
+
+    -- THEN the target is built in a popup
+    assert.are.equal('plz', called_cmd, 'incorrect command passed to popup')
+    assert.are.same(
+      { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', '//:foo2' },
+      called_args,
+      'incorrect args passed to popup'
+    )
+
+    stubbed_popup:revert()
+    stubbed_select:revert()
+  end)
+end)
+
 teardowns:teardown()
