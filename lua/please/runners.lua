@@ -25,15 +25,19 @@ runners.popup = function(cmd, args)
   -- move the cursor to the last line so that the output automatically scrolls
   vim.api.nvim_feedkeys('G', 'n', false)
 
-  -- allow quitting with q
-  vim.keymap.set('n', 'q', '<cmd>:q<cr>', { buffer = bufnr })
   -- disable i -> terminal mode mapping since it's easy to get stuck in terminal mode without any indication that you
   -- need to press <c-\><c-n> to get out
   vim.keymap.set('n', 'i', '<nop>', { buffer = bufnr })
 
+  local is_shutdown = false
+
   local outputter = vim.schedule_wrap(function(_, line)
     if line then
-      vim.api.nvim_chan_send(job_id, line .. '\r\n')
+      -- we can still be outputting from the command after it's been shut down, so we need to check before we send on a
+      -- potentially closed channel
+      if not is_shutdown then
+        vim.api.nvim_chan_send(job_id, line .. '\r\n')
+      end
     end
   end)
 
@@ -43,6 +47,20 @@ runners.popup = function(cmd, args)
     on_stdout = outputter,
     on_stderr = outputter,
   }
+
+  -- on q, shutdown the job and quit the popup
+  vim.keymap.set('n', 'q', function()
+    is_shutdown = true
+    vim.cmd 'q'
+    -- Calling shutdown in the handler adds a bit of delay before the popup closes for some reason, as if its waiting
+    -- for the end of the shutdown call. Maybe it is. Either way, scheduling the shutdown gets rid of the delay.
+    vim.schedule(function()
+      job:shutdown()
+    end)
+  end, {
+    buffer = bufnr,
+  })
+
   job:start()
 end
 

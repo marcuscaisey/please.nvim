@@ -101,7 +101,7 @@ describe('popup', function()
     assert_win_lines({ 'stdout', 'stderr' }, popup_winnr)
   end)
 
-  it('q exits the popup', function()
+  it('should exit the popup when q is pressed', function()
     local cmd = 'ls'
     local args = {}
 
@@ -111,6 +111,23 @@ describe('popup', function()
     vim.api.nvim_feedkeys('q', 'x', false)
 
     wait_for_win(start_winnr)
+  end)
+
+  it('should kill the running command when q is pressed', function()
+    local cmd = 'bash'
+    local args = { '-c', 'for i in $(seq 1 1000); do echo line $i && sleep 0.1; done' }
+
+    runners.popup(cmd, args)
+    wait_for_new_win()
+
+    vim.api.nvim_feedkeys('q', 'x', false)
+
+    wait_for_win(start_winnr)
+    -- If the command is still running, then it should keep outputting to the popup which now doesn't exist, resulting
+    -- in errors. We do some waiting here to give it a chance to actually output some stuff before the test finishes.
+    vim.wait(1000, function()
+      return false
+    end)
   end)
 
   -- TODO: get this test working, it passes atm but it also passes when i is not mapped to <nop>. for some reason, even
