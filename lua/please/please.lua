@@ -28,7 +28,6 @@ end
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
 ---targets except for those with names which are generated when the BUILD file is executed.
 please.jump_to_target = function()
-  -- TODO: make wording of this and other docstrings less wordy
   local filepath = vim.fn.expand '%:p'
   local root, err = query.reporoot(filepath)
   if err then
