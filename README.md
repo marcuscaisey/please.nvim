@@ -14,12 +14,14 @@ Currently implemented features of please.nvim are:
 
 Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```viml
+Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'marcuscaisey/please.nvim'
 ```
 
 Using [dein](https://github.com/Shougo/dein.vim)
 ```viml
+call dein#add('nvim-treesitter/nvim-treesitter')
 call dein#add('nvim-lua/plenary.nvim')
 call dein#add('marcuscaisey/please.nvim')
 ```
@@ -28,7 +30,10 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
 use {
   'marcuscaisey/please.nvim',
-  requires = 'nvim-lua/plenary.nvim',
+  requires = {
+    'nvim-lua/plenary.nvim',
+    'nvim-treesitter/nvim-treesitter',
+  },
 }
 ```
 
