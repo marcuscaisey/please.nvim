@@ -50,6 +50,7 @@ end
 ---@return number: the column that the build target definition starts
 ---@return string|nil: error if any, this should be checked before using the other return values
 targets.locate_build_target = function(root, label)
+  -- TODO: do this with the plz LSP instead?
   local root_obj = Path:new(root)
   if not root_obj:is_absolute() then
     error(string.format('root must be absolute, got "%s"', root))

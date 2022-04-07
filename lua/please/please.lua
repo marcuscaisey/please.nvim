@@ -1,6 +1,7 @@
 local query = require 'please.query'
 local targets = require 'please.targets'
 local runners = require 'please.runners'
+local input = require 'please.input'
 
 ---@tag please-commands
 
@@ -12,16 +13,6 @@ local runners = require 'please.runners'
 ---@brief ]]
 
 local please = {}
-
-local run_with_selected = function(options, prompt, func)
-  if #options > 1 then
-    vim.ui.select(options, { prompt = prompt }, function(selected)
-      func(selected)
-    end)
-  else
-    func(options[1])
-  end
-end
 
 ---Jumps to the location of the build target of the current file.
 ---
@@ -39,7 +30,7 @@ please.jump_to_target = function()
     print(err)
     return
   end
-  run_with_selected(labels, 'Select target to jump to', function(label)
+  input.select_if_required(labels, 'Select target to jump to', function(label)
     local target_filepath, line, col, err = targets.locate_build_target(root, label)
     if err then
       print(err)
@@ -63,7 +54,7 @@ please.build_target = function()
     print(err)
     return
   end
-  run_with_selected(labels, 'Select target to build', function(label)
+  input.select_if_required(labels, 'Select target to build', function(label)
     runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', 'build', label })
   end)
 end
@@ -81,7 +72,7 @@ please.test_file = function()
     print(err)
     return
   end
-  run_with_selected(labels, 'Select target to test', function(label)
+  input.select_if_required(labels, 'Select target to test', function(label)
     runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', label })
   end)
 end
