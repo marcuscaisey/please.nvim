@@ -1,7 +1,7 @@
 local strings = require 'plenary.strings'
 local stub = require 'luassert.stub'
-local temptree = require 'please.testutils.temptree'
-local TeardownFuncs = require 'please.testutils.teardowns'
+local temptree = require 'please.tests.utils.temptree'
+local TeardownFuncs = require 'please.tests.utils.teardowns'
 local please = require 'please.please'
 local runners = require 'please.runners'
 

@@ -1,6 +1,6 @@
 local strings = require 'plenary.strings'
-local temptree = require 'please.testutils.temptree'
-local TeardownFuncs = require 'please.testutils.teardowns'
+local temptree = require 'please.tests.utils.temptree'
+local TeardownFuncs = require 'please.tests.utils.teardowns'
 local query = require 'please.query'
 
 local teardowns = TeardownFuncs:new()
