@@ -4,9 +4,9 @@ NeoVim. The aim is to achieve feature parity (and beyond) with [please-vscode](h
 
 ## Features
 Currently implemented features of please.nvim are:
-- jump to the build target which uses the current file (`:Please jump_to_target`)
-- build the target which uses the current file (`:Please build_target`)
-- test the target which uses the current file (`:Please test_target`)
+- jump to the build target of the current file (`:Please jump_to_target`)
+- build the target of the current file (`:Please build_target`)
+- test the current file (`:Please test_file`)
 
 
 ## Getting started
@@ -41,14 +41,14 @@ Lua:
 ```lua
 vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
 vim.keymap.set('n', '<leader>pb', require("please").build_target, { silent = true })
-vim.keymap.set('n', '<leader>pt', require("please").test_target, { silent = true })
+vim.keymap.set('n', '<leader>pt', require("please").test_file, { silent = true })
 ```
 
 VimL:
 ```viml
 nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
 nnoremap <leader>pb silent <cmd>Please build_target<cr>
-nnoremap <leader>pt silent <cmd>Please test_target<cr>
+nnoremap <leader>pt silent <cmd>Please test_file<cr>
 ```
 
 ### Documentation

@@ -156,7 +156,7 @@ describe('build_target', function()
   end)
 end)
 
-describe('test_target', function()
+describe('test_file', function()
   it('should test target which uses file as input in a popup', function()
     local root, teardown = temptree.create_temp_tree {
       '.plzconfig',
@@ -177,8 +177,8 @@ describe('test_target', function()
     -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo.txt')
 
-    -- WHEN we test_target
-    please.test_target()
+    -- WHEN we test_file
+    please.test_file()
 
     -- THEN the target is built in a popup
     assert.are.equal('plz', called_cmd, 'incorrect command passed to popup')
@@ -221,8 +221,8 @@ describe('test_target', function()
       on_choice '//:foo2'
     end)
 
-    -- WHEN we test_target
-    please.test_target()
+    -- WHEN we test_file
+    please.test_file()
 
     -- THEN the target is built in a popup
     assert.are.equal('plz', called_cmd, 'incorrect command passed to popup')

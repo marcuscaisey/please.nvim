@@ -26,9 +26,9 @@ For example, jump_to_target can be executed with
 <
 
 Available Commands~
-jump_to_target : jump to the build target which uses the current file
-build_target : build the target which uses the current file
-test_target : test the target which uses the current file
+jump_to_target : jump to the build target of the current file
+build_target : build the target of the current file
+test_file : test the current file
 
 See |please-commands| for more detailed descriptions of each command.
 
@@ -43,14 +43,14 @@ Lua:
 >
   vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
   vim.keymap.set('n', '<leader>pb', require("please").build_target, { silent = true })
-  vim.keymap.set('n', '<leader>pt', require("please").test_target, { silent = true })
+  vim.keymap.set('n', '<leader>pt', require("please").test_file, { silent = true })
 <
 
 VimL:
 >
   nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
   nnoremap <leader>pb silent <cmd>Please build_target<cr>
-  nnoremap <leader>pt silent <cmd>Please test_target<cr>
+  nnoremap <leader>pt silent <cmd>Please test_file<cr>
 <
 
 
@@ -64,23 +64,21 @@ such cases, you'll be prompted for which one to use. This prompt uses
 (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
 please.jump_to_target()                              *please.jump_to_target()*
-    Jumps to the location of the build target which takes the current file as
-    input.
+    Jumps to the location of the build target of the current file.
 
-    The cursor will be moved to the starting position of the target's build
-    rule invocation if it can be found which should be the case for all targets
-    except for those with names which are generated when the BUILD file is
-    executed.
+    The cursor will be moved to where the build target is created if it can be
+    found which should be the case for all targets except for those with names
+    which are generated when the BUILD file is executed.
 
 
 
 please.build_target()                                  *please.build_target()*
-    Builds the target which takes the current file as input.
+    Builds the target of the current file.
 
 
 
-please.test_target()                                    *please.test_target()*
-    Tests the target which takes the current file as input.
+please.test_file()                                        *please.test_file()*
+    Tests the current file.
 
 
 

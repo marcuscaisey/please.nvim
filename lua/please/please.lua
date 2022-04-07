@@ -23,10 +23,10 @@ local run_with_selected = function(options, prompt, func)
   end
 end
 
----Jumps to the location of the build target which takes the current file as input.
+---Jumps to the location of the build target of the current file.
 ---
----The cursor will be moved to the starting position of the target's build rule invocation if it can be found which
----should be the case for all targets except for those with names which are generated when the BUILD file is executed.
+---The cursor will be moved to where the build target is created if it can be found which should be the case for all
+---targets except for those with names which are generated when the BUILD file is executed.
 please.jump_to_target = function()
   -- TODO: make wording of this and other docstrings less wordy
   local filepath = vim.fn.expand '%:p'
@@ -41,17 +41,17 @@ please.jump_to_target = function()
     return
   end
   run_with_selected(labels, 'Select target to jump to', function(label)
-    local filepath, line, col, err = targets.locate_build_target(root, label)
+    local target_filepath, line, col, err = targets.locate_build_target(root, label)
     if err then
       print(err)
       return
     end
-    vim.cmd('edit ' .. filepath)
+    vim.cmd('edit ' .. target_filepath)
     vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
   end)
 end
 
----Builds the target which takes the current file as input.
+---Builds the target of the current file.
 please.build_target = function()
   local filepath = vim.fn.expand '%:p'
   local root, err = query.reporoot(filepath)
@@ -69,8 +69,8 @@ please.build_target = function()
   end)
 end
 
----Tests the target which takes the current file as input.
-please.test_target = function()
+---Tests the current file.
+please.test_file = function()
   local filepath = vim.fn.expand '%:p'
   local root, err = query.reporoot(filepath)
   if err then
