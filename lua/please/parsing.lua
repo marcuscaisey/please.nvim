@@ -3,7 +3,7 @@ local treesitter = require 'vim.treesitter'
 local treesitter_query = require 'vim.treesitter.query'
 local ts_utils = require 'nvim-treesitter.ts_utils'
 
-local targets = {}
+local parsing = {}
 
 -- selects calls which have a kwarg / value pair of the form `name = %s` where %s is the name of the target we are
 -- looking for
@@ -49,7 +49,7 @@ end
 ---@return number: the line that the build target definition starts
 ---@return number: the column that the build target definition starts
 ---@return string|nil: error if any, this should be checked before using the other return values
-targets.locate_build_target = function(root, label)
+parsing.locate_build_target = function(root, label)
   -- TODO: do this with the plz LSP instead?
   local root_obj = Path:new(root)
   if not root_obj:is_absolute() then
@@ -80,4 +80,35 @@ targets.locate_build_target = function(root, label)
   return nil, nil, nil, string.format('no build file exists for package "%s"', pkg)
 end
 
-return targets
+local supported_test_langs = { 'go' }
+
+---Returns the name of the test under the cursor.
+---Current supported languages are:
+---- Go
+---  - regular go tests
+---  - testify suite test methods
+---@return string
+---@return string|nil: error if any, this should be checked before using the test name
+parsing.get_test_at_cursor = function()
+  if not vim.tbl_contains(supported_test_langs, vim.bo.filetype) then
+    error(string.format('finding tests is not supported for %s files', vim.bo.filetype))
+  end
+  local current_node = ts_utils.get_node_at_cursor()
+  local bufnr = vim.api.nvim_get_current_buf()
+  while current_node:parent() do
+    local node_type = current_node:type()
+    if node_type == 'function_declaration' or node_type == 'method_declaration' then
+      local identifier_node = current_node:field('name')[1] -- there will only be one child called name
+      local func_name = ts_utils.get_node_text(identifier_node, bufnr)[1] -- there will only be one line
+      -- we could also test if it has a single arg like *testing.T but this is probably enough, i think go test shouts
+      -- at you if you provide a func starting with Test with the wrong signature anyway
+      if func_name:sub(1, 4) == 'Test' then
+        return (node_type == 'method_declaration' and '/' or '') .. func_name
+      end
+    end
+    current_node = current_node:parent()
+  end
+  return nil, 'cursor is not in a test function'
+end
+
+return parsing

@@ -38,7 +38,7 @@ describe('jump_to_target', function()
     -- WHEN we jump_to_target
     please.jump_to_target()
 
-    -- THEN the user is prompted to select which build target to jump to if required
+    -- THEN we're prompted to select which build target to jump to if required
     assert.are.same({ '//:foo2' }, select_items, 'incorrect select items')
     assert.are.equal('Select target to jump to', select_prompt, 'incorrect select prompt')
 
@@ -78,10 +78,10 @@ describe('build_target', function()
     -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo.txt')
 
-    -- WHEN we build_target
+    -- WHEN we call build_target
     please.build_target()
 
-    -- THEN the user is prompted to select which target to build if required
+    -- THEN we're prompted to select which target to build if required
     assert.are.same({ '//:foo' }, select_items, 'incorrect select items')
     assert.are.equal('Select target to build', select_prompt, 'incorrect select prompt')
 
@@ -125,10 +125,10 @@ describe('test_file', function()
     -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo.txt')
 
-    -- WHEN we test_file
+    -- WHEN we call test_file
     please.test_file()
 
-    -- THEN the user is prompted to select which target to test if required
+    -- THEN we're prompted to select which target to test if required
     assert.are.same({ '//:foo' }, select_items, 'incorrect select items')
     assert.are.equal('Select target to test', select_prompt, 'incorrect select prompt')
 
@@ -137,6 +137,67 @@ describe('test_file', function()
     assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
     assert.are.same(
       { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', '//:foo' },
+      popup_args,
+      'incorrect args passed to popup'
+    )
+
+    stubbed_popup:revert()
+    stubbed_select_if_required:revert()
+  end)
+end)
+
+describe('test_under_cursor', function()
+  it('should run test under the cursor', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      ['foo/'] = {
+        BUILD = strings.dedent [[
+          go_test(
+              name = "test",
+              srcs = glob(["*_test.go"]),
+              external = True,
+          )]],
+        ['foo_test.go'] = strings.dedent [[
+          package foo_test
+
+          import "testing"
+
+          func TestPasses(t *testing.T) {
+          }
+
+          func TestFails(t *testing.T) {
+              t.Fatal("oh no")
+          }]],
+      },
+    }
+    teardowns:add(teardown)
+
+    local select_items, select_prompt, select_callback
+    local stubbed_select_if_required = stub(input, 'select_if_required', function(items, prompt, callback)
+      select_items, select_prompt, select_callback = items, prompt, callback
+    end)
+
+    local popup_cmd, popup_args
+    local stubbed_popup = stub(runners, 'popup', function(cmd, args)
+      popup_cmd, popup_args = cmd, args
+    end)
+
+    -- GIVEN we're editing a test file and the cursor is inside a test function
+    vim.cmd('edit ' .. root .. '/foo/foo_test.go')
+    vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
+
+    -- WHEN we call test_under_cursor
+    please.test_under_cursor()
+
+    -- THEN we're prompted to select which target to test if required
+    assert.are.same({ '//foo:test' }, select_items, 'incorrect select items')
+    assert.are.equal('Select target to test', select_prompt, 'incorrect select prompt')
+
+    select_callback '//foo:test'
+    -- AND the test function under the cursor is tested in a popup
+    assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
+    assert.are.same(
+      { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', '--rerun', '//foo:test', 'TestFails' },
       popup_args,
       'incorrect args passed to popup'
     )

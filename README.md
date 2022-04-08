@@ -4,9 +4,10 @@ NeoVim. The aim is to achieve feature parity (and beyond) with [please-vscode](h
 
 ## Features
 Currently implemented features of please.nvim are:
-- jump to the build target of the current file (`:Please jump_to_target`)
-- build the target of the current file (`:Please build_target`)
-- test the current file (`:Please test_file`)
+- jump to the build target of the current file (`Please jump_to_target`)
+- build the target of the current file (`Please build_target`)
+- test the current file (`Please test_file`)
+- run the test under the cursor (`Please test_under_cursor`)
 
 
 ## Getting started
@@ -46,14 +47,16 @@ Lua:
 ```lua
 vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
 vim.keymap.set('n', '<leader>pb', require("please").build_target, { silent = true })
-vim.keymap.set('n', '<leader>pt', require("please").test_file, { silent = true })
+vim.keymap.set('n', '<leader>ptf', require("please").test_file, { silent = true })
+vim.keymap.set('n', '<leader>ptc', require("please").test_under_cursor, { silent = true })
 ```
 
 VimL:
 ```viml
 nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
 nnoremap <leader>pb silent <cmd>Please build_target<cr>
-nnoremap <leader>pt silent <cmd>Please test_file<cr>
+nnoremap <leader>ptf silent <cmd>Please test_file<cr>
+nnoremap <leader>ptc silent <cmd>Please test_under_cursor<cr>
 ```
 
 ### Documentation

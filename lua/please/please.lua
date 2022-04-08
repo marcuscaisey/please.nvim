@@ -1,5 +1,5 @@
 local query = require 'please.query'
-local targets = require 'please.targets'
+local parsing = require 'please.parsing'
 local runners = require 'please.runners'
 local input = require 'please.input'
 
@@ -20,6 +20,8 @@ local please = {}
 ---targets except for those with names which are generated when the BUILD file is executed.
 please.jump_to_target = function()
   local filepath = vim.fn.expand '%:p'
+  -- TODO: use assert to simplify these foo, err = func(<args>) calls and then catch and log in a decorating func like
+  -- log_errors
   local root, err = query.reporoot(filepath)
   if err then
     print(err)
@@ -31,7 +33,7 @@ please.jump_to_target = function()
     return
   end
   input.select_if_required(labels, 'Select target to jump to', function(label)
-    local target_filepath, line, col, err = targets.locate_build_target(root, label)
+    local target_filepath, line, col, err = parsing.locate_build_target(root, label)
     if err then
       print(err)
       return
@@ -74,6 +76,37 @@ please.test_file = function()
   end
   input.select_if_required(labels, 'Select target to test', function(label)
     runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', label })
+  end)
+end
+
+---Runs the test under the cursor.
+---
+---Supported languages:
+---- Go
+---  - regular go test functions (not subtests)
+---  - testify suite test methods
+please.test_under_cursor = function()
+  local filepath = vim.fn.expand '%:p'
+  local root, err = query.reporoot(filepath)
+  if err then
+    print(err)
+    return
+  end
+  local labels, err = query.whatinputs(root, filepath)
+  if err then
+    print(err)
+    return
+  end
+  local test_name, err = parsing.get_test_at_cursor()
+  if err then
+    print(err)
+    return
+  end
+  input.select_if_required(labels, 'Select target to test', function(label)
+    runners.popup(
+      'plz',
+      { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', '--rerun', label, test_name }
+    )
   end)
 end
 
