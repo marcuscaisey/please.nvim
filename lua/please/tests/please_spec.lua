@@ -89,7 +89,7 @@ describe('build_target', function()
     -- AND the target is built in a popup
     assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
     assert.are.same(
-      { '--repo_root', root, '--verbosity', 'info', 'build', '//:foo' },
+      { '--repo_root', root, '--interactive_output', 'build', '//:foo' },
       popup_args,
       'incorrect args passed to popup'
     )
