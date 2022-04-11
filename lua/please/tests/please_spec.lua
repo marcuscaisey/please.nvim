@@ -136,7 +136,7 @@ describe('test_file', function()
     -- AND the target is tested in a popup
     assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
     assert.are.same(
-      { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', '//:foo' },
+      { '--repo_root', root, '--interactive_output', '--colour', 'test', '//:foo' },
       popup_args,
       'incorrect args passed to popup'
     )
@@ -197,7 +197,7 @@ describe('test_under_cursor', function()
     -- AND the test function under the cursor is tested in a popup
     assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
     assert.are.same(
-      { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', '//foo:test', 'TestFails' },
+      { '--repo_root', root, '--interactive_output', '--colour', 'test', '//foo:test', 'TestFails' },
       popup_args,
       'incorrect args passed to popup'
     )
