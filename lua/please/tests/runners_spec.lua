@@ -101,16 +101,29 @@ describe('popup', function()
     assert_win_lines({ 'stdout', 'stderr' }, popup_winnr)
   end)
 
-  it('should exit the popup when q is pressed', function()
+  it('should close when q is pressed', function()
     local cmd = 'ls'
     local args = {}
 
     runners.popup(cmd, args)
-    wait_for_new_win()
+    local popup_winnr = wait_for_new_win()
 
     vim.api.nvim_feedkeys('q', 'x', false)
 
     wait_for_win(start_winnr)
+    assert.is_false(vim.api.nvim_win_is_valid(popup_winnr), 'expected popup window to not be valid')
+  end)
+
+  it('should close when focus is lost', function()
+    local cmd = 'ls'
+    local args = {}
+
+    runners.popup(cmd, args)
+    local popup_winnr = wait_for_new_win()
+
+    vim.api.nvim_set_current_win(start_winnr)
+
+    assert.is_false(vim.api.nvim_win_is_valid(popup_winnr), 'expected popup window to not be valid')
   end)
 
   it('should kill the running command when q is pressed', function()
@@ -123,6 +136,23 @@ describe('popup', function()
     vim.api.nvim_feedkeys('q', 'x', false)
 
     wait_for_win(start_winnr)
+    -- If the command is still running, then it should keep outputting to the popup which now doesn't exist, resulting
+    -- in errors. We do some waiting here to give it a chance to actually output some stuff before the test finishes.
+    vim.wait(1000, function()
+      return false
+    end)
+  end)
+
+  it('should kill the running command when focus is lost', function()
+    local cmd = 'bash'
+    local args = { '-c', 'for i in $(seq 1 1000); do echo line $i && sleep 0.1; done' }
+
+    runners.popup(cmd, args)
+    local popup_winnr = wait_for_new_win()
+
+    vim.api.nvim_set_current_win(start_winnr)
+
+    assert.is_false(vim.api.nvim_win_is_valid(popup_winnr), 'expected popup window to not be valid')
     -- If the command is still running, then it should keep outputting to the popup which now doesn't exist, resulting
     -- in errors. We do some waiting here to give it a chance to actually output some stuff before the test finishes.
     vim.wait(1000, function()
