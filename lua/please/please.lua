@@ -103,10 +103,7 @@ please.test_under_cursor = function()
     return
   end
   input.select_if_required(labels, 'Select target to test', function(label)
-    runners.popup(
-      'plz',
-      { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', '--rerun', label, test_name }
-    )
+    runners.popup('plz', { '--repo_root', root, '--verbosity', 'info', '--colour', 'test', label, test_name })
   end)
 end
 
