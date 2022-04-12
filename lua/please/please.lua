@@ -57,7 +57,7 @@ please.build_target = function()
     return
   end
   input.select_if_required(labels, 'Select target to build', function(label)
-    runners.popup('plz', { '--repo_root', root, '--interactive_output', 'build', label })
+    runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'build', label })
   end)
 end
 
