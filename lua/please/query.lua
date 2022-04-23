@@ -3,6 +3,13 @@ local Job = require 'plenary.job'
 
 local query = {}
 
+-- strips stuff from the begining of the please error message like '16:31:10.793 CRITICAL:' or 'Error:'
+local strip_plz_err_prefix = function(err)
+  err = err:gsub('^%d+:%d+:%d+%.%d+ %u+: ', '')
+  err = err:gsub('^Error: ', '')
+  return err
+end
+
 ---Wrapper around plz query reporoot which returns the root of the repo that the given path is in.
 ---@param path string: an absolute path
 ---@return string: an absolute path
@@ -25,7 +32,7 @@ query.reporoot = function(path)
   }
   local stdout, code = job:sync()
   if code ~= 0 then
-    return nil, table.concat(job:stderr_result(), '\n')
+    return nil, strip_plz_err_prefix(table.concat(job:stderr_result(), '\n'))
   end
 
   local root = vim.fn.resolve(stdout[1])
@@ -65,12 +72,12 @@ query.whatinputs = function(root, filepath)
   }
   local stdout, code = job:sync()
   if code ~= 0 then
-    return nil, table.concat(job:stderr_result(), '\n')
+    return nil, strip_plz_err_prefix(table.concat(job:stderr_result(), '\n'))
   end
 
   -- whatinputs can exit with a 0 even if it errors so check the first line looks like a build label
   if not stdout[1]:match '^//' then
-    return nil, stdout[1]
+    return nil, strip_plz_err_prefix(stdout[1])
   end
 
   return stdout, nil
