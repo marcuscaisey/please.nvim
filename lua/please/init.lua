@@ -28,7 +28,7 @@
 ---
 --- Available Commands~<br>
 --- jump_to_target : jump to the build target of the current file<br>
---- build_target : build the target of the current file<br>
+--- build : build the target of the current file<br>
 --- test_file : test the current file<br>
 --- test_under_cursor : run the test under the cursor
 ---
@@ -45,7 +45,7 @@
 --- Lua:
 --- <code>
 ---   vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
----   vim.keymap.set('n', '<leader>pb', require("please").build_target, { silent = true })
+---   vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
 ---   vim.keymap.set('n', '<leader>ptf', require("please").test_file, { silent = true })
 ---   vim.keymap.set('n', '<leader>ptc', require("please").test_under_cursor, { silent = true })
 --- </code>
@@ -53,7 +53,7 @@
 --- VimL:
 --- <code>
 ---   nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
----   nnoremap <leader>pb silent <cmd>Please build_target<cr>
+---   nnoremap <leader>pb silent <cmd>Please build<cr>
 ---   nnoremap <leader>ptf silent <cmd>Please test_file<cr>
 ---   nnoremap <leader>ptc silent <cmd>Please test_under_cursor<cr>
 --- </code>
@@ -63,7 +63,7 @@ local please = require 'please.please'
 
 return {
   jump_to_target = please.jump_to_target,
-  build_target = please.build_target,
+  build = please.build,
   test_file = please.test_file,
   test_under_cursor = please.test_under_cursor,
 }

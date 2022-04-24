@@ -47,7 +47,7 @@ please.jump_to_target = logging.log_errors(function()
 end)
 
 ---Builds the target which takes the current file as an input.
-please.build_target = logging.log_errors(function()
+please.build = logging.log_errors(function()
   local filepath = vim.fn.expand '%:p'
   if filepath == '' then
     return
