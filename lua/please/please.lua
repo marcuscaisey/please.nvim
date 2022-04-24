@@ -6,9 +6,9 @@ local logging = require 'please.logging'
 ---@tag please-commands
 
 ---@brief [[
---- When using a command which involves the build target of the current file, there may be multiple targets found if the
---- file is referenced in multiple places. In such cases, you'll be prompted for which one to use. This prompt uses
---- |vim.ui.select()| which allows you to customise the appearance to your taste (see
+--- When using a command which involves the build target which takes the current file as an input, there may be multiple
+--- targets found if the file is referenced in multiple places. In such cases, you'll be prompted for which one to use.
+--- This prompt uses |vim.ui.select()| which allows you to customise the appearance to your taste (see
 --- https://github.com/stevearc/dressing.nvim and |lua-ui|).
 ---@brief ]]
 
@@ -24,7 +24,7 @@ local run_with_selected = function(options, prompt, func)
   end
 end
 
----Jumps to the location of the build target of the current file.
+---Jumps to the location of the build target which takes the current file as an input.
 ---
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
 ---targets except for those with names which are generated when the BUILD file is executed.
@@ -46,7 +46,7 @@ please.jump_to_target = logging.log_errors(function()
   )
 end)
 
----Builds the target of the current file.
+---Builds the target which takes the current file as an input.
 please.build_target = logging.log_errors(function()
   local filepath = vim.fn.expand '%:p'
   if filepath == '' then
@@ -59,7 +59,7 @@ please.build_target = logging.log_errors(function()
   end)
 end)
 
----Tests the current file.
+---Tests the target which takes the current file as an input.
 please.test_file = logging.log_errors(function()
   local filepath = vim.fn.expand '%:p'
   if filepath == '' then
@@ -72,7 +72,7 @@ please.test_file = logging.log_errors(function()
   end)
 end)
 
----Runs the test under the cursor.
+---Runs the test under the cursor in the target which takes the current file as an input.
 ---
 ---Supported languages:
 ---- Go

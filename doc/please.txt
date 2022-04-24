@@ -60,14 +60,15 @@ VimL:
 ================================================================================
                                                                *please-commands*
 
-When using a command which involves the build target of the current file, there
-may be multiple targets found if the file is referenced in multiple places. In
-such cases, you'll be prompted for which one to use. This prompt uses
-|vim.ui.select()| which allows you to customise the appearance to your taste
-(see https://github.com/stevearc/dressing.nvim and |lua-ui|).
+When using a command which involves the build target which takes the current
+file as an input, there may be multiple targets found if the file is referenced
+in multiple places. In such cases, you'll be prompted for which one to use.
+This prompt uses |vim.ui.select()| which allows you to customise the appearance
+to your taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
 please.jump_to_target()                              *please.jump_to_target()*
-    Jumps to the location of the build target of the current file.
+    Jumps to the location of the build target which takes the current file as
+    an input.
 
     The cursor will be moved to where the build target is created if it can be
     found which should be the case for all targets except for those with names
@@ -76,17 +77,18 @@ please.jump_to_target()                              *please.jump_to_target()*
 
 
 please.build_target()                                  *please.build_target()*
-    Builds the target of the current file.
+    Builds the target which takes the current file as an input.
 
 
 
 please.test_file()                                        *please.test_file()*
-    Tests the current file.
+    Tests the target which takes the current file as an input.
 
 
 
 please.test_under_cursor()                        *please.test_under_cursor()*
-    Runs the test under the cursor.
+    Runs the test under the cursor in the target which takes the current file
+    as an input.
 
     Supported languages:
     - Go
