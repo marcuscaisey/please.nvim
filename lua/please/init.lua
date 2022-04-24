@@ -46,16 +46,14 @@
 --- <code>
 ---   vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
 ---   vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
----   vim.keymap.set('n', '<leader>ptf', require("please").test, { silent = true })
----   vim.keymap.set('n', '<leader>ptc', require("please").test_under_cursor, { silent = true })
+---   vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
 --- </code>
 ---
 --- VimL:
 --- <code>
 ---   nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
 ---   nnoremap <leader>pb silent <cmd>Please build<cr>
----   nnoremap <leader>ptf silent <cmd>Please test<cr>
----   nnoremap <leader>ptc silent <cmd>Please test_under_cursor<cr>
+---   nnoremap <leader>pt silent <cmd>Please test<cr>
 --- </code>
 ---@brief ]]
 
