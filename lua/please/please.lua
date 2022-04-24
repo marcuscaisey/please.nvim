@@ -60,7 +60,7 @@ please.build = logging.log_errors(function()
 end)
 
 ---Tests the target which takes the current file as an input.
-please.test_file = logging.log_errors(function()
+please.test = logging.log_errors(function()
   local filepath = vim.fn.expand '%:p'
   if filepath == '' then
     return
