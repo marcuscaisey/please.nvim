@@ -1,7 +1,6 @@
 local query = require 'please.query'
 local parsing = require 'please.parsing'
 local runners = require 'please.runners'
-local input = require 'please.input'
 local logging = require 'please.logging'
 
 ---@tag please-commands
@@ -15,6 +14,16 @@ local logging = require 'please.logging'
 
 local please = {}
 
+local run_with_selected = function(options, prompt, func)
+  if #options > 1 then
+    vim.ui.select(options, { prompt = prompt }, function(selected)
+      func(selected)
+    end)
+  else
+    func(options[1])
+  end
+end
+
 ---Jumps to the location of the build target of the current file.
 ---
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
@@ -26,7 +35,7 @@ please.jump_to_target = logging.log_errors(function()
   end
   local root = assert(query.reporoot(filepath))
   local labels = assert(query.whatinputs(root, filepath))
-  input.select_if_required(
+  run_with_selected(
     labels,
     'Select target to jump to',
     logging.log_errors(function(label)
@@ -45,7 +54,7 @@ please.build_target = logging.log_errors(function()
   end
   local root = assert(query.reporoot(filepath))
   local labels = assert(query.whatinputs(root, filepath))
-  input.select_if_required(labels, 'Select target to build', function(label)
+  run_with_selected(labels, 'Select target to build', function(label)
     runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'build', label })
   end)
 end)
@@ -58,7 +67,7 @@ please.test_file = logging.log_errors(function()
   end
   local root = assert(query.reporoot(filepath))
   local labels = assert(query.whatinputs(root, filepath))
-  input.select_if_required(labels, 'Select target to test', function(label)
+  run_with_selected(labels, 'Select target to test', function(label)
     runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label })
   end)
 end)
@@ -77,7 +86,7 @@ please.test_under_cursor = logging.log_errors(function()
   local root = assert(query.reporoot(filepath))
   local labels = assert(query.whatinputs(root, filepath))
   local test_name = assert(parsing.get_test_at_cursor())
-  input.select_if_required(labels, 'Select target to test', function(label)
+  run_with_selected(labels, 'Select target to test', function(label)
     runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label, test_name })
   end)
 end)
