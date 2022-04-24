@@ -21,6 +21,9 @@ local please = {}
 ---targets except for those with names which are generated when the BUILD file is executed.
 please.jump_to_target = logging.log_errors(function()
   local filepath = vim.fn.expand '%:p'
+  if filepath == '' then
+    return
+  end
   local root = assert(query.reporoot(filepath))
   local labels = assert(query.whatinputs(root, filepath))
   input.select_if_required(
@@ -37,6 +40,9 @@ end)
 ---Builds the target of the current file.
 please.build_target = logging.log_errors(function()
   local filepath = vim.fn.expand '%:p'
+  if filepath == '' then
+    return
+  end
   local root = assert(query.reporoot(filepath))
   local labels = assert(query.whatinputs(root, filepath))
   input.select_if_required(labels, 'Select target to build', function(label)
@@ -47,6 +53,9 @@ end)
 ---Tests the current file.
 please.test_file = logging.log_errors(function()
   local filepath = vim.fn.expand '%:p'
+  if filepath == '' then
+    return
+  end
   local root = assert(query.reporoot(filepath))
   local labels = assert(query.whatinputs(root, filepath))
   input.select_if_required(labels, 'Select target to test', function(label)
@@ -62,6 +71,9 @@ end)
 ---  - testify suite test methods
 please.test_under_cursor = logging.log_errors(function()
   local filepath = vim.fn.expand '%:p'
+  if filepath == '' then
+    return
+  end
   local root = assert(query.reporoot(filepath))
   local labels = assert(query.whatinputs(root, filepath))
   local test_name = assert(parsing.get_test_at_cursor())
