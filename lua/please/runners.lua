@@ -29,7 +29,10 @@ runners.popup = function(cmd, args)
       -- we can still be outputting from the command after it's been shut down, so we need to check before we send on a
       -- potentially closed channel
       if not is_shutdown then
-        vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+        -- Prepend everything with the style reset sequence to get rid of any residual styling from a previous line. If
+        -- there are any ANSI sequences in the line, then they'll just "override" the reset and still work. Potentially
+        -- could do this on just stdout since that seems to be the only place affected by styles from previous lines.
+        vim.api.nvim_chan_send(term_chan_id, '\x1b[0m' .. line .. '\r\n')
       end
     end
   end)
