@@ -22,17 +22,29 @@ runners.popup = function(cmd, args)
 
   local term_chan_id = vim.api.nvim_open_term(bufnr, {})
 
+  -- we can still be outputting from the command after it's been shut down, so we need to check this before we send on a
+  -- potentially closed channel
   local is_shutdown = false
 
-  local outputter = vim.schedule_wrap(function(_, line)
+  local first_stdout_line_written = false
+  local on_stdout = vim.schedule_wrap(function(_, line)
     if line then
-      -- we can still be outputting from the command after it's been shut down, so we need to check before we send on a
-      -- potentially closed channel
       if not is_shutdown then
-        -- Prepend everything with the style reset sequence to get rid of any residual styling from a previous line. If
-        -- there are any ANSI sequences in the line, then they'll just "override" the reset and still work. Potentially
-        -- could do this on just stdout since that seems to be the only place affected by styles from previous lines.
-        vim.api.nvim_chan_send(term_chan_id, '\x1b[0m' .. line .. '\r\n')
+        if not first_stdout_line_written then
+          first_stdout_line_written = true
+          -- please usually outputs these control sequences to reset the text style and clear the screen before printing
+          -- stdout, but they don't seem to be getting output for us...
+          vim.api.nvim_chan_send(term_chan_id, '\x1b[0m\x1b[H\x1b[J')
+        end
+        vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+      end
+    end
+  end)
+
+  local on_stderr = vim.schedule_wrap(function(_, line)
+    if line then
+      if not is_shutdown then
+        vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
       end
     end
   end)
@@ -40,8 +52,8 @@ runners.popup = function(cmd, args)
   local job = Job:new {
     command = cmd,
     args = args,
-    on_stdout = outputter,
-    on_stderr = outputter,
+    on_stdout = on_stdout,
+    on_stderr = on_stderr,
   }
 
   -- move the cursor to the last line so that the output automatically scrolls
