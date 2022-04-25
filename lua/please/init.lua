@@ -65,5 +65,6 @@ return {
   jump_to_target = please.jump_to_target,
   build = please.build,
   test = please.test,
+  run = please.run,
   test_under_cursor = please.test_under_cursor,
 }

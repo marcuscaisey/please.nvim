@@ -72,6 +72,19 @@ please.test = logging.log_errors(function()
   end)
 end)
 
+---Runs the target which takes the current file as an input.
+please.run = logging.log_errors(function()
+  local filepath = vim.fn.expand '%:p'
+  if filepath == '' then
+    return
+  end
+  local root = assert(query.reporoot(filepath))
+  local labels = assert(query.whatinputs(root, filepath))
+  run_with_selected(labels, 'Select target to test', function(label)
+    runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'run', label })
+  end)
+end)
+
 ---Runs the test under the cursor in the target which takes the current file as an input.
 ---
 ---Supported languages:
