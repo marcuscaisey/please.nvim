@@ -6,29 +6,70 @@ local parsing = require 'please.parsing'
 local teardowns = TeardownFuncs:new()
 
 describe('locate_build_target', function()
-  it('should return location of a BUILD file in the root of the repo', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
+  local test_cases = {
+    {
+      name = 'should return location of a BUILD file in the root of the repo',
+      tree = {
+        '.plzconfig',
+        BUILD = strings.dedent [[
         export_file(
             name = "foo",
             src = "foo.txt",
         )]],
-      'foo.txt',
-    }
-    teardowns:add(teardown)
-    local label = '//:foo'
-
-    local filepath, _, _, err = parsing.locate_build_target(root, label)
-
-    assert.is_nil(err, 'expected no error')
-    assert.are.equal(root .. '/BUILD', filepath, 'incorrect filepath')
-  end)
-
-  it('should return location of a BUILD file in a child dir of the repo', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      ['foo/'] = {
+        'foo.txt',
+      },
+      label = '//:foo',
+      expected_filepath = 'BUILD',
+    },
+    {
+      name = 'should return location of a BUILD file in a child dir of the repo',
+      tree = {
+        '.plzconfig',
+        ['foo/'] = {
+          BUILD = strings.dedent [[
+          export_file(
+              name = "foo",
+              src = "foo.txt",
+          )]],
+          'foo.txt',
+        },
+      },
+      label = '//foo:foo',
+      expected_filepath = 'foo/BUILD',
+    },
+    {
+      name = 'should return location of a BUILD.plz file',
+      tree = {
+        '.plzconfig',
+        ['BUILD.plz'] = strings.dedent [[
+          export_file(
+              name = "foo",
+              src = "foo.txt",
+          )]],
+        'foo.txt',
+      },
+      label = '//:foo',
+      expected_filepath = 'BUILD.plz',
+    },
+    {
+      name = 'should return error if pkg path exists but BUILD or BUILD.plz file does not',
+      tree = {
+        '.plzconfig',
+        'no_targets/',
+      },
+      label = '//no_targets:target',
+      expected_err = 'no build file exists for package "no_targets"',
+    },
+    {
+      name = 'should return error if pkg path does not exist',
+      tree = { '.plzconfig' },
+      label = '//does/not/exist:target',
+      expected_err = 'no build file exists for package "does/not/exist"',
+    },
+    {
+      name = 'should return line and col for target at the start of a BUILD file',
+      tree = {
+        '.plzconfig',
         BUILD = strings.dedent [[
           export_file(
               name = "foo",
@@ -36,192 +77,132 @@ describe('locate_build_target', function()
           )]],
         'foo.txt',
       },
-    }
-    teardowns:add(teardown)
-    local label = '//foo:foo'
-
-    local filepath, _, _, err = parsing.locate_build_target(root, label)
-
-    assert.is_nil(err, 'expected no error')
-    assert.are.equal(root .. '/foo/BUILD', filepath, 'incorrect filepath')
-  end)
-
-  it('should return location of a BUILD.plz file', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      ['BUILD.plz'] = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      'foo.txt',
-    }
-    teardowns:add(teardown)
-    local label = '//:foo'
-
-    local filepath, _, _, err = parsing.locate_build_target(root, label)
-
-    assert.is_nil(err, 'expected no error')
-    assert.are.equal(root .. '/BUILD.plz', filepath, 'incorrect filepath')
-  end)
-
-  it('should return error if pkg path exists but BUILD or BUILD.plz file does not', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      'no_targets/',
-    }
-    teardowns:add(teardown)
-    local label = '//no_targets:target'
-
-    local filepath, line, col, err = parsing.locate_build_target(root, label)
-
-    assert.is_nil(filepath, 'expected no filepath')
-    assert.is_nil(line, 'expected no line')
-    assert.is_nil(col, 'expected no col')
-    assert.are.equal('no build file exists for package "no_targets"', err)
-  end)
-
-  it('should return error if pkg path does not exist', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-    }
-    teardowns:add(teardown)
-    local label = '//does/not/exist:target'
-
-    local filepath, line, col, err = parsing.locate_build_target(root, label)
-
-    assert.is_nil(filepath, 'expected no filepath')
-    assert.is_nil(line, 'expected no line')
-    assert.is_nil(col, 'expected no col')
-    assert.are.equal('no build file exists for package "does/not/exist"', err)
-  end)
-
-  it('should return line and col for target at the start of a BUILD file', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      'foo.txt',
-    }
-    teardowns:add(teardown)
-    local label = '//:foo'
-
-    local _, line, col, err = parsing.locate_build_target(root, label)
-
-    assert.are.equal(1, line, 'incorrect line')
-    assert.are.equal(1, col, 'incorrect line')
-    assert.is_nil(err, 'expected no error')
-  end)
-
-  it('should return line and col for target in the middle of a BUILD file', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "foo1",
-            src = "foo1.txt",
-        )
-
-        export_file(
-            name = "foo2",
-            src = "foo2.txt",
-        )]],
-      'foo1.txt',
-      'foo2.txt',
-    }
-    teardowns:add(teardown)
-    local label = '//:foo2'
-
-    local _, line, col, err = parsing.locate_build_target(root, label)
-
-    assert.are.equal(6, line, 'incorrect line')
-    assert.are.equal(1, col, 'incorrect line')
-    assert.is_nil(err, 'expected no error')
-  end)
-
-  it('should return line and col for target which is indented', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
+      label = '//:foo',
+      expected_line = 1,
+      expected_col = 1,
+    },
+    {
+      name = 'should return line and col for target in the middle of a BUILD file',
+      tree = {
+        '.plzconfig',
+        BUILD = strings.dedent [[
           export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      'foo.txt',
-    }
-    teardowns:add(teardown)
-    local label = '//:foo'
+              name = "foo1",
+              src = "foo1.txt",
+          )
 
-    local _, line, col, err = parsing.locate_build_target(root, label)
+          export_file(
+              name = "foo2",
+              src = "foo2.txt",
+          )]],
+        'foo1.txt',
+        'foo2.txt',
+      },
+      label = '//:foo2',
+      expected_line = 6,
+      expected_col = 1,
+    },
+    {
+      name = 'should return line and col for target which is indented',
+      tree = {
+        '.plzconfig',
+        BUILD = strings.dedent [[
+            export_file(
+              name = "foo",
+              src = "foo.txt",
+          )]],
+        'foo.txt',
+      },
+      label = '//:foo',
+      expected_line = 1,
+      expected_col = 3,
+    },
+    {
+      name = 'should return first line and column if target cannot be found in BUILD file',
+      tree = {
+        '.plzconfig',
+        BUILD = strings.dedent [[
+          export_file(
+              name = "not_foo",
+              src = "foo.txt",
+          )]],
+        'foo.txt',
+      },
+      label = '//:foo',
+      expected_line = 1,
+      expected_col = 1,
+    },
+    {
+      name = 'should raise error if root is not absolute',
+      root = 'repo',
+      label = '//foo:foo',
+      raises_error = true,
+      expected_err = 'root must be absolute, got "repo"',
+    },
+    {
+      name = 'should raise error if label is relative',
+      root = '/tmp/root',
+      label = ':foo',
+      raises_error = true,
+      expected_err = 'label must be in //path/to/pkg:target format, got ":foo"',
+    },
+    {
+      name = 'should raise error if label does not have target',
+      root = '/tmp/root',
+      label = '//foo',
+      raises_error = true,
+      expected_err = 'label must be in //path/to/pkg:target format, got "//foo"',
+    },
+    {
+      name = 'should raise error if label is not a build label',
+      root = '/tmp/root',
+      label = 'foo',
+      raises_error = true,
+      expected_err = 'label must be in //path/to/pkg:target format, got "foo"',
+    },
+  }
 
-    assert.are.equal(1, line, 'incorrect line')
-    assert.are.equal(3, col, 'incorrect line')
-    assert.is_nil(err, 'expected no error')
-  end)
+  for _, case in ipairs(test_cases) do
+    it(case.name, function()
+      if case.raises_error then
+        assert.has_error(function()
+          parsing.locate_build_target(case.root, case.label)
+        end, case.expected_error, 'incorrect error')
+        return
+      end
 
-  it('should return first line and column if target cannot be found in BUILD file', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "not_foo",
-            src = "foo.txt",
-        )]],
-      'foo.txt',
-    }
-    teardowns:add(teardown)
-    local label = '//:foo'
+      local root, teardown = temptree.create_temp_tree(case.tree)
+      teardowns:add(teardown)
 
-    local _, line, col, err = parsing.locate_build_target(root, label)
+      local filepath, line, col, err = parsing.locate_build_target(root, case.label)
 
-    assert.are.equal(1, line, 'incorrect line')
-    assert.are.equal(1, col, 'incorrect line')
-    assert.is_nil(err, 'expected no error')
-  end)
+      if case.expected_filepath then
+        assert.are.equal(root .. '/' .. case.expected_filepath, filepath, 'incorrect filepath')
+      end
 
-  it('should raise error if root is not absolute', function()
-    local root = 'repo'
-    local label = '//foo:foo'
+      if case.expected_line then
+        assert.are.equal(case.expected_line, line, 'incorrect line')
+      end
 
-    assert.has_error(function()
-      parsing.locate_build_target(root, label)
-    end, 'root must be absolute, got "repo"')
-  end)
+      if case.expected_col then
+        assert.are.equal(case.expected_col, col, 'incorrect col')
+      end
 
-  it('should raise error if label is relative', function()
-    local root = '/tmp/root'
-    local label = ':foo'
-
-    assert.has_error(function()
-      parsing.locate_build_target(root, label)
-    end, 'label must be in //path/to/pkg:target format, got ":foo"')
-  end)
-
-  it('should raise error if label does not have target', function()
-    local root = '/tmp/root'
-    local label = '//foo'
-
-    assert.has_error(function()
-      parsing.locate_build_target(root, label)
-    end, 'label must be in //path/to/pkg:target format, got "//foo"')
-  end)
-
-  it('should raise error if label is not a build label', function()
-    local root = '/tmp/root'
-    local label = 'foo'
-
-    assert.has_error(function()
-      parsing.locate_build_target(root, label)
-    end, 'label must be in //path/to/pkg:target format, got "foo"')
-  end)
+      if case.expected_err then
+        assert.are.equal(case.expected_err, err, 'incorrect error')
+        assert.is_nil(filepath, 'expected no filepath')
+        assert.is_nil(line, 'expected no line')
+        assert.is_nil(col, 'expected no col')
+      else
+        assert.is_nil(err, 'expected no error')
+      end
+    end)
+  end
 end)
 
 describe('get_test_at_cursor', function()
   local run_tests = function(cases)
-    for _, case in pairs(cases) do
+    for _, case in ipairs(cases) do
       it(case.name, function()
         local root, teardown = temptree.create_temp_tree(case.tree)
         teardowns:add(teardown)
@@ -236,7 +217,7 @@ describe('get_test_at_cursor', function()
         elseif case.raises_error then
           assert.has_error(function()
             parsing.get_test_at_cursor()
-          end, case.expected_err)
+          end, case.expected_err, 'incorrect error')
         elseif case.expected_err then
           local func_name, err = parsing.get_test_at_cursor()
           assert.is_nil(func_name, 'expected no name')
