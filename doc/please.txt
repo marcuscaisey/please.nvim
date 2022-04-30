@@ -27,9 +27,10 @@ For example, jump_to_target can be executed with
 
 Available Commands~
 jump_to_target : jump to the build target of the current file
-build : build the target of the current file
-test : test the current file
-test_under_cursor : run the test under the cursor
+build : build the target which uses the current file
+test : test the target which uses the current file
+run: run the target which uses the current file
+
 
 See |please-commands| for more detailed descriptions of each command.
 
@@ -45,6 +46,7 @@ Lua:
   vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
   vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
   vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
+  vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
 <
 
 VimL:
@@ -52,6 +54,7 @@ VimL:
   nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
   nnoremap <leader>pb silent <cmd>Please build<cr>
   nnoremap <leader>pt silent <cmd>Please test<cr>
+  nnoremap <leader>pr silent <cmd>Please run<cr>
 <
 
 
@@ -81,6 +84,11 @@ please.build()                                                *please.build()*
 
 please.test()                                                  *please.test()*
     Tests the target which takes the current file as an input.
+
+
+
+please.run()                                                    *please.run()*
+    Runs the target which takes the current file as an input.
 
 
 
