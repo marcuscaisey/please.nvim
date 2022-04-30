@@ -21,10 +21,14 @@ local run_with_selected = function(options, prompt, func)
       if not selected then
         return
       end
-      func(selected)
+      logging.log_errors(function()
+        func(selected)
+      end)
     end)
   else
-    func(options[1])
+    logging.log_errors(function()
+      func(options[1])
+    end)
   end
 end
 
@@ -42,15 +46,11 @@ please.jump_to_target = function()
     end
     local root = assert(query.reporoot(filepath))
     local labels = assert(query.whatinputs(root, filepath))
-    run_with_selected(
-      labels,
-      'Select target to jump to',
-      logging.log_errors(function(label)
-        local target_filepath, line, col = assert(parsing.locate_build_target(root, label))
-        vim.cmd('edit ' .. target_filepath)
-        vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
-      end)
-    )
+    run_with_selected(labels, 'Select target to jump to', function(label)
+      local target_filepath, line, col = assert(parsing.locate_build_target(root, label))
+      vim.cmd('edit ' .. target_filepath)
+      vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
+    end)
   end)
 end
 

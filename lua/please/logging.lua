@@ -69,7 +69,7 @@ end
 M.log_errors = function(f)
   local ok, err = pcall(f)
   if not ok then
-    if M.debug then
+    if debug then
       M.error(err)
       return
     end
