@@ -9,7 +9,7 @@ end
 ---
 ---*Before*
 ---```
----local get_baz = function(foo)
+---local print_baz = function(foo)
 ---  local bar, err = get_bar(foo)
 ---  if err then
 ---    print(err)
@@ -20,17 +20,19 @@ end
 ---    print(err)
 ---    return
 ---  end
----  return baz
+---  print(baz)
 ---end
 ---```
 ---
 ---*After*
 ---```
----local get_baz = logging.log_errors(function(foo)
----  local bar = assert(get_bar(foo))
----  local baz = assert(get_baz(bar))
----  return baz
----end)
+---local get_baz = function(foo)
+---  logging.log_errors(function()
+---    local bar = assert(get_bar(foo))
+---    local baz = assert(get_baz(bar))
+---    print(baz)
+---  end)
+---end
 ---```
 ---@param f function
 ---@return function
@@ -40,11 +42,9 @@ M.log_errors = function(f)
     return err:match '.-:%d+: (.+)'
   end
 
-  return function(...)
-    local ok, err = xpcall(f, err_msg_handler, ...)
-    if not ok then
-      M.error(err)
-    end
+  local ok, err = xpcall(f, err_msg_handler)
+  if not ok then
+    M.error(err)
   end
 end
 
