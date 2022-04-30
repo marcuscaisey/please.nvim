@@ -52,7 +52,7 @@ vim.keymap.set('n', '<leader>pr', require("please").test, { silent = true })
 ```
 
 VimL:
-```viml
+```vim
 nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
 nnoremap <leader>pb silent <cmd>Please build<cr>
 nnoremap <leader>pt silent <cmd>Please test<cr>

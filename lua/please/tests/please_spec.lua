@@ -109,10 +109,8 @@ describe('test', function()
 
     stubbed_popup:revert()
   end)
-end)
 
-describe('test_under_cursor', function()
-  it('should run test under the cursor', function()
+  it('should run test under the cursor when under_cursor=true', function()
     local root, teardown = temptree.create_temp_tree {
       '.plzconfig',
       ['foo/'] = {
@@ -147,7 +145,7 @@ describe('test_under_cursor', function()
     vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
 
     -- WHEN we call test_under_cursor
-    please.test_under_cursor()
+    please.test { under_cursor = true }
 
     -- THEN the test function under the cursor is tested in a popup
     assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
@@ -160,6 +158,8 @@ describe('test_under_cursor', function()
     stubbed_popup:revert()
   end)
 end)
+
+describe('test_under_cursor', function() end)
 
 describe('run', function()
   it('should run target which uses file as input in a popup', function()

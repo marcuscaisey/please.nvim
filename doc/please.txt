@@ -94,9 +94,21 @@ please.build()                                                *please.build()*
 
 
 
-please.test()                                                  *please.test()*
+please.test({opts})                                            *please.test()*
     Tests the target which takes the current file as an input.
 
+    Optionally, you can specify that only the test function which is under the
+    cursor should be run. This is supported for the following languages:
+    - Go
+     - regular go test functions (not subtests)
+     - testify suite test methods
+
+
+    Parameters: ~
+        {opts} (table)
+
+    Fields: ~
+        {under_cursor} (boolean)  run only the test under the cursor
 
 
 please.run()                                                    *please.run()*
@@ -107,11 +119,6 @@ please.run()                                                    *please.run()*
 please.test_under_cursor()                        *please.test_under_cursor()*
     Runs the test under the cursor in the target which takes the current file
     as an input.
-
-    Supported languages:
-    - Go
-     - regular go test functions (not subtests)
-     - testify suite test methods
 
 
 
