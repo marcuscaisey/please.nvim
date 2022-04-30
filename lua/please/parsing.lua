@@ -2,6 +2,7 @@ local Path = require 'plenary.path'
 local treesitter = require 'vim.treesitter'
 local treesitter_query = require 'vim.treesitter.query'
 local ts_utils = require 'nvim-treesitter.ts_utils'
+local logging = require 'please.logging'
 
 local parsing = {}
 
@@ -50,6 +51,8 @@ end
 ---@return number: the column that the build target definition starts
 ---@return string|nil: error if any, this should be checked before using the other return values
 parsing.locate_build_target = function(root, label)
+  logging.debug(string.format('parsing.locate_build_target called with root=%s, label=%s', root, label))
+
   -- TODO: do this with the plz LSP instead?
   local root_obj = Path:new(root)
   if not root_obj:is_absolute() then
@@ -90,6 +93,8 @@ local supported_test_langs = { 'go' }
 ---@return string
 ---@return string|nil: error if any, this should be checked before using the test name
 parsing.get_test_at_cursor = function()
+  logging.debug 'parsing.get_test_at_cursor called'
+
   if not vim.tbl_contains(supported_test_langs, vim.bo.filetype) then
     error(string.format('finding tests is not supported for %s files', vim.bo.filetype))
   end

@@ -33,6 +33,8 @@ end
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
 ---targets except for those with names which are generated when the BUILD file is executed.
 please.jump_to_target = function()
+  logging.debug 'please.jump_to_target called'
+
   logging.log_errors(function()
     local filepath = vim.fn.expand '%:p'
     if filepath == '' then
@@ -54,6 +56,8 @@ end
 
 ---Builds the target which takes the current file as an input.
 please.build = function()
+  logging.debug 'please.build called'
+
   logging.log_errors(function()
     local filepath = vim.fn.expand '%:p'
     if filepath == '' then
@@ -69,6 +73,8 @@ end
 
 ---Tests the target which takes the current file as an input.
 please.test = function()
+  logging.debug 'please.test called'
+
   logging.log_errors(function()
     local filepath = vim.fn.expand '%:p'
     if filepath == '' then
@@ -84,6 +90,8 @@ end
 
 ---Runs the target which takes the current file as an input.
 please.run = function()
+  logging.debug 'please.run called'
+
   logging.log_errors(function()
     local filepath = vim.fn.expand '%:p'
     if filepath == '' then
@@ -104,6 +112,8 @@ end
 ---  - regular go test functions (not subtests)
 ---  - testify suite test methods
 please.test_under_cursor = function()
+  logging.debug 'please.test_under_cursor called'
+
   logging.log_errors(function()
     local filepath = vim.fn.expand '%:p'
     if filepath == '' then

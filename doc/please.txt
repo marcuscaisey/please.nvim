@@ -57,6 +57,18 @@ VimL:
   nnoremap <leader>pr silent <cmd>Please run<cr>
 <
 
+DEBUGGING                                                   *please-debugging*
+
+Debug logs can be enabled with
+>
+  :Please toggle_debug_logs
+<
+
+This will enable some basic logging about which functions are being called with
+which arguments which should be enough to solve most problems. It will also
+enable showing file / line numbers of error logs.
+
+
 
 ================================================================================
                                                                *please-commands*

@@ -1,11 +1,41 @@
 local M = {}
 
+local debug = false
+
+M.toggle_debug = function()
+  if debug then
+    M.info 'debug logs disabled'
+    debug = false
+  else
+    M.info 'debug logs enabled'
+    debug = true
+  end
+end
+
+local format_log = function(msg)
+  return string.format('[please.nvim]: %s', msg)
+end
+
+-- TODO: use vim.notify for logging? that handles something to do with logging levels, not sure what effect they have
+-- though
+
+M.debug = function(msg)
+  if debug then
+    print(format_log(msg))
+  end
+end
+
+M.info = function(msg)
+  print(format_log(msg))
+end
+
 M.error = function(msg)
-  vim.api.nvim_err_writeln(string.format('[please.nvim]: %s', msg))
+  vim.api.nvim_err_writeln(format_log(msg))
 end
 
 ---Wraps a function and logs any errors raised inside it. Intended to be used in combination with assert to clean up
----repetitive error handling.
+---repetitive error handling. If debug logs are enabled, then the file and line number of the error are also included in
+---the log.
 ---
 ---*Before*
 ---```
@@ -37,14 +67,15 @@ end
 ---@param f function
 ---@return function
 M.log_errors = function(f)
-  -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
-  local err_msg_handler = function(err)
-    return err:match '.-:%d+: (.+)'
-  end
-
-  local ok, err = xpcall(f, err_msg_handler)
+  local ok, err = pcall(f)
   if not ok then
-    M.error(err)
+    if M.debug then
+      M.error(err)
+      return
+    end
+    -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
+    local user_msg = err:match '.-:%d+: (.+)'
+    M.error(user_msg)
   end
 end
 

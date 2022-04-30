@@ -1,5 +1,6 @@
 local Job = require 'plenary.job'
 local popup = require 'plenary.popup'
+local logging = require 'please.logging'
 
 local runners = {}
 
@@ -17,6 +18,8 @@ end
 ---@param cmd string: Command to run.
 ---@param args string[]: Args to pass to the command.
 runners.popup = function(cmd, args)
+  logging.debug(string.format('runners.popup called with cmd=%s, args=%s', cmd, vim.inspect(args)))
+
   local width = 0.8
   local height = 0.8
   local term_win_opts = {

@@ -57,6 +57,19 @@
 ---   nnoremap <leader>pt silent <cmd>Please test<cr>
 ---   nnoremap <leader>pr silent <cmd>Please run<cr>
 --- </code>
+---
+--- <pre>
+--- DEBUGGING                                                   *please-debugging*
+--- </pre>
+---
+--- Debug logs can be enabled with
+--- <code>
+---   :Please toggle_debug_logs
+--- </code>
+---
+--- This will enable some basic logging about which functions are being called with which arguments which should be
+--- enough to solve most problems. It will also enable showing file / line numbers of error logs.
+---
 ---@brief ]]
 
 local please = require 'please.please'
