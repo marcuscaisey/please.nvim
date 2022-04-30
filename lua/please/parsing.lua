@@ -100,7 +100,7 @@ parsing.get_test_at_cursor = function()
   end
   local current_node = ts_utils.get_node_at_cursor()
   local bufnr = vim.api.nvim_get_current_buf()
-  while current_node:parent() do
+  while current_node and current_node:parent() do
     local node_type = current_node:type()
     if node_type == 'function_declaration' or node_type == 'method_declaration' then
       local identifier_node = current_node:field('name')[1] -- there will only be one child called name

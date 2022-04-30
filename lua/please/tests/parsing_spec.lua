@@ -220,164 +220,73 @@ describe('locate_build_target', function()
 end)
 
 describe('get_test_at_cursor', function()
-  it('should raise error if language of file is not supported', function()
-    local root, teardown = temptree.create_temp_tree {
-      ['hello.rb'] = 'puts "Hello, World!"',
-    }
-    teardowns:add(teardown)
-    vim.cmd('edit ' .. root .. '/hello.rb')
+  local run_tests = function(cases)
+    for _, case in pairs(cases) do
+      it(case.name, function()
+        local root, teardown = temptree.create_temp_tree(case.tree)
+        teardowns:add(teardown)
+        vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
 
-    assert.has_error(function()
-      parsing.get_test_at_cursor()
-    end, 'finding tests is not supported for ruby files')
-  end)
+        vim.fn.cursor(case.cursor[1], case.cursor[2])
+
+        if case.expected_name then
+          local func_name, err = parsing.get_test_at_cursor()
+          assert.are.equal(case.expected_name, func_name, 'incorrect name')
+          assert.is_nil(err, 'expected no err')
+        elseif case.raises_error then
+          assert.has_error(function()
+            parsing.get_test_at_cursor()
+          end, case.expected_err)
+        elseif case.expected_err then
+          local func_name, err = parsing.get_test_at_cursor()
+          assert.is_nil(func_name, 'expected no name')
+          assert.are.equal(case.expected_err, err, 'incorrect err')
+        end
+      end)
+    end
+  end
 
   describe('for go', function()
-    local cases = {
-      ['should return name of func if cursor is anywhere inside test func definition'] = {
+    run_tests {
+      {
+        name = 'should return name of func if cursor is inside test func definition',
         tree = {
           ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
             func TestFunc(t *testing.T) {
                 t.Fatal("oh no")
             }]],
         },
-        cursor_range = {
-          start_row = 5,
-          end_row = 7,
-        },
+        cursor = { 2, 4 },
         expected_name = 'TestFunc',
       },
-      ['should return name of method if cursor is anywhere inside testify suite test method definition'] = {
+      {
+        name = 'should return name of method if cursor is inside testify suite test method definition',
         tree = {
           ['foo_test.go'] = strings.dedent [[
-            package foobar_test
-
-            import (
-               "testing"
-
-               "github.com/stretchr/testify/suite"
-            )
-
-            type fooSuite struct {
-                suite.Suite
-            }
-
-            func TestFoo(t *testing.T) {
-                suite.Run(t, &fooSuite{})
-            }
-
             func (s *fooSuite) TestMethod() {
                 s.Fail("oh no")
             }]],
         },
-        cursor_range = {
-          start_row = 17,
-          end_row = 19,
-        },
+        cursor = { 2, 4 },
         expected_name = '/TestMethod',
       },
-      ['should return name of func if there are multiple test funcs in the file'] = {
+      {
+        name = 'should return name of parent test func if cursor is in a subtest',
         tree = {
           ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
-            func TestFuncOne(t *testing.T) {
-                t.Fatal("oh no")
-            }
-
-            func TestFuncTwo(t *testing.T) {
-                t.Fatal("oh no")
-            }]],
-        },
-        cursor = { 10, 7 },
-        expected_name = 'TestFuncTwo',
-      },
-      ['should return name of parent test func if cursor is in a subtest'] = {
-        tree = {
-          ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
             func TestFunc(t *testing.T) {
                 t.Run("SubTest", func(t *testing.T) {
                     t.Fatalf("oh no")
                 })
             }]],
         },
-        cursor = { 7, 11 },
+        cursor = { 3, 8 },
         expected_name = 'TestFunc',
       },
-      ['should return error if cursor is on char before test func definition'] = {
+      {
+        name = 'should return error if func name does not start with Test',
         tree = {
           ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
-             func TestFunc(t *testing.T) {
-                t.Fatal("oh no")
-            }]],
-        },
-        cursor = { 5, 1 },
-        expected_err = 'cursor is not in a test function',
-      },
-      ['should return error if cursor is on line before test func definition'] = {
-        tree = {
-          ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
-            func TestFunc(t *testing.T) {
-                t.Fatal("oh no")
-            }]],
-        },
-        cursor = { 4, 1 },
-        expected_err = 'cursor is not in a test function',
-      },
-      ['should return error if cursor is on char after test func definition'] = {
-        tree = {
-          ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
-            func TestFunc(t *testing.T) {
-                t.Fatal("oh no")
-            } ]],
-        },
-        cursor = { 7, 2 },
-        expected_err = 'cursor is not in a test function',
-      },
-      ['should return error if cursor is on line after test func definition'] = {
-        tree = {
-          ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
-            func TestFunc(t *testing.T) {
-                t.Fatal("oh no")
-            }
-             ]],
-        },
-        cursor = { 8, 1 },
-        expected_err = 'cursor is not in a test function',
-      },
-      ['should return error if func name does not start with Test'] = {
-        tree = {
-          ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
             func Func(t *testing.T) {
                 t.Fatal("oh no")
             }]],
@@ -386,41 +295,46 @@ describe('get_test_at_cursor', function()
         expected_err = 'cursor is not in a test function',
       },
     }
-
-    for name, case in pairs(cases) do
-      it(name, function()
-        local root, teardown = temptree.create_temp_tree(case.tree)
-        teardowns:add(teardown)
-        vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
-
-        if case.cursor_range then
-          for row = case.cursor_range.start_row, case.cursor_range.end_row do
-            local cols = #vim.fn.getline(row)
-            for col = 1, cols do
-              vim.fn.cursor(row, col)
-
-              local func_name, err = parsing.get_test_at_cursor()
-
-              assert.are.equal(case.expected_name, func_name, 'incorrect test func name')
-              assert.is_nil(err, 'expected no err')
-            end
-          end
-        else
-          vim.fn.cursor(case.cursor[1], case.cursor[2])
-
-          local func_name, err = parsing.get_test_at_cursor()
-
-          if case.expected_name then
-            assert.are.equal(case.expected_name, func_name, 'incorrect name')
-            assert.is_nil(err, 'expected no err')
-          else
-            assert.is_nil(func_name, 'expected no name')
-            assert.are.equal(case.expected_err, err, 'incorrect err')
-          end
-        end
-      end)
-    end
   end)
+
+  run_tests {
+    {
+      name = 'should return name of func if there are multiple test funcs in the file',
+      tree = {
+        ['foo_test.go'] = strings.dedent [[
+            func TestFuncOne(t *testing.T) {
+                t.Fatal("oh no")
+            }
+
+            func TestFuncTwo(t *testing.T) {
+                t.Fatal("oh no")
+            }]],
+      },
+      cursor = { 6, 4 },
+      expected_name = 'TestFuncTwo',
+    },
+    {
+      name = 'should return error is outside test func definition',
+      tree = {
+        ['foo_test.go'] = strings.dedent [[
+
+             func TestFunc(t *testing.T) {
+                t.Fatal("oh no")
+            }]],
+      },
+      cursor = { 1, 1 },
+      expected_err = 'cursor is not in a test function',
+    },
+    {
+      name = 'should raise error if language of file is not supported',
+      tree = {
+        ['hello.rb'] = 'puts "Hello, World!"',
+      },
+      cursor = { 1, 1 },
+      raises_error = true,
+      expected_err = 'finding tests is not supported for ruby files',
+    },
+  }
 end)
 
 teardowns:teardown()
