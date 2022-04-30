@@ -17,6 +17,10 @@ local please = {}
 local run_with_selected = function(options, prompt, func)
   if #options > 1 then
     vim.ui.select(options, { prompt = prompt }, function(selected)
+      -- selected is nil if the input is cancelled
+      if not selected then
+        return
+      end
       func(selected)
     end)
   else
