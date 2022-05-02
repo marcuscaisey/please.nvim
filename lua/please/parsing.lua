@@ -36,7 +36,7 @@ end
 -- TODO: should we get these from the .plzconfig? feels like it should be really rare that people change them
 local build_file_names = { 'BUILD', 'BUILD.plz' }
 
--- look for a target in a file and return line, col, and whether it was found
+-- look for a target in a file and return the position (line, col), and whether it was found
 local function find_target_in_file(filepath, target)
   local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
   local parser = treesitter.get_parser(bufnr, 'python')
@@ -46,21 +46,20 @@ local function find_target_in_file(filepath, target)
   for id, node in query:iter_captures(tree:root(), bufnr) do
     local name = query.captures[id]
     if name == 'target' then
-      local line, col = ts_utils.get_vim_range({ node:range() }, bufnr)
-      return line, col, true
+      local start_row, start_col = ts_utils.get_vim_range({ node:range() }, bufnr)
+      return { start_row, start_col }, true
     end
   end
 
-  return nil, nil, false
+  return nil, false
 end
 
 ---Returns the location of a build target. If the location of the target in the BUILD file can't be found (might be
----dynamically created), then line and column will be 1 and 1.
+---dynamically created), then position will be {1, 1}.
 ---@param root string an absolute path to the repo root
 ---@param label string: a build label of the form //path/to/pkg:target
 ---@return string: an absolute path to the BUILD file
----@return number: the line that the build target definition starts
----@return number: the column that the build target definition starts
+---@return number[]: the position that the build target definition starts as a (1, 1)-indexed (line, col) tuple
 ---@return string|nil: error if any, this should be checked before using the other return values
 parsing.locate_build_target = function(root, label)
   logging.debug(string.format('parsing.locate_build_target called with root=%s, label=%s', root, label))
@@ -83,16 +82,16 @@ parsing.locate_build_target = function(root, label)
     local build_path = pkg_path:joinpath(build_file_name)
     if build_path:exists() then
       local filepath = vim.fn.simplify(build_path.filename)
-      local line, col, found = find_target_in_file(filepath, target)
+      local position, found = find_target_in_file(filepath, target)
       if found then
-        return filepath, line, col, nil
+        return filepath, position, nil
       else
-        return filepath, 1, 1, nil
+        return filepath, { 1, 1 }, nil
       end
     end
   end
 
-  return nil, nil, nil, string.format('no build file exists for package "%s"', pkg)
+  return nil, nil, string.format('no build file exists for package "%s"', pkg)
 end
 
 local supported_test_langs = { 'go' }

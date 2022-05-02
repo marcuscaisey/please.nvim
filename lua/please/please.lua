@@ -3,6 +3,7 @@ local query = require 'please.query'
 local parsing = require 'please.parsing'
 local runners = require 'please.runners'
 local logging = require 'please.logging'
+local cursor = require 'please.cursor'
 
 ---@tag please-commands
 
@@ -76,10 +77,9 @@ please.jump_to_target = function()
     local root = assert(query.reporoot(filepath))
     local labels = assert(query.whatinputs(root, filepath))
     run_with_selected(labels, 'Select target to jump to', function(label)
-      local target_filepath, line, col = assert(parsing.locate_build_target(root, label))
+      local target_filepath, position = assert(parsing.locate_build_target(root, label))
       vim.cmd('edit ' .. target_filepath)
-      -- TODO: replace uses of nvim_win_set_cursor / nvim_win_get_cursor and with cursor.set / cursor.get
-      vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
+      cursor.set(position)
     end)
   end)
 end

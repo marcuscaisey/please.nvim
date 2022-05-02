@@ -68,7 +68,7 @@ describe('locate_build_target', function()
       expected_err = 'no build file exists for package "does/not/exist"',
     },
     {
-      name = 'should return line and col for target at the start of a BUILD file',
+      name = 'should return position for target at the start of a BUILD file',
       tree = {
         '.plzconfig',
         BUILD = strings.dedent [[
@@ -79,11 +79,10 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_line = 1,
-      expected_col = 1,
+      expected_position = { 1, 1 },
     },
     {
-      name = 'should return line and col for target in the middle of a BUILD file',
+      name = 'should return position for target in the middle of a BUILD file',
       tree = {
         '.plzconfig',
         BUILD = strings.dedent [[
@@ -100,11 +99,10 @@ describe('locate_build_target', function()
         'foo2.txt',
       },
       label = '//:foo2',
-      expected_line = 6,
-      expected_col = 1,
+      expected_position = { 6, 1 },
     },
     {
-      name = 'should return line and col for target which is indented',
+      name = 'should return position for target which is indented',
       tree = {
         '.plzconfig',
         BUILD = strings.dedent [[
@@ -115,8 +113,7 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_line = 1,
-      expected_col = 3,
+      expected_position = { 1, 3 },
     },
     {
       name = 'should return first line and column if target cannot be found in BUILD file',
@@ -130,8 +127,7 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_line = 1,
-      expected_col = 1,
+      expected_position = { 1, 1 },
     },
     {
       name = 'should raise error if root is not absolute',
@@ -175,25 +171,20 @@ describe('locate_build_target', function()
       local root, teardown = temptree.create_temp_tree(case.tree)
       teardowns:add(teardown)
 
-      local filepath, line, col, err = parsing.locate_build_target(root, case.label)
+      local filepath, position, err = parsing.locate_build_target(root, case.label)
 
       if case.expected_filepath then
         assert.are.equal(root .. '/' .. case.expected_filepath, filepath, 'incorrect filepath')
       end
 
-      if case.expected_line then
-        assert.are.equal(case.expected_line, line, 'incorrect line')
-      end
-
-      if case.expected_col then
-        assert.are.equal(case.expected_col, col, 'incorrect col')
+      if case.expected_position then
+        assert.are.same(case.expected_position, position, 'incorrect position')
       end
 
       if case.expected_err then
         assert.are.equal(case.expected_err, err, 'incorrect error')
         assert.is_nil(filepath, 'expected no filepath')
-        assert.is_nil(line, 'expected no line')
-        assert.is_nil(col, 'expected no col')
+        assert.is_nil(position, 'expected no position')
       else
         assert.is_nil(err, 'expected no error')
       end

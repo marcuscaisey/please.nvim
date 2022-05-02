@@ -36,7 +36,7 @@ describe('jump_to_target', function()
     -- THEN the BUILD file containing the chosen build target for the file is opened
     assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
-    assert.are.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
+    assert.are.same({ 6, 1 }, cursor.get(), 'incorrect cursor position')
   end)
 end)
 
@@ -178,7 +178,7 @@ describe('test', function()
 
     -- GIVEN we're editing a test file and the cursor is inside a test function
     vim.cmd('edit ' .. root .. '/foo/foo_test.go')
-    vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
+    cursor.set { 9, 5 } -- inside body of TestFails
 
     -- WHEN we call test_under_cursor
     please.test { under_cursor = true }
