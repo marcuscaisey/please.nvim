@@ -42,6 +42,28 @@ local get_pkg = function(root, build_file_path)
   return pkg
 end
 
+local run_plz_cmd = function(root, ...)
+  local args = { '--repo_root', root, '--interactive_output', '--colour', ... }
+  runners.popup('plz', args)
+end
+
+local get_build_target_at_cursor = function(root, filepath)
+  local pkg = get_pkg(root, filepath)
+  local target, err = parsing.get_target_at_cursor()
+  if err then
+    return nil, err
+  end
+  return string.format('//%s:%s', pkg, target), nil
+end
+
+local get_filepath = function()
+  local filepath = vim.fn.expand '%:p'
+  if filepath == '' then
+    return nil, 'no file open'
+  end
+  return filepath, nil
+end
+
 ---Jumps to the location of the build target which takes the current file as an input.
 ---
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
@@ -50,15 +72,13 @@ please.jump_to_target = function()
   logging.debug 'please.jump_to_target called'
 
   logging.log_errors(function()
-    local filepath = vim.fn.expand '%:p'
-    if filepath == '' then
-      return
-    end
+    local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
     local labels = assert(query.whatinputs(root, filepath))
     run_with_selected(labels, 'Select target to jump to', function(label)
       local target_filepath, line, col = assert(parsing.locate_build_target(root, label))
       vim.cmd('edit ' .. target_filepath)
+      -- TODO: replace uses of nvim_win_set_cursor / nvim_win_get_cursor and with cursor.set / cursor.get
       vim.api.nvim_win_set_cursor(0, { line, col - 1 }) -- col is 0-indexed
     end)
   end)
@@ -70,22 +90,16 @@ please.build = function()
   logging.debug 'please.build called'
 
   logging.log_errors(function()
-    local filepath = vim.fn.expand '%:p'
-    if filepath == '' then
-      return
-    end
-
+    local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
 
     if vim.bo.filetype == 'please' then
-      local pkg = get_pkg(root, filepath)
-      local target = assert(parsing.get_target_at_cursor())
-      local label = string.format('//%s:%s', pkg, target)
-      runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'build', label })
+      local label = assert(get_build_target_at_cursor(root, filepath))
+      run_plz_cmd(root, 'build', label)
     else
       local labels = assert(query.whatinputs(root, filepath))
       run_with_selected(labels, 'Select target to build', function(label)
-        runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'build', label })
+        run_plz_cmd(root, 'build', label)
       end)
     end
   end)
@@ -107,31 +121,23 @@ please.test = function(opts)
   opts = opts or {}
 
   logging.log_errors(function()
-    local filepath = vim.fn.expand '%:p'
-    if filepath == '' then
-      return
-    end
-
+    local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
 
     if vim.bo.filetype == 'please' then
-      local pkg = get_pkg(root, filepath)
-      local target = assert(parsing.get_target_at_cursor())
-      local label = string.format('//%s:%s', pkg, target)
-      runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label })
+      local label = assert(get_build_target_at_cursor(root, filepath))
+      run_plz_cmd(root, 'test', label)
     else
       local labels = assert(query.whatinputs(root, filepath))
 
+      local test_args = {}
       if opts.under_cursor then
         local test_name = assert(parsing.get_test_at_cursor())
-        run_with_selected(labels, 'Select target to test', function(label)
-          runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label, test_name })
-        end)
-        return
+        test_args = { test_name }
       end
 
       run_with_selected(labels, 'Select target to test', function(label)
-        runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label })
+        run_plz_cmd(root, 'test', label, unpack(test_args))
       end)
     end
   end)
@@ -143,22 +149,16 @@ please.run = function()
   logging.debug 'please.run called'
 
   logging.log_errors(function()
-    local filepath = vim.fn.expand '%:p'
-    if filepath == '' then
-      return
-    end
-
+    local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
 
     if vim.bo.filetype == 'please' then
-      local pkg = get_pkg(root, filepath)
-      local target = assert(parsing.get_target_at_cursor())
-      local label = string.format('//%s:%s', pkg, target)
-      runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'run', label })
+      local label = assert(get_build_target_at_cursor(root, filepath))
+      run_plz_cmd(root, 'run', label)
     else
       local labels = assert(query.whatinputs(root, filepath))
       run_with_selected(labels, 'Select target to test', function(label)
-        runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'run', label })
+        run_plz_cmd(root, 'run', label)
       end)
     end
   end)

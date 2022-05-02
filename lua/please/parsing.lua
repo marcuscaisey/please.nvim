@@ -116,6 +116,7 @@ parsing.get_test_at_cursor = function()
     local node_type = current_node:type()
     if node_type == 'function_declaration' or node_type == 'method_declaration' then
       local identifier_node = current_node:field('name')[1] -- there will only be one child called name
+      -- TODO: replace deprecated get_node_text usage
       local func_name = ts_utils.get_node_text(identifier_node, bufnr)[1] -- there will only be one line
       -- we could also test if it has a single arg like *testing.T but this is probably enough, i think go test shouts
       -- at you if you provide a func starting with Test with the wrong signature anyway
