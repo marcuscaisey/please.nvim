@@ -1,3 +1,5 @@
+-- The plan is to provide multiple runners which accept cmd / args for running commands in different ways like opening
+-- in a new tmux pane or using the in built terminal etc
 local Job = require 'plenary.job'
 local popup = require 'plenary.popup'
 local logging = require 'please.logging'

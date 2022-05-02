@@ -193,9 +193,42 @@ describe('test', function()
 
     stubbed_popup:revert()
   end)
-end)
 
-describe('test_under_cursor', function() end)
+  it('should test target under cursor when in BUILD file', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )]],
+      ['foo.txt'] = 'foo content',
+    }
+    teardowns:add(teardown)
+
+    local popup_cmd, popup_args
+    local stubbed_popup = stub(runners, 'popup', function(cmd, args)
+      popup_cmd, popup_args = cmd, args
+    end)
+
+    -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+    vim.cmd('edit ' .. root .. '/BUILD')
+    cursor.set { 2, 5 }
+
+    -- WHEN we call test
+    please.test()
+
+    -- THEN the target is built in a popup
+    assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
+    assert.are.same(
+      { '--repo_root', root, '--interactive_output', '--colour', 'test', '//:foo' },
+      popup_args,
+      'incorrect args passed to popup'
+    )
+
+    stubbed_popup:revert()
+  end)
+end)
 
 describe('run', function()
   it('should run target which uses file as input in a popup', function()
@@ -222,6 +255,41 @@ describe('run', function()
     please.run()
 
     -- THEN the target is run in a popup
+    assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
+    assert.are.same(
+      { '--repo_root', root, '--interactive_output', '--colour', 'run', '//:foo' },
+      popup_args,
+      'incorrect args passed to popup'
+    )
+
+    stubbed_popup:revert()
+  end)
+
+  it('should run target under cursor when in BUILD file', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )]],
+      ['foo.txt'] = 'foo content',
+    }
+    teardowns:add(teardown)
+
+    local popup_cmd, popup_args
+    local stubbed_popup = stub(runners, 'popup', function(cmd, args)
+      popup_cmd, popup_args = cmd, args
+    end)
+
+    -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+    vim.cmd('edit ' .. root .. '/BUILD')
+    cursor.set { 2, 5 }
+
+    -- WHEN we call run
+    please.run()
+
+    -- THEN the target is built in a popup
     assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
     assert.are.same(
       { '--repo_root', root, '--interactive_output', '--colour', 'run', '//:foo' },

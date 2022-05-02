@@ -90,16 +90,20 @@ please.jump_to_target()                              *please.jump_to_target()*
 
 
 please.build()                                                *please.build()*
-    If in a BUILD file, builds the target which is under the cursor. Otherwise,
-    builds the target which takes the current file as an input
+    If the current file is a BUILD file, builds the target which is under the
+    cursor. Otherwise, builds the target which takes the current file as an
+    input.
 
 
 
 please.test({opts})                                            *please.test()*
-    Tests the target which takes the current file as an input.
+    If the current file is a BUILD file, test the target which is under the
+    cursor. Otherwise, test the target which takes the current file as an
+    input.
 
-    Optionally, you can specify that only the test function which is under the
-    cursor should be run. This is supported for the following languages:
+    Optionally (when in a source file), you can specify that only the test
+    function which is under the cursor should be run. This is supported for the
+    following languages:
     - Go
      - regular go test functions (not subtests)
      - testify suite test methods
@@ -113,13 +117,8 @@ please.test({opts})                                            *please.test()*
 
 
 please.run()                                                    *please.run()*
-    Runs the target which takes the current file as an input.
-
-
-
-please.test_under_cursor()                        *please.test_under_cursor()*
-    Runs the test under the cursor in the target which takes the current file
-    as an input.
+    If the current file is a BUILD file, run the target which is under the
+    cursor. Otherwise, run the target which takes the current file as an input.
 
 
 

@@ -91,10 +91,11 @@ please.build = function()
   end)
 end
 
----Tests the target which takes the current file as an input.
+---If the current file is a BUILD file, test the target which is under the cursor. Otherwise, test the target which
+---takes the current file as an input.
 ---
----Optionally, you can specify that only the test function which is under the cursor should be run. This is supported
----for the following languages:
+---Optionally (when in a source file), you can specify that only the test function which is under the cursor should be
+---run. This is supported for the following languages:
 ---- Go
 ---  - regular go test functions (not subtests)
 ---  - testify suite test methods
@@ -110,24 +111,34 @@ please.test = function(opts)
     if filepath == '' then
       return
     end
+
     local root = assert(query.reporoot(filepath))
-    local labels = assert(query.whatinputs(root, filepath))
 
-    if opts.under_cursor then
-      local test_name = assert(parsing.get_test_at_cursor())
-      run_with_selected(labels, 'Select target to test', function(label)
-        runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label, test_name })
-      end)
-      return
-    end
-
-    run_with_selected(labels, 'Select target to test', function(label)
+    if vim.bo.filetype == 'please' then
+      local pkg = get_pkg(root, filepath)
+      local target = assert(parsing.get_target_at_cursor())
+      local label = string.format('//%s:%s', pkg, target)
       runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label })
-    end)
+    else
+      local labels = assert(query.whatinputs(root, filepath))
+
+      if opts.under_cursor then
+        local test_name = assert(parsing.get_test_at_cursor())
+        run_with_selected(labels, 'Select target to test', function(label)
+          runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label, test_name })
+        end)
+        return
+      end
+
+      run_with_selected(labels, 'Select target to test', function(label)
+        runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'test', label })
+      end)
+    end
   end)
 end
 
----Runs the target which takes the current file as an input.
+---If the current file is a BUILD file, run the target which is under the cursor. Otherwise, run the target which
+---takes the current file as an input.
 please.run = function()
   logging.debug 'please.run called'
 
@@ -136,25 +147,20 @@ please.run = function()
     if filepath == '' then
       return
     end
+
     local root = assert(query.reporoot(filepath))
-    local labels = assert(query.whatinputs(root, filepath))
-    run_with_selected(labels, 'Select target to test', function(label)
+
+    if vim.bo.filetype == 'please' then
+      local pkg = get_pkg(root, filepath)
+      local target = assert(parsing.get_target_at_cursor())
+      local label = string.format('//%s:%s', pkg, target)
       runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'run', label })
-    end)
-  end)
-end
-
----Runs the test under the cursor in the target which takes the current file as an input.
-please.test_under_cursor = function()
-  logging.debug 'please.test_under_cursor called'
-
-  logging.log_errors(function()
-    local filepath = vim.fn.expand '%:p'
-    if filepath == '' then
-      return
+    else
+      local labels = assert(query.whatinputs(root, filepath))
+      run_with_selected(labels, 'Select target to test', function(label)
+        runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'run', label })
+      end)
     end
-    local root = assert(query.reporoot(filepath))
-    local labels = assert(query.whatinputs(root, filepath))
   end)
 end
 
