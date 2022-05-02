@@ -95,7 +95,50 @@ parsing.locate_build_target = function(root, label)
 end
 
 -- TODO: add support for at least python and maybe javascript
-local supported_test_langs = { 'go' }
+local test_name_getters = {
+  go = {
+    test_func = function(node)
+      if node:type() == 'function_declaration' then
+        local identifier_node = node:field('name')[1]
+        local func_name = treesitter_query.get_node_text(identifier_node, 0)
+        if vim.startswith(func_name, 'Test') then
+          return func_name, true
+        end
+      end
+      return nil, false
+    end,
+    testify_suite_method = function(node)
+      if node:type() == 'method_declaration' then
+        local identifier_node = node:field('name')[1]
+        local func_name = treesitter_query.get_node_text(identifier_node, 0)
+        if vim.startswith(func_name, 'Test') then
+          return '/' .. func_name, true
+        end
+      end
+      return nil, false
+    end,
+  },
+  python = {
+    unittest_method = function(node)
+      if node:type() == 'function_definition' then
+        local func_name = treesitter_query.get_node_text(node:field('name')[1], 0)
+        if vim.startswith(func_name, 'test_') then
+          local block = node:parent()
+          if block then
+            local class = block:parent()
+            if class and class:type() == 'class_definition' then
+              local class_name = treesitter_query.get_node_text(class:field('name')[1], 0)
+              if vim.startswith(class_name, 'Test') then
+                return string.format('%s.%s', class_name, func_name), true
+              end
+            end
+          end
+        end
+      end
+      return nil, false
+    end,
+  },
+}
 
 ---Returns the name of the test under the cursor.
 ---Current supported languages are:
@@ -107,18 +150,17 @@ local supported_test_langs = { 'go' }
 parsing.get_test_at_cursor = function()
   logging.debug 'parsing.get_test_at_cursor called'
 
-  if not vim.tbl_contains(supported_test_langs, vim.bo.filetype) then
+  local getters = test_name_getters[vim.bo.filetype]
+  if not getters then
     error(string.format('finding tests is not supported for %s files', vim.bo.filetype))
   end
+
   local current_node = ts_utils.get_node_at_cursor()
-  local bufnr = vim.api.nvim_get_current_buf()
-  while current_node and current_node:parent() do
-    local node_type = current_node:type()
-    if node_type == 'function_declaration' or node_type == 'method_declaration' then
-      local identifier_node = current_node:field('name')[1]
-      local func_name = treesitter_query.get_node_text(identifier_node, bufnr)
-      if func_name:sub(1, 4) == 'Test' then
-        return (node_type == 'method_declaration' and '/' or '') .. func_name
+  while current_node do
+    for _, get_test_name in ipairs(vim.tbl_values(getters)) do
+      local test_name, ok = get_test_name(current_node)
+      if ok then
+        return test_name, nil
       end
     end
     current_node = current_node:parent()
@@ -153,16 +195,15 @@ parsing.get_target_at_cursor = function()
     error(string.format('file (%s) is not a BUILD file', vim.bo.filetype))
   end
 
-  local bufnr = vim.api.nvim_get_current_buf()
-  local tree = treesitter.get_parser(bufnr, 'python'):parse()[1]
+  local tree = treesitter.get_parser(0, 'python'):parse()[1]
   local query = treesitter_query.parse_query('python', make_build_target_query())
 
   local cursor_pos = cursor.get()
-  for _, match in query:iter_matches(tree:root(), bufnr) do
+  for _, match in query:iter_matches(tree:root(), 0) do
     local captured_nodes = extract_captures_from_match(match, query)
 
-    if position_in_node_range(cursor_pos, captured_nodes.target, bufnr) then
-      local name = treesitter_query.get_node_text(captured_nodes.name, bufnr)
+    if position_in_node_range(cursor_pos, captured_nodes.target) then
+      local name = treesitter_query.get_node_text(captured_nodes.name, 0)
       return name:match '^"(.+)"$', nil
     end
   end

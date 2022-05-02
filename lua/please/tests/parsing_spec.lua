@@ -193,28 +193,38 @@ describe('locate_build_target', function()
 end)
 
 describe('get_test_at_cursor', function()
+  local run_test = function(case)
+    local root, teardown = temptree.create_temp_tree(case.tree)
+    teardowns:add(teardown)
+
+    vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
+    cursor.set(case.cursor)
+
+    if case.raises_error then
+      assert.has_error(function()
+        parsing.get_test_at_cursor()
+      end, case.expected_err, 'incorrect error')
+      return
+    end
+
+    local func_name, err = parsing.get_test_at_cursor()
+
+    if case.expected_name then
+      assert.are.equal(case.expected_name, func_name, 'incorrect name')
+    end
+
+    if case.expected_err then
+      assert.is_nil(func_name, 'expected no name')
+      assert.are.equal(case.expected_err, err, 'incorrect err')
+    else
+      assert.is_nil(err, 'expected no err')
+    end
+  end
+
   local run_tests = function(cases)
     for _, case in ipairs(cases) do
       it(case.name, function()
-        local root, teardown = temptree.create_temp_tree(case.tree)
-        teardowns:add(teardown)
-        vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
-
-        cursor.set(case.cursor)
-
-        if case.expected_name then
-          local func_name, err = parsing.get_test_at_cursor()
-          assert.are.equal(case.expected_name, func_name, 'incorrect name')
-          assert.is_nil(err, 'expected no err')
-        elseif case.raises_error then
-          assert.has_error(function()
-            parsing.get_test_at_cursor()
-          end, case.expected_err, 'incorrect error')
-        elseif case.expected_err then
-          local func_name, err = parsing.get_test_at_cursor()
-          assert.is_nil(func_name, 'expected no name')
-          assert.are.equal(case.expected_err, err, 'incorrect err')
-        end
+        run_test(case)
       end)
     end
   end
@@ -233,6 +243,17 @@ describe('get_test_at_cursor', function()
         expected_name = 'TestFunc',
       },
       {
+        name = 'should return error if func name does not start with Test',
+        tree = {
+          ['foo_test.go'] = strings.dedent [[
+            func Func(t *testing.T) {
+                t.Fatal("oh no")
+            }]],
+        },
+        cursor = { 2, 1 },
+        expected_err = 'cursor is not in a test function',
+      },
+      {
         name = 'should return name of method if cursor is inside testify suite test method definition',
         tree = {
           ['foo_test.go'] = strings.dedent [[
@@ -244,30 +265,133 @@ describe('get_test_at_cursor', function()
         expected_name = '/TestMethod',
       },
       {
-        name = 'should return name of parent test func if cursor is in a subtest',
+        name = 'should return error if testify suite method name does not start with Test',
         tree = {
           ['foo_test.go'] = strings.dedent [[
-            func TestFunc(t *testing.T) {
-                t.Run("SubTest", func(t *testing.T) {
-                    t.Fatalf("oh no")
-                })
-            }]],
-        },
-        cursor = { 3, 8 },
-        expected_name = 'TestFunc',
-      },
-      {
-        name = 'should return error if func name does not start with Test',
-        tree = {
-          ['foo_test.go'] = strings.dedent [[
-            func Func(t *testing.T) {
-                t.Fatal("oh no")
+            func (s *fooSuite) Method() {
+                s.Fail("oh no")
             }]],
         },
         cursor = { 2, 1 },
         expected_err = 'cursor is not in a test function',
       },
     }
+  end)
+
+  describe('for python', function()
+    run_tests {
+      {
+        name = 'should return name of method if cursor is inside unittest test method definition',
+        tree = {
+          ['foo_test.py'] = strings.dedent [[
+            class TestFoo(unittest.TestCase):
+                def test_method(self):
+                    self.assertEqual(1, 2)
+                ]],
+        },
+        cursor = { 3, 5 },
+        expected_name = 'TestFoo.test_method',
+      },
+      {
+        name = 'should return error if unittest method name does not start with test_',
+        tree = {
+          ['foo_test.py'] = strings.dedent [[
+            class TestFoo(unittest.TestCase):
+                def method(self):
+                    self.assertEqual(1, 2)
+                ]],
+        },
+        cursor = { 3, 5 },
+        expected_err = 'cursor is not in a test function',
+      },
+      {
+        name = 'should return error if class name does not start with Test',
+        tree = {
+          ['foo_test.py'] = strings.dedent [[
+            class Foo:
+                def test_method(self):
+                    self.assertEqual(1, 2)
+                ]],
+        },
+        cursor = { 3, 5 },
+        expected_err = 'cursor is not in a test function',
+      },
+    }
+  end)
+
+  describe('should return name of func if cursor is inside test func definition', function()
+    local tree = {
+      ['foo_test.go'] = strings.dedent [[
+        func TestFunc(t *testing.T) {
+            t.Fatal("oh no")
+        }]],
+    }
+
+    local test_cases = {
+      {
+        name = 'first char',
+        cursor = { 1, 1 },
+      },
+      {
+        name = 'body',
+        cursor = { 2, 1 },
+      },
+      {
+        name = 'last char',
+        cursor = { 3, 1 },
+      },
+    }
+
+    for _, case in ipairs(test_cases) do
+      it('- ' .. case.name, function()
+        run_test {
+          tree = tree,
+          cursor = case.cursor,
+          expected_name = 'TestFunc',
+        }
+      end)
+    end
+  end)
+
+  describe('should return error if cursor is outside test func definition', function()
+    local tree = {
+      ['foo_test.go'] = strings.dedent [[
+
+         func TestFunc(t *testing.T) {
+            t.Fatal("oh no")
+        } -- comment here so that autoformatter doesn't remove trailing space
+
+        ]],
+    }
+
+    local test_cases = {
+      {
+        name = 'before first row',
+        cursor = { 1, 1 },
+      },
+      {
+        name = 'before first char',
+        cursor = { 2, 1 },
+      },
+      {
+        name = 'after last row',
+        cursor = { 1, 1 },
+      },
+      {
+        name = 'before first row',
+        cursor = { 1, 1 },
+      },
+    }
+
+    for _, case in ipairs(test_cases) do
+      it('- ' .. case.name, function()
+        run_test {
+          tree = tree,
+          cursor = case.cursor,
+          expected_err = 'cursor is not in a test function',
+        }
+      end)
+    end
   end)
 
   run_tests {
@@ -285,18 +409,6 @@ describe('get_test_at_cursor', function()
       },
       cursor = { 6, 4 },
       expected_name = 'TestFuncTwo',
-    },
-    {
-      name = 'should return error is outside test func definition',
-      tree = {
-        ['foo_test.go'] = strings.dedent [[
-
-             func TestFunc(t *testing.T) {
-                t.Fatal("oh no")
-            }]],
-      },
-      cursor = { 1, 1 },
-      expected_err = 'cursor is not in a test function',
     },
     {
       name = 'should raise error if language of file is not supported',
