@@ -4,6 +4,7 @@ local temptree = require 'please.tests.utils.temptree'
 local TeardownFuncs = require 'please.tests.utils.teardowns'
 local please = require 'please.please'
 local runners = require 'please.runners'
+local cursor = require 'please.cursor'
 
 local teardowns = TeardownFuncs:new()
 
@@ -59,6 +60,41 @@ describe('build', function()
 
     -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo.txt')
+
+    -- WHEN we call build
+    please.build()
+
+    -- THEN the target is built in a popup
+    assert.are.equal('plz', popup_cmd, 'incorrect command passed to popup')
+    assert.are.same(
+      { '--repo_root', root, '--interactive_output', '--colour', 'build', '//:foo' },
+      popup_args,
+      'incorrect args passed to popup'
+    )
+
+    stubbed_popup:revert()
+  end)
+
+  it('should build target under cursor when in BUILD file', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )]],
+      ['foo.txt'] = 'foo content',
+    }
+    teardowns:add(teardown)
+
+    local popup_cmd, popup_args
+    local stubbed_popup = stub(runners, 'popup', function(cmd, args)
+      popup_cmd, popup_args = cmd, args
+    end)
+
+    -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+    vim.cmd('edit ' .. root .. '/BUILD')
+    cursor.set { 2, 5 }
 
     -- WHEN we call build
     please.build()

@@ -1,6 +1,7 @@
 local strings = require 'plenary.strings'
 local temptree = require 'please.tests.utils.temptree'
 local TeardownFuncs = require 'please.tests.utils.teardowns'
+local cursor = require 'please.cursor'
 local parsing = require 'please.parsing'
 
 local teardowns = TeardownFuncs:new()
@@ -167,7 +168,7 @@ describe('locate_build_target', function()
       if case.raises_error then
         assert.has_error(function()
           parsing.locate_build_target(case.root, case.label)
-        end, case.expected_error, 'incorrect error')
+        end, case.expected_err, 'incorrect error')
         return
       end
 
@@ -208,7 +209,7 @@ describe('get_test_at_cursor', function()
         teardowns:add(teardown)
         vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
 
-        vim.fn.cursor(case.cursor[1], case.cursor[2])
+        cursor.set(case.cursor)
 
         if case.expected_name then
           local func_name, err = parsing.get_test_at_cursor()
@@ -272,7 +273,7 @@ describe('get_test_at_cursor', function()
                 t.Fatal("oh no")
             }]],
         },
-        cursor = { 5, 1 },
+        cursor = { 2, 1 },
         expected_err = 'cursor is not in a test function',
       },
     }
@@ -316,6 +317,143 @@ describe('get_test_at_cursor', function()
       expected_err = 'finding tests is not supported for ruby files',
     },
   }
+end)
+
+describe('get_target_at_cursor', function()
+  local run_test = function(case)
+    local root, teardown = temptree.create_temp_tree(case.tree)
+    teardowns:add(teardown)
+
+    vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
+    cursor.set(case.cursor)
+
+    if case.raises_err then
+      assert.has_error(function()
+        parsing.get_target_at_cursor()
+      end, case.expected_err, 'incorrect error')
+      return
+    end
+
+    local target, err = parsing.get_target_at_cursor()
+
+    if case.expected_target then
+      assert.are.equal(case.expected_target, target, 'incorrect target')
+    end
+
+    if case.expected_err then
+      assert.is_not_nil(err, 'expected error')
+      assert.are.equal(case.expected_err, err, 'incorrect error')
+      assert.is_nil(target, 'expected no target')
+    else
+      assert.is_nil(err, 'expected no error')
+    end
+  end
+
+  describe('should return name of target when cursor is inside build target definition', function()
+    local tree = {
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )]],
+    }
+
+    local test_cases = {
+      {
+        name = 'first char',
+        cursor = { 1, 1 },
+      },
+      {
+        name = 'middle row',
+        cursor = { 2, 1 },
+      },
+      {
+        name = 'last char',
+        cursor = { 4, 1 },
+      },
+    }
+
+    for _, case in ipairs(test_cases) do
+      it('- ' .. case.name, function()
+        run_test {
+          tree = tree,
+          cursor = case.cursor,
+          expected_target = 'foo',
+        }
+      end)
+    end
+  end)
+
+  it('should return name of target when there are multiple build targets in the BUILD file', function()
+    run_test {
+      tree = {
+        BUILD = strings.dedent [[
+          export_file(
+              name = "foo1",
+              src = "foo1.txt",
+          )
+
+          export_file(
+              name = "foo2",
+              src = "foo2.txt",
+          )]],
+      },
+      cursor = { 7, 4 },
+      expected_target = 'foo2',
+    }
+  end)
+
+  describe('should return error when cursor is outside build target definition', function()
+    local tree = {
+      BUILD = strings.dedent [[
+
+         export_file(
+            name = "foo",
+            src = "foo.txt",
+        ) -- this comment stops the space after the last char getting removed by autoformatting
+         ]],
+    }
+
+    local test_cases = {
+      {
+        name = 'before first row',
+        cursor = { 1, 1 },
+      },
+      {
+        name = 'before first char',
+        cursor = { 2, 1 },
+      },
+      {
+        name = 'after last char',
+        cursor = { 5, 2 },
+      },
+      {
+        name = 'after last row',
+        cursor = { 6, 1 },
+      },
+    }
+
+    for _, case in ipairs(test_cases) do
+      it('- ' .. case.name, function()
+        run_test {
+          tree = tree,
+          cursor = case.cursor,
+          expected_err = 'cursor is not in a build target definition',
+        }
+      end)
+    end
+  end)
+
+  it('should raise error if file is not a BUILD file', function()
+    run_test {
+      tree = {
+        ['hello.py'] = 'print("Hello, World!")',
+      },
+      cursor = { 1, 1 },
+      raises_err = true,
+      expected_err = 'file (python) is not a BUILD file',
+    }
+  end)
 end)
 
 teardowns:teardown()

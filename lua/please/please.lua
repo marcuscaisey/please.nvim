@@ -1,3 +1,4 @@
+local Path = require 'plenary.path'
 local query = require 'please.query'
 local parsing = require 'please.parsing'
 local runners = require 'please.runners'
@@ -32,6 +33,15 @@ local run_with_selected = function(options, prompt, func)
   end
 end
 
+-- gets pkg name of BUILD file
+local get_pkg = function(root, build_file_path)
+  local pkg = Path:new(build_file_path):parent():make_relative(root)
+  if pkg == '.' then
+    pkg = ''
+  end
+  return pkg
+end
+
 ---Jumps to the location of the build target which takes the current file as an input.
 ---
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
@@ -54,7 +64,8 @@ please.jump_to_target = function()
   end)
 end
 
----Builds the target which takes the current file as an input.
+---If the current file is a BUILD file, builds the target which is under the cursor. Otherwise, builds the target which
+---takes the current file as an input.
 please.build = function()
   logging.debug 'please.build called'
 
@@ -63,11 +74,20 @@ please.build = function()
     if filepath == '' then
       return
     end
+
     local root = assert(query.reporoot(filepath))
-    local labels = assert(query.whatinputs(root, filepath))
-    run_with_selected(labels, 'Select target to build', function(label)
+
+    if vim.bo.filetype == 'please' then
+      local pkg = get_pkg(root, filepath)
+      local target = assert(parsing.get_target_at_cursor())
+      local label = string.format('//%s:%s', pkg, target)
       runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'build', label })
-    end)
+    else
+      local labels = assert(query.whatinputs(root, filepath))
+      run_with_selected(labels, 'Select target to build', function(label)
+        runners.popup('plz', { '--repo_root', root, '--interactive_output', '--colour', 'build', label })
+      end)
+    end
   end)
 end
 

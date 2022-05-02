@@ -3,23 +3,35 @@ local treesitter = require 'vim.treesitter'
 local treesitter_query = require 'vim.treesitter.query'
 local ts_utils = require 'nvim-treesitter.ts_utils'
 local logging = require 'please.logging'
+local cursor = require 'please.cursor'
 
 local parsing = {}
 
--- selects calls which have a kwarg / value pair of the form `name = %s` where %s is the name of the target we are
--- looking for
-local build_target_query = [[
-(call
-  function: (identifier)
-  arguments: (argument_list
-    (keyword_argument
-      name: (
-        (identifier) @kwarg
-        (#eq? @kwarg "name"))
-      value: (
-        (string) @value
-        (#eq? @value "\"%s\""))))) @call
-]]
+-- makes a query which selects build targets, accepting an optional name arg which filters for build targets with the
+-- given name
+local make_build_target_query = function(name)
+  local query = [[
+    (call
+      function: (identifier)
+      arguments: (argument_list
+        (keyword_argument
+          name: (
+            (identifier) @kwarg
+            (#eq? @kwarg "name"))
+          value: (
+            (string) @name
+            %s)))) @target
+  ]]
+
+  local name_predicate
+  if name then
+    name_predicate = string.format('(#eq? @name "\\"%s\\"")', name)
+  else
+    name_predicate = ''
+  end
+
+  return string.format(query, name_predicate)
+end
 
 -- TODO: should we get these from the .plzconfig? feels like it should be really rare that people change them
 local build_file_names = { 'BUILD', 'BUILD.plz' }
@@ -29,11 +41,11 @@ local function find_target_in_file(filepath, target)
   local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
   local parser = treesitter.get_parser(bufnr, 'python')
   local tree = parser:parse()[1]
-  local query = treesitter_query.parse_query('python', string.format(build_target_query, target))
+  local query = treesitter_query.parse_query('python', make_build_target_query(target))
 
   for id, node in query:iter_captures(tree:root(), bufnr) do
     local name = query.captures[id]
-    if name == 'call' then
+    if name == 'target' then
       local line, col = ts_utils.get_vim_range({ node:range() }, bufnr)
       return line, col, true
     end
@@ -114,6 +126,50 @@ parsing.get_test_at_cursor = function()
     current_node = current_node:parent()
   end
   return nil, 'cursor is not in a test function'
+end
+
+-- extracts the captured nodes from a match returned from Query:iter_matches
+local extract_captures_from_match = function(match, query)
+  local captured_nodes = {}
+  for id, node in pairs(match) do
+    local name = query.captures[id]
+    captured_nodes[name] = node
+  end
+  return captured_nodes
+end
+
+-- checks if a position is in a given range (inclusive ends)
+local position_in_node_range = function(position, node, bufnr)
+  local row, col = unpack(position)
+  local start_row, start_col, end_row, end_col = ts_utils.get_vim_range({ node:range() }, bufnr)
+  return (row == start_row and col >= start_col)
+    or (start_row < row and row < end_row)
+    or (row == end_row and col <= end_col)
+end
+
+---Returns the name of the build target under the cursor.
+---@return string: a build target
+---@return string|nil: error if any, this should be checked before using the build target
+parsing.get_target_at_cursor = function()
+  if vim.bo.filetype ~= 'please' then
+    error(string.format('file (%s) is not a BUILD file', vim.bo.filetype))
+  end
+
+  local bufnr = vim.api.nvim_get_current_buf()
+  local tree = treesitter.get_parser(bufnr, 'python'):parse()[1]
+  local query = treesitter_query.parse_query('python', make_build_target_query())
+
+  local cursor_pos = cursor.get()
+  for _, match in query:iter_matches(tree:root(), bufnr) do
+    local captured_nodes = extract_captures_from_match(match, query)
+
+    if position_in_node_range(cursor_pos, captured_nodes.target, bufnr) then
+      local name = treesitter_query.get_node_text(captured_nodes.name, bufnr)
+      return name:match '^"(.+)"$', nil
+    end
+  end
+
+  return nil, 'cursor is not in a build target definition'
 end
 
 return parsing

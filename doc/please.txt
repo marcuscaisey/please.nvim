@@ -90,7 +90,8 @@ please.jump_to_target()                              *please.jump_to_target()*
 
 
 please.build()                                                *please.build()*
-    Builds the target which takes the current file as an input.
+    If in a BUILD file, builds the target which is under the cursor. Otherwise,
+    builds the target which takes the current file as an input
 
 
 
