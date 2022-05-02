@@ -94,6 +94,7 @@ parsing.locate_build_target = function(root, label)
   return nil, nil, string.format('no build file exists for package "%s"', pkg)
 end
 
+-- TODO: add support for at least python and maybe javascript
 local supported_test_langs = { 'go' }
 
 ---Returns the name of the test under the cursor.
@@ -114,11 +115,8 @@ parsing.get_test_at_cursor = function()
   while current_node and current_node:parent() do
     local node_type = current_node:type()
     if node_type == 'function_declaration' or node_type == 'method_declaration' then
-      local identifier_node = current_node:field('name')[1] -- there will only be one child called name
-      -- TODO: replace deprecated get_node_text usage
-      local func_name = ts_utils.get_node_text(identifier_node, bufnr)[1] -- there will only be one line
-      -- we could also test if it has a single arg like *testing.T but this is probably enough, i think go test shouts
-      -- at you if you provide a func starting with Test with the wrong signature anyway
+      local identifier_node = current_node:field('name')[1]
+      local func_name = treesitter_query.get_node_text(identifier_node, bufnr)
       if func_name:sub(1, 4) == 'Test' then
         return (node_type == 'method_declaration' and '/' or '') .. func_name
       end
