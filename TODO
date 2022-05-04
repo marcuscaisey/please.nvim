@@ -1,3 +1,4 @@
 - add LSP setup
 - document please.test unittest capability
 - document please filetype detection
+- document min nvim version
