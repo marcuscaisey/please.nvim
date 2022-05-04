@@ -14,22 +14,17 @@ local tables_equal = function(t1, t2)
   return true
 end
 
-local assert_win_lines = function(expected_lines, winnr, timeout)
+local assert_win_lines = function(expected_lines, winnr, opts)
+  opts = opts or {}
+
   local bufnr = vim.api.nvim_win_get_buf(winnr)
   local actual_lines, other_lines_content
   local actual_lines_correct, other_lines_empty
-  vim.wait(timeout or 500, function()
-    local buf_line_count = vim.api.nvim_buf_line_count(bufnr)
-
+  vim.wait(opts.timeout or 500, function()
     actual_lines = vim.api.nvim_buf_get_lines(bufnr, 0, #expected_lines, false)
     actual_lines_correct = tables_equal(expected_lines, actual_lines)
 
-    -- every other line should be empty
-    local other_lines = vim.api.nvim_buf_get_lines(bufnr, #expected_lines, buf_line_count, false)
-    other_lines_content = vim.trim(table.concat(other_lines, '\n'))
-    other_lines_empty = other_lines_content == ''
-
-    return actual_lines_correct and other_lines_empty
+    return actual_lines_correct
   end)
 
   assert(
@@ -40,7 +35,16 @@ local assert_win_lines = function(expected_lines, winnr, timeout)
       vim.inspect(actual_lines)
     )
   )
-  assert(other_lines_empty, string.format('expected other lines in buffer to be empty, got:\n %s', other_lines_content))
+  if opts.check_other_lines then
+    local buf_line_count = vim.api.nvim_buf_line_count(bufnr)
+    local other_lines = vim.api.nvim_buf_get_lines(bufnr, #expected_lines, buf_line_count, false)
+    other_lines_content = vim.trim(table.concat(other_lines, '\n'))
+    other_lines_empty = other_lines_content == '' and other_lines_empty
+    assert(
+      other_lines_empty,
+      string.format('expected other lines in buffer to be empty, got:\n %s', other_lines_content)
+    )
+  end
 end
 
 local wait_for_new_win = function(timeout)
@@ -189,4 +193,14 @@ describe('popup', function()
   --   local current_cursor_line = vim.api.nvim_win_get_cursor(popup_winnr)[1]
   --   assert.are.equal(last_buf_line, current_cursor_line, 'incorrect cursor line')
   -- end)
+
+  it('should output the command and args after it exits', function()
+    local cmd = 'bash'
+    local args = { '-c', 'echo "hello"' }
+
+    runners.popup(cmd, args)
+
+    local popup_winnr = wait_for_new_win()
+    assert_win_lines({ 'hello', '', 'Command: bash -c echo "hello"' }, popup_winnr)
+  end)
 end)
