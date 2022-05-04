@@ -74,6 +74,19 @@
 
 local please = require 'please.please'
 
+vim.g.do_filetype_lua = 1 -- enable Lua filetype detection
+vim.filetype.add {
+  extension = {
+    build_defs = 'please',
+    build_def = 'please',
+    build = 'please',
+    plz = 'please',
+  },
+  filename = {
+    ['BUILD'] = 'please',
+  },
+}
+
 return {
   jump_to_target = please.jump_to_target,
   build = please.build,
