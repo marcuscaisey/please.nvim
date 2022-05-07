@@ -201,6 +201,6 @@ describe('popup', function()
     runners.popup(cmd, args)
 
     local popup_winnr = wait_for_new_win()
-    assert_win_lines({ 'hello', '', 'Command: bash -c echo "hello"' }, popup_winnr)
+    assert_win_lines({ 'hello', '', 'Command:', 'bash -c echo "hello"' }, popup_winnr)
   end)
 end)

@@ -68,7 +68,7 @@ runners.popup = function(cmd, args)
   local on_exit = vim.schedule_wrap(function()
     if not is_shutdown then
       local cmd_str = string.format('%s %s', cmd, table.concat(args, ' '))
-      vim.api.nvim_chan_send(term_chan_id, string.format('\r\n[1mCommand: %s\r\n', cmd_str))
+      vim.api.nvim_chan_send(term_chan_id, string.format('\r\n[1mCommand:\r\n[0m%s', cmd_str))
     end
   end)
 
