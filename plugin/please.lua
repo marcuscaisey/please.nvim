@@ -27,4 +27,8 @@ vim.api.nvim_create_user_command('Please', function(opts)
     cmd_opts[arg] = true
   end
   cmd(cmd_opts)
-end, { nargs = '+', force = true })
+end, {
+  nargs = '+',
+  force = true,
+  desc = 'Run a please.nvim command.',
+})
