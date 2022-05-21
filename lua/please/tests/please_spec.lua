@@ -301,4 +301,57 @@ describe('run', function()
   end)
 end)
 
+describe('yank', function()
+  it('should yank label of target which uses file as input', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )]],
+      ['foo.txt'] = 'foo content',
+    }
+    teardowns:add(teardown)
+
+    -- GIVEN we're editing a file
+    vim.cmd('edit ' .. root .. '/foo.txt')
+
+    -- WHEN we call yank
+    please.yank()
+
+    -- THEN the target's label is yanked into the " and * register
+    local unnamed = vim.fn.getreg '"'
+    local star = vim.fn.getreg '*'
+    assert.are.equal('//:foo', unnamed, 'incorrect value in " register')
+    assert.are.equal('//:foo', star, 'incorrect value in * register')
+  end)
+
+  it('should run target under cursor when in BUILD file', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )]],
+      ['foo.txt'] = 'foo content',
+    }
+    teardowns:add(teardown)
+
+    -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+    vim.cmd('edit ' .. root .. '/BUILD')
+    cursor.set { 2, 5 }
+
+    -- WHEN we call yank
+    please.yank()
+
+    -- THEN the target's label is yanked into the " and * register
+    local unnamed = vim.fn.getreg '"'
+    local star = vim.fn.getreg '*'
+    assert.are.equal('//:foo', unnamed, 'incorrect value in " register')
+    assert.are.equal('//:foo', star, 'incorrect value in * register')
+  end)
+end)
+
 teardowns:teardown()

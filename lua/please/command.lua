@@ -8,6 +8,7 @@ local cmds = {
   run = please.run,
   test = please.test,
   build = please.build,
+  yank = please.yank,
   reload = please.reload,
   toggle_debug_logs = logging.toggle_debug,
 }
@@ -17,7 +18,7 @@ local cmds = {
 command.run_command = function(name)
   local cmd = cmds[name]
   if not cmd then
-    print(string.format("'%s' is not a Please command", name))
+    logging.error("'%s' is not a Please command", name)
     return
   end
   cmd()

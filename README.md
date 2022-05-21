@@ -8,6 +8,7 @@ Currently implemented features of please.nvim are:
 - building (`Please build`)
 - testing (`Please test`)
 - running (`Please run`)
+- yanking build labels (`Please yank`)
 
 
 ## Getting started
@@ -49,6 +50,7 @@ vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = t
 vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
 vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
 vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
+vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
 ```
 
 VimL:
@@ -57,6 +59,7 @@ nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
 nnoremap <leader>pb silent <cmd>Please build<cr>
 nnoremap <leader>pt silent <cmd>Please test<cr>
 nnoremap <leader>pr silent <cmd>Please run<cr>
+nnoremap <leader>py silent <cmd>Please yank<cr>
 ```
 
 ### Documentation

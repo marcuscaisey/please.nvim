@@ -28,9 +28,10 @@
 ---
 --- Available Commands~<br>
 --- jump_to_target : jump to the build target of the current file<br>
---- build : build the target which uses the current file<br>
---- test : test the target which uses the current file<br>
---- run: run the target which uses the current file<br>
+--- build : build a build target<br>
+--- test : test a build target<br>
+--- run : run a build target<br>
+--- yank : yank a build label<br>
 ---
 --- See |please-commands| for more detailed descriptions of each command.
 ---
@@ -48,6 +49,7 @@
 ---   vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
 ---   vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
 ---   vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
+---   vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
 --- </code>
 ---
 --- VimL:
@@ -56,6 +58,7 @@
 ---   nnoremap <leader>pb silent <cmd>Please build<cr>
 ---   nnoremap <leader>pt silent <cmd>Please test<cr>
 ---   nnoremap <leader>pr silent <cmd>Please run<cr>
+---   nnoremap <leader>py silent <cmd>Please yank<cr>
 --- </code>
 ---
 --- <pre>
@@ -96,6 +99,7 @@ return {
   build = please.build,
   test = please.test,
   run = please.run,
+  yank = please.yank,
   reload = please.reload,
   toggle_debug_logs = logging.toggle_debug,
 }

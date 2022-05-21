@@ -45,6 +45,7 @@ end
 
 local run_plz_cmd = function(root, ...)
   local args = { '--repo_root', root, '--interactive_output', '--colour', ... }
+  logging.debug('running plz with args: %s', vim.inspect(args))
   runners.popup('plz', args)
 end
 
@@ -165,6 +166,39 @@ please.run = function()
   end)
 end
 
+local yank = function(txt)
+  local registers = {
+    unnamed = '"',
+    star = '*',
+  }
+  for _, register in pairs(registers) do
+    logging.debug('setting %s register to %s', register, txt)
+    vim.fn.setreg(register, txt)
+  end
+  logging.info('yanked %s', txt)
+end
+
+---If the current file is a BUILD file, yank the label of the target which is under the cursor. Otherwise, yank the
+---label of the target which takes the current file as an input.
+please.yank = function()
+  logging.debug 'please.yank called'
+
+  logging.log_errors(function()
+    local filepath = assert(get_filepath())
+    local root = assert(query.reporoot(filepath))
+
+    if vim.bo.filetype == 'please' then
+      local label = assert(get_build_target_at_cursor(root, filepath))
+      yank(label)
+    else
+      local labels = assert(query.whatinputs(root, filepath))
+      run_with_selected(labels, 'Select target to test', function(label)
+        yank(label)
+      end)
+    end
+  end)
+end
+
 ---Reload the plugin (for use in development).
 please.reload = function()
   for pkg, _ in pairs(package.loaded) do
@@ -172,7 +206,7 @@ please.reload = function()
       package.loaded[pkg] = nil
     end
   end
-  logging.info 'Reloaded'
+  logging.info 'reloaded plugin'
 end
 
 return please

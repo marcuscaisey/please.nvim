@@ -27,9 +27,10 @@ For example, jump_to_target can be executed with
 
 Available Commands~
 jump_to_target : jump to the build target of the current file
-build : build the target which uses the current file
-test : test the target which uses the current file
-run: run the target which uses the current file
+build : build a build target
+test : test a build target
+run : run a build target
+yank : yank a build label
 
 
 See |please-commands| for more detailed descriptions of each command.
@@ -47,6 +48,7 @@ Lua:
   vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
   vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
   vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
+  vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
 <
 
 VimL:
@@ -55,6 +57,7 @@ VimL:
   nnoremap <leader>pb silent <cmd>Please build<cr>
   nnoremap <leader>pt silent <cmd>Please test<cr>
   nnoremap <leader>pr silent <cmd>Please run<cr>
+  nnoremap <leader>py silent <cmd>Please yank<cr>
 <
 
 DEBUGGING                                                   *please-debugging*
@@ -119,6 +122,18 @@ please.test({opts})                                            *please.test()*
 please.run()                                                    *please.run()*
     If the current file is a BUILD file, run the target which is under the
     cursor. Otherwise, run the target which takes the current file as an input.
+
+
+
+please.yank()                                                  *please.yank()*
+    If the current file is a BUILD file, yank the label of the target which is
+    under the cursor. Otherwise, yank the label of the target which takes the
+    current file as an input.
+
+
+
+please.reload()                                              *please.reload()*
+    Reload the plugin (for use in development).
 
 
 
