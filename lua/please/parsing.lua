@@ -80,7 +80,7 @@ parsing.locate_build_target = function(root, label)
   local pkg_path = root_obj:joinpath(pkg)
   for _, build_file_name in ipairs(build_file_names) do
     local build_path = pkg_path:joinpath(build_file_name)
-    if build_path:exists() then
+    if build_path:exists() and build_path:is_file() then
       local filepath = vim.fn.simplify(build_path.filename)
       local position, found = find_target_in_file(filepath, target)
       if found then

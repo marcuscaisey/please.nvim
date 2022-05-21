@@ -53,6 +53,21 @@ describe('locate_build_target', function()
       expected_filepath = 'BUILD.plz',
     },
     {
+      name = 'should not return directory which matches BUILD file name',
+      tree = {
+        '.plzconfig',
+        'BUILD/',
+        ['BUILD.plz'] = strings.dedent [[
+          export_file(
+              name = "foo",
+              src = "foo.txt",
+          )]],
+        'foo.txt',
+      },
+      label = '//:foo',
+      expected_filepath = 'BUILD.plz',
+    },
+    {
       name = 'should return error if pkg path exists but BUILD or BUILD.plz file does not',
       tree = {
         '.plzconfig',
