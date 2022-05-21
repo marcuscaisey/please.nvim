@@ -143,8 +143,10 @@ local test_name_getters = {
 ---Returns the name of the test under the cursor.
 ---Current supported languages are:
 ---- Go
----  - regular go tests
+---  - regular go test functions (not subtests)
 ---  - testify suite test methods
+---- Python
+---  - unittest test methods
 ---@return string
 ---@return string|nil: error if any, this should be checked before using the test name
 parsing.get_test_at_cursor = function()

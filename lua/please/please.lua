@@ -115,6 +115,8 @@ end
 ---- Go
 ---  - regular go test functions (not subtests)
 ---  - testify suite test methods
+---- Python
+---  - unittest test methods
 ---@param opts table
 ---@field under_cursor boolean: run only the test under the cursor
 please.test = function(opts)

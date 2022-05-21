@@ -1,8 +1,8 @@
 - add LSP setup
-- document please.test unittest capability
 - document please filetype detection
 - document min nvim version
 - convert main plugin file to lua
 - set up autocomplete for commands
 - clean up command running (passing options like under_cursor)
 - document treesitter setup dependency and setup
+- use something else for docs generation (there's some other CLI we can use instead of the docker thing)

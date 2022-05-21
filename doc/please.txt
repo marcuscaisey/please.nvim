@@ -108,8 +108,10 @@ please.test({opts})                                            *please.test()*
     function which is under the cursor should be run. This is supported for the
     following languages:
     - Go
-     - regular go test functions (not subtests)
+     - regular go tests
      - testify suite test methods
+    - Python
+     - unittest test methods
 
 
     Parameters: ~

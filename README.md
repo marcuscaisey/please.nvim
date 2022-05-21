@@ -7,6 +7,7 @@ Currently implemented features of please.nvim are:
 - jumping to the build target of the current file (`Please jump_to_target`)
 - building (`Please build`)
 - testing (`Please test`)
+- running specific tests (`Please test under_cursor`)
 - running (`Please run`)
 - yanking build labels (`Please yank`)
 
