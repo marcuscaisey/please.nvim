@@ -16,7 +16,7 @@ end
 ---@return string: an absolute path
 ---@return string|nil: error if any, this should be checked before using the repo root
 query.reporoot = function(path)
-  logging.debug(string.format('query.reporoot called with path=%s', path))
+  logging.debug('query.reporoot called with path=%s', path)
 
   local path_obj = Path:new(path)
 
@@ -53,7 +53,7 @@ end
 ---@return table: build target labels
 ---@return string|nil: error if any, this should be checked before using the labels
 query.whatinputs = function(root, filepath)
-  logging.debug(string.format('query.whatinputs called with root=%s, filepath=%s', root, filepath))
+  logging.debug('query.whatinputs called with root=%s, filepath=%s', root, filepath)
 
   local root_obj = Path:new(root)
   local filepath_obj = Path:new(filepath)

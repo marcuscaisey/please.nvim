@@ -62,7 +62,7 @@ end
 ---@return number[]: the position that the build target definition starts as a (1, 1)-indexed (line, col) tuple
 ---@return string|nil: error if any, this should be checked before using the other return values
 parsing.locate_build_target = function(root, label)
-  logging.debug(string.format('parsing.locate_build_target called with root=%s, label=%s', root, label))
+  logging.debug('parsing.locate_build_target called with root=%s, label=%s', root, label)
 
   -- TODO: do this with the plz LSP instead?
   local root_obj = Path:new(root)

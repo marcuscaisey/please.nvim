@@ -78,7 +78,7 @@ please.jump_to_target = function()
     local labels = assert(query.whatinputs(root, filepath))
     run_with_selected(labels, 'Select target to jump to', function(label)
       local target_filepath, position = assert(parsing.locate_build_target(root, label))
-      logging.debug(string.format('opening %s at %s', target_filepath, vim.inspect(position)))
+      logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
       vim.cmd('edit ' .. target_filepath)
       cursor.set(position)
     end)
@@ -117,7 +117,7 @@ end
 ---@param opts table
 ---@field under_cursor boolean: run only the test under the cursor
 please.test = function(opts)
-  logging.debug(string.format('please.test called with opts=%s', vim.inspect(opts)))
+  logging.debug('please.test called with opts=%s', vim.inspect(opts))
 
   opts = opts or {}
 

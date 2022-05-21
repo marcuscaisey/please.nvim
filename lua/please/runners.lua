@@ -20,7 +20,7 @@ end
 ---@param cmd string: Command to run.
 ---@param args string[]: Args to pass to the command.
 runners.popup = function(cmd, args)
-  logging.debug(string.format('runners.popup called with cmd=%s, args=%s', cmd, vim.inspect(args)))
+  logging.debug('runners.popup called with cmd=%s, args=%s', cmd, vim.inspect(args))
 
   local width = 0.8
   local height = 0.8
