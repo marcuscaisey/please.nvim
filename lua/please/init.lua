@@ -73,6 +73,7 @@
 ---@brief ]]
 
 local please = require 'please.please'
+local logging = require 'please.logging'
 
 vim.g.do_filetype_lua = 1 -- enable Lua filetype detection
 vim.filetype.add {
@@ -96,5 +97,5 @@ return {
   test = please.test,
   run = please.run,
   reload = please.reload,
-  test_under_cursor = please.test_under_cursor,
+  toggle_debug_logs = logging.toggle_debug,
 }
