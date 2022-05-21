@@ -164,4 +164,14 @@ please.run = function()
   end)
 end
 
+---Reload the plugin (for use in development).
+please.reload = function()
+  for pkg, _ in pairs(package.loaded) do
+    if vim.startswith(pkg, 'please') then
+      package.loaded[pkg] = nil
+    end
+  end
+  logging.info 'Reloaded'
+end
+
 return please

@@ -95,5 +95,6 @@ return {
   build = please.build,
   test = please.test,
   run = please.run,
+  reload = please.reload,
   test_under_cursor = please.test_under_cursor,
 }

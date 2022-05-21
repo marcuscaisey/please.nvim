@@ -8,6 +8,7 @@ local cmds = {
   run = please.run,
   test = please.test,
   build = please.build,
+  reload = please.reload,
   toggle_debug_logs = logging.toggle_debug,
 }
 
