@@ -86,7 +86,7 @@ vim.filetype.add {
     ['BUILD'] = 'please',
   },
   pattern = {
-      ['%.plzconfig.*'] = 'dosini',
+    ['%.plzconfig.*'] = 'dosini',
   },
 }
 
