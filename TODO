@@ -1,6 +1,5 @@
 - add LSP setup
 - document please filetype detection
-- document min nvim version
 - convert main plugin file to lua
 - set up autocomplete for commands
 - clean up command running (passing options like under_cursor)

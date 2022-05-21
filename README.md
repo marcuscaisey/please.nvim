@@ -15,6 +15,8 @@ Currently implemented features of please.nvim are:
 ## Getting started
 ### Installation
 
+> :warning: Neovim >= 0.7 is required to use please.nvim
+
 Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```viml
 Plug 'nvim-treesitter/nvim-treesitter'
