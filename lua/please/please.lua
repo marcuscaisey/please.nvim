@@ -43,6 +43,22 @@ local get_pkg = function(root, build_file_path)
   return pkg
 end
 
+-- validate that all opts are:
+-- - one of valid_opts
+-- - boolean
+local validate_opts = function(opts, valid_opts)
+  for opt, value in pairs(opts) do
+    if not vim.tbl_contains(valid_opts, opt) then
+      return false, string.format("'%s' is not a valid opt", opt)
+    end
+    if type(value) ~= 'boolean' then
+      return false,
+        string.format('invalid type (%s) for "%s" value %s, should be boolean', type(value), opt, vim.inspect(value))
+    end
+  end
+  return true
+end
+
 local run_plz_cmd = function(root, ...)
   local args = { '--repo_root', root, '--interactive_output', '--colour', ... }
   logging.debug('running plz with args: %s', vim.inspect(args))
@@ -125,6 +141,8 @@ please.test = function(opts)
   opts = opts or {}
 
   logging.log_errors(function()
+    assert(validate_opts(opts, { 'under_cursor' }))
+
     local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
 
