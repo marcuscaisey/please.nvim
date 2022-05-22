@@ -1,7 +1,7 @@
 PWD=$(shell pwd)
 
 test:
-	nvim --headless -c "PlenaryBustedDirectory lua/please/tests {minimal = true}"
+	nvim --headless -c "PlenaryBustedDirectory lua/please/tests { minimal_init = 'lua/please/tests/init.vim' }"
 
 docs:
 	docker build gendocs -t gendocs && \
