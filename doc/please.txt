@@ -134,10 +134,5 @@ please.yank()                                                  *please.yank()*
 
 
 
-please.reload()                                              *please.reload()*
-    Reload the plugin (for use in development).
-
-
-
 
  vim:tw=78:ts=8:ft=help:norl:
