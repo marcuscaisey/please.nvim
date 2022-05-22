@@ -1,21 +1,27 @@
 # please.nvim
-please.nvim is a plugin which allows you interact with your Please repository from the comfort of
+`please.nvim` is a plugin which allows you interact with your Please repository from the comfort of
 NeoVim. The aim is to achieve feature parity (and beyond) with [please-vscode](https://github.com/thought-machine/please-vscode)
 
 ## Features
-Currently implemented features of please.nvim are:
+Currently implemented features of `please.nvim` are:
 - jumping to the build target of the current file (`Please jump_to_target`)
 - building (`Please build`)
 - testing (`Please test`)
 - running specific tests (`Please test under_cursor`)
 - running (`Please run`)
 - yanking build labels (`Please yank`)
+- `please` filetype configured for the following files:
+    - `BUILD`
+    - `*.plz`
+    - `*.build_def`
+    - `*.build_defs`
+    - `*.build`
+- `ini` filetype configured for `.plzconfig` files
 
 
 ## Getting started
 ### Installation
-
-> :warning: Neovim >= 0.7 is required to use please.nvim
+> :information_source: Neovim >= 0.7 is required to use `please.nvim`
 
 Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```viml
@@ -43,7 +49,7 @@ use {
 ```
 
 ### Mappings
-please.nvim doesn't come with any mappings defined out of the box so that you
+`please.nvim` doesn't come with any mappings defined out of the box so that you
 can customise how you use it. Below are some examples for each command to get
 you started.
 
