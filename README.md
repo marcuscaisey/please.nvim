@@ -17,6 +17,9 @@ Currently implemented features of `please.nvim` are:
     - `*.build_defs`
     - `*.build`
 - `ini` filetype configured for `.plzconfig` files
+- [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) configured to use the
+  Python parser so that you get the benefits of treesitter in `please` files (see
+  [`nvim-treesitter` configuration](#nvim-treesitter-configuration) for more info)
 
 
 ## Getting started
@@ -47,6 +50,22 @@ use {
   },
 }
 ```
+
+### `nvim-treesitter` configuration
+`please.nvim` configures [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) so
+that the Python parser is used for files with the `please` filetype. It doesn't, however, configure
+anything else to do with [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter), so
+it's recommended to at least enable syntax highlighting like so:
+```lua
+require('nvim-treesitter.configs').setup {
+  highlight = {
+    enable = true,
+  },
+}
+```
+
+For more information on configuring [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter),
+[see here](https://github.com/nvim-treesitter/nvim-treesitter#available-modules).
 
 ### Mappings
 `please.nvim` doesn't come with any mappings defined out of the box so that you

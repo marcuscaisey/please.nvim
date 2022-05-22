@@ -1,6 +1,4 @@
 - add LSP setup
-- document please filetype detection
-- document treesitter setup dependency and setup
 - use something else for docs generation (there's some other CLI we can use instead of the docker thing)
 - add demo gifs to README
 - run tests and gendocs in github actions
