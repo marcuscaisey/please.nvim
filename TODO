@@ -1,5 +1,4 @@
 - add LSP setup
 - document please filetype detection
-- set up autocomplete for commands
 - document treesitter setup dependency and setup
 - use something else for docs generation (there's some other CLI we can use instead of the docker thing)
