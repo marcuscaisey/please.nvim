@@ -21,6 +21,13 @@ Currently implemented features of `please.nvim` are:
   Python parser so that you get the benefits of treesitter in `please` files (see
   [`nvim-treesitter` configuration](#nvim-treesitter-configuration) for more info)
 
+## Demo
+Shown below:
+1. Testing the target `:run_test` from `run_test.go` with `<space>pt` (`Please test`)
+2. Jumping to the defintion of the target `:run_test` from `run_test.go` with `<space>pj` (`Please jump_to_target`)
+3. Testing the target `:run_test` again, this time from the `BUILD` file (`Please test` again)
+
+![please.nvim demo](https://user-images.githubusercontent.com/34950778/169720695-fe5b80d1-7c53-4b3d-ad56-b23c80e48bde.gif)
 
 ## Documentation
 Detailed documentation can be found in the help file by running `:help please.nvim`.
