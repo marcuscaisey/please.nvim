@@ -31,8 +31,15 @@ local create_user_command = function()
   command.create_user_command(M.commands, cmd_name_to_opts)
 end
 
+-- make sure that the python parser is installed and configure it be used for please files
+local configure_treesitter = function()
+  require('nvim-treesitter.install').ensure_installed { 'python' }
+  require('nvim-treesitter.parsers').filetype_to_parsername.please = 'python'
+end
+
 M.load = function()
   configure_filetype()
+  configure_treesitter()
   create_user_command()
 end
 
