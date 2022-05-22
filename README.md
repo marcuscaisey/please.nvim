@@ -22,6 +22,9 @@ Currently implemented features of `please.nvim` are:
   [`nvim-treesitter` configuration](#nvim-treesitter-configuration) for more info)
 
 
+## Documentation
+Detailed documentation can be found in the help file by running `:help please.nvim`.
+
 ## Getting started
 ### Installation
 > :information_source: Neovim >= 0.7 is required to use `please.nvim`
@@ -89,6 +92,3 @@ nnoremap <leader>pt silent <cmd>Please test<cr>
 nnoremap <leader>pr silent <cmd>Please run<cr>
 nnoremap <leader>py silent <cmd>Please yank<cr>
 ```
-
-### Documentation
-Detailed documentation can be found in the help file by running `:help please.nvim`.
