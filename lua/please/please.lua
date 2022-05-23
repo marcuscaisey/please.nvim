@@ -195,6 +195,12 @@ local yank = function(txt)
     logging.debug('setting %s register to %s', register, txt)
     vim.fn.setreg(register, txt)
   end
+  if vim.fn.exists ':OSCYankReg' == 2 then
+    logging.debug 'calling :OSCYankReg "'
+    vim.cmd 'OSCYankReg "'
+  else
+    logging.debug ':OSCYankReg does not exist'
+  end
   logging.info('yanked %s', txt)
 end
 
