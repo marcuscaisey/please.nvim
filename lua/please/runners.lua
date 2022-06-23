@@ -112,4 +112,38 @@ runners.popup = function(cmd, args)
   job:start()
 end
 
+---Runs a command with the given args in tmux.
+---@param cmd string: Command to run.
+---@param args string[]: Args to pass to the command.
+---@param tmux_pre string[]: prefix to the tmux command (e.g. for setting options).
+---@param tmux_args string[]: Args to pass to tmux.
+runners.tmux = function(cmd, args, tmux_pre, tmux_args)
+  logging.debug(
+    'runners.tmux called with cmd=%s, args=%s, tmux_pre=%s, tmux_args=%s',
+    cmd,
+    vim.inspect(args),
+    vim.inspect(tmux_pre),
+    vim.inspect(tmux_args)
+  )
+
+  local tmux = os.getenv 'TMUX'
+  if tmux == nil then
+    print 'unable to get current tmux session'
+    return
+  end
+
+  local socket = vim.split(tmux, ',')[1]
+  local tmux_cmd = string.format(
+    "%s tmux -S %s %s '%s %s ; echo Press any key to exit; read ans'",
+    table.concat(tmux_pre or {}, ' '),
+    socket,
+    table.concat(tmux_args or { 'split-window' }, ' '),
+    cmd,
+    table.concat(args, ' ')
+  )
+  logging.debug('executing tmux_cmd = %s', tmux_cmd)
+  local handle = assert(io.popen(tmux_cmd), string.format('unable to execute: [%s]', tmux_cmd))
+  handle:close()
+end
+
 return runners
