@@ -27,15 +27,16 @@ runners.popup = function(cmd, args)
   local term_win_opts = {
     minwidth = math.ceil(vim.o.columns * width),
     minheight = math.ceil(vim.o.lines * height),
+    focusable = true,
   }
   local bg_win_oopts = {
     minwidth = term_win_opts.minwidth + 8,
     minheight = term_win_opts.minheight + 2,
   }
 
-  local bg_winnr = popup.create('', bg_win_oopts)
-  local term_winnr = popup.create('', term_win_opts)
-  local term_bufnr = vim.fn.winbufnr(term_winnr)
+  local bg_winid = popup.create({}, bg_win_oopts)
+  local term_winid = popup.create({}, term_win_opts)
+  local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
   -- we can still be outputting from the command after it's been shut down, so we need to check this before we send on a
@@ -90,8 +91,8 @@ runners.popup = function(cmd, args)
   -- when closing the popup, shutdown the job as well
   local close = function()
     is_shutdown = true
-    close_win(term_winnr)
-    close_win(bg_winnr)
+    close_win(term_winid)
+    close_win(bg_winid)
     -- Calling shutdown in the handler adds a bit of delay before the popup closes for some reason, as if its waiting
     -- for the end of the shutdown call. Maybe it is. Either way, scheduling the shutdown gets rid of the delay.
     vim.schedule(function()
