@@ -6,11 +6,11 @@ local logging = require 'please.logging'
 
 local runners = {}
 
-local close_win = function(winnr)
+local close_win = function(winid)
   -- If we close multiple windows then sometimes the ones after the first are invalid by the time we get to calling
   -- nvim_win_close. I'm not sure why this is but telescope.nvim does it as well which is good enough for me.
-  if vim.api.nvim_win_is_valid(winnr) then
-    vim.api.nvim_win_close(winnr, true)
+  if vim.api.nvim_win_is_valid(winid) then
+    vim.api.nvim_win_close(winid, true)
   end
 end
 
