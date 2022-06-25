@@ -33,12 +33,12 @@ runners.popup = function(cmd, args)
     minheight = math.ceil(vim.o.lines * height),
     focusable = true,
   }
-  local bg_win_oopts = {
+  local bg_win_opts = {
     minwidth = term_win_opts.minwidth + 8,
     minheight = term_win_opts.minheight + 2,
   }
 
-  local bg_winid = popup.create({}, bg_win_oopts)
+  local bg_winid = popup.create({}, bg_win_opts)
   local term_winid = popup.create({}, term_win_opts)
   local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
@@ -138,12 +138,12 @@ runners.resume_popup = function()
     minheight = math.ceil(vim.o.lines * height),
     focusable = true,
   }
-  local bg_win_oopts = {
+  local bg_win_opts = {
     minwidth = term_win_opts.minwidth + 8,
     minheight = term_win_opts.minheight + 2,
   }
 
-  local bg_winid = popup.create({}, bg_win_oopts)
+  local bg_winid = popup.create({}, bg_win_opts)
   local term_winid = popup.create({}, term_win_opts)
   local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
