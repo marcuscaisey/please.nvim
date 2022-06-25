@@ -14,14 +14,18 @@ local tables_equal = function(t1, t2)
   return true
 end
 
+local get_win_lines = function(winid, num_lines)
+  num_lines = num_lines or -1
+  local bufnr = vim.api.nvim_win_get_buf(winid)
+  return vim.api.nvim_buf_get_lines(bufnr, 0, num_lines, false)
+end
+
 local assert_win_lines = function(expected_lines, winid, opts)
   opts = opts or {}
 
-  local bufnr = vim.api.nvim_win_get_buf(winid)
-  local actual_lines, other_lines_content
-  local actual_lines_correct, other_lines_empty
+  local actual_lines, actual_lines_correct
   vim.wait(opts.timeout or 500, function()
-    actual_lines = vim.api.nvim_buf_get_lines(bufnr, 0, #expected_lines, false)
+    actual_lines = get_win_lines(winid, #expected_lines)
     actual_lines_correct = tables_equal(expected_lines, actual_lines)
 
     return actual_lines_correct
@@ -35,16 +39,23 @@ local assert_win_lines = function(expected_lines, winid, opts)
       vim.inspect(actual_lines)
     )
   )
-  if opts.check_other_lines then
-    local buf_line_count = vim.api.nvim_buf_line_count(bufnr)
-    local other_lines = vim.api.nvim_buf_get_lines(bufnr, #expected_lines, buf_line_count, false)
-    other_lines_content = vim.trim(table.concat(other_lines, '\n'))
-    other_lines_empty = other_lines_content == '' and other_lines_empty
-    assert(
-      other_lines_empty,
-      string.format('expected other lines in buffer to be empty, got:\n %s', other_lines_content)
-    )
+end
+
+local wait_for_win_lines = function(winid, opts)
+  local current_win_lines = get_win_lines(winid)
+  local lines_changed = false
+
+  -- Wait for at most timeout milliseconds after each change to the win lines for another one. Assuming that if no
+  -- changes come within that time, then there won't be anymore.
+  while lines_changed do
+    vim.wait(opts.timeout or 500, function()
+      local new_win_lines = get_win_lines(winid)
+      lines_changed = not tables_equal(new_win_lines, current_win_lines)
+      return lines_changed
+    end)
   end
+
+  return current_win_lines
 end
 
 local wait_for_new_win = function(timeout)
@@ -202,5 +213,27 @@ describe('popup', function()
 
     local popup_winid = wait_for_new_win()
     assert_win_lines({ 'hello', '', 'Command:', 'bash -c echo "hello"' }, popup_winid)
+  end)
+end)
+
+describe('resume_popup', function()
+  it('should show output from closed popup in new window', function()
+    runners.popup('bash', { '-c', 'echo "hello"' })
+    local popup_winid = wait_for_new_win()
+    local popup_lines = wait_for_win_lines(popup_winid)
+
+    vim.api.nvim_feedkeys('q', 'x', false)
+    wait_for_win(start_winid)
+
+    local err = runners.resume_popup()
+    assert.is_nil(err, 'expected no error')
+
+    local resumed_popup_winid = wait_for_new_win()
+    assert.are_not.equal(
+      popup_winid,
+      resumed_popup_winid,
+      'expected popup winid and resumed popup winid to be different'
+    )
+    assert_win_lines(popup_lines, resumed_popup_winid)
   end)
 end)

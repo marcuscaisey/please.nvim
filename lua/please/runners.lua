@@ -6,6 +6,8 @@ local logging = require 'please.logging'
 
 local runners = {}
 
+local last_popup_lines = {}
+
 local close_win = function(winid)
   -- If we close multiple windows then sometimes the ones after the first are invalid by the time we get to calling
   -- nvim_win_close. I'm not sure why this is but telescope.nvim does it as well which is good enough for me.
@@ -16,11 +18,13 @@ end
 
 ---Runs a command with the given args in a terminal in a popup.
 ---The output of the command is automatically scrolled through.
----The popup can be exited with q.
+---The popup can be exited with q or by focusing on another window.
 ---@param cmd string: Command to run.
 ---@param args string[]: Args to pass to the command.
 runners.popup = function(cmd, args)
   logging.debug('runners.popup called with cmd=%s, args=%s', cmd, vim.inspect(args))
+
+  last_popup_lines = {}
 
   local width = 0.8
   local height = 0.8
@@ -43,6 +47,8 @@ runners.popup = function(cmd, args)
   -- potentially closed channel
   local is_shutdown = false
 
+  local output_lines = {}
+
   local first_stdout_line_written = false
   local on_stdout = vim.schedule_wrap(function(_, line)
     if line then
@@ -51,8 +57,11 @@ runners.popup = function(cmd, args)
           first_stdout_line_written = true
           -- please usually outputs these control sequences to reset the text style and clear the screen before printing
           -- stdout, but they don't seem to be getting output for us...
-          vim.api.nvim_chan_send(term_chan_id, '\x1b[0m\x1b[H\x1b[J')
+          local control_sequence_line = '\x1b[0m\x1b[H\x1b[J'
+          table.insert(output_lines, control_sequence_line)
+          vim.api.nvim_chan_send(term_chan_id, control_sequence_line)
         end
+        table.insert(output_lines, line)
         vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
       end
     end
@@ -60,6 +69,7 @@ runners.popup = function(cmd, args)
 
   local on_stderr = vim.schedule_wrap(function(_, line)
     if line then
+      table.insert(output_lines, line)
       if not is_shutdown then
         vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
       end
@@ -69,7 +79,11 @@ runners.popup = function(cmd, args)
   local on_exit = vim.schedule_wrap(function()
     if not is_shutdown then
       local cmd_str = string.format('%s %s', cmd, table.concat(args, ' '))
-      vim.api.nvim_chan_send(term_chan_id, string.format('\r\n[1mCommand:\r\n[0m%s', cmd_str))
+      local cmd_line = string.format('\r\n[1mCommand:\r\n[0m%s', cmd_str)
+      vim.api.nvim_chan_send(term_chan_id, cmd_line)
+
+      table.insert(output_lines, cmd_line)
+      last_popup_lines = output_lines
     end
   end)
 
@@ -111,6 +125,30 @@ runners.popup = function(cmd, args)
   })
 
   job:start()
+end
+
+---Shows the output from a previous popup in a new popup.
+---Only popups who's command ran to completion can be resumed, an error will be returned otherwise.
+---@return string|nil: error if any
+runners.resume_popup = function()
+  local width = 0.8
+  local height = 0.8
+  local term_win_opts = {
+    minwidth = math.ceil(vim.o.columns * width),
+    minheight = math.ceil(vim.o.lines * height),
+    focusable = true,
+  }
+  local bg_win_oopts = {
+    minwidth = term_win_opts.minwidth + 8,
+    minheight = term_win_opts.minheight + 2,
+  }
+
+  local bg_winid = popup.create({}, bg_win_oopts)
+  local term_winid = popup.create({}, term_win_opts)
+  local term_bufnr = vim.fn.winbufnr(term_winid)
+  local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
+
+  vim.api.nvim_chan_send(term_chan_id, table.concat(last_popup_lines, '\r\n'))
 end
 
 return runners
