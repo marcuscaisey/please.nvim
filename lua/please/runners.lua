@@ -6,6 +6,8 @@ local logging = require 'please.logging'
 
 local runners = {}
 
+local group = vim.api.nvim_create_augroup('please.nvim', { clear = true })
+
 local close_win = function(winid)
   -- If we close multiple windows then sometimes the ones after the first are invalid by the time we get to calling
   -- nvim_win_close. I'm not sure why this is but telescope.nvim does it as well which is good enough for me.
@@ -14,13 +16,17 @@ local close_win = function(winid)
   end
 end
 
+local cached_popup_lines = {}
+
 ---Runs a command with the given args in a terminal in a popup.
 ---The output of the command is automatically scrolled through.
----The popup can be exited with q.
+---The popup can be exited with q or by focusing on another window.
 ---@param cmd string: Command to run.
 ---@param args string[]: Args to pass to the command.
 runners.popup = function(cmd, args)
   logging.debug('runners.popup called with cmd=%s, args=%s', cmd, vim.inspect(args))
+
+  cached_popup_lines = {}
 
   local width = 0.8
   local height = 0.8
@@ -29,12 +35,12 @@ runners.popup = function(cmd, args)
     minheight = math.ceil(vim.o.lines * height),
     focusable = true,
   }
-  local bg_win_oopts = {
+  local bg_win_opts = {
     minwidth = term_win_opts.minwidth + 8,
     minheight = term_win_opts.minheight + 2,
   }
 
-  local bg_winid = popup.create({}, bg_win_oopts)
+  local bg_winid = popup.create({}, bg_win_opts)
   local term_winid = popup.create({}, term_win_opts)
   local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
@@ -42,6 +48,12 @@ runners.popup = function(cmd, args)
   -- we can still be outputting from the command after it's been shut down, so we need to check this before we send on a
   -- potentially closed channel
   local is_shutdown = false
+
+  local output_lines = {}
+  local output_line = function(line)
+    table.insert(output_lines, line .. '\r\n')
+    vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+  end
 
   local first_stdout_line_written = false
   local on_stdout = vim.schedule_wrap(function(_, line)
@@ -51,9 +63,9 @@ runners.popup = function(cmd, args)
           first_stdout_line_written = true
           -- please usually outputs these control sequences to reset the text style and clear the screen before printing
           -- stdout, but they don't seem to be getting output for us...
-          vim.api.nvim_chan_send(term_chan_id, '\x1b[0m\x1b[H\x1b[J')
+          line = '\x1b[0m\x1b[H\x1b[J' .. line
         end
-        vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+        output_line(line)
       end
     end
   end)
@@ -61,15 +73,16 @@ runners.popup = function(cmd, args)
   local on_stderr = vim.schedule_wrap(function(_, line)
     if line then
       if not is_shutdown then
-        vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+        output_line(line)
       end
     end
   end)
 
   local on_exit = vim.schedule_wrap(function()
     if not is_shutdown then
-      local cmd_str = string.format('%s %s', cmd, table.concat(args, ' '))
-      vim.api.nvim_chan_send(term_chan_id, string.format('\r\n[1mCommand:\r\n[0m%s', cmd_str))
+      output_line '\r\n[1mCommand:'
+      output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')))
+      cached_popup_lines = output_lines
     end
   end)
 
@@ -103,7 +116,7 @@ runners.popup = function(cmd, args)
   vim.keymap.set('n', 'q', close, { buffer = term_bufnr })
   -- close popup when focus lost
   vim.api.nvim_create_autocmd({ 'WinLeave' }, {
-    group = vim.api.nvim_create_augroup('please.nvim', { clear = true }),
+    group = group,
     buffer = term_bufnr,
     desc = 'close the popup when focus is lost',
     callback = close,
@@ -111,6 +124,53 @@ runners.popup = function(cmd, args)
   })
 
   job:start()
+end
+
+---Shows the output from a previous popup in a new popup.
+---Only popups who's command ran to completion can be restore, otherwise no popup will be opened.
+---The popup can be exited with q or by focusing on another window.
+runners.restore = function()
+  logging.debug 'runners.restore called'
+
+  if #cached_popup_lines == 0 then
+    logging.info 'no popup to restore'
+    return
+  end
+
+  local width = 0.8
+  local height = 0.8
+  local term_win_opts = {
+    minwidth = math.ceil(vim.o.columns * width),
+    minheight = math.ceil(vim.o.lines * height),
+    focusable = true,
+  }
+  local bg_win_opts = {
+    minwidth = term_win_opts.minwidth + 8,
+    minheight = term_win_opts.minheight + 2,
+  }
+
+  local bg_winid = popup.create({}, bg_win_opts)
+  local term_winid = popup.create({}, term_win_opts)
+  local term_bufnr = vim.fn.winbufnr(term_winid)
+  local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
+
+  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup_lines))
+
+  -- when closing the popup, shutdown the job as well
+  local close = function()
+    close_win(term_winid)
+    close_win(bg_winid)
+  end
+  -- close popup on q
+  vim.keymap.set('n', 'q', close, { buffer = term_bufnr })
+  -- close popup when focus lost
+  vim.api.nvim_create_autocmd({ 'WinLeave' }, {
+    group = group,
+    buffer = term_bufnr,
+    desc = 'close the popup when focus is lost',
+    callback = close,
+    once = true,
+  })
 end
 
 return runners
