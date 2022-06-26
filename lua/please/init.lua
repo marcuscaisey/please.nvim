@@ -79,4 +79,4 @@
 ---
 ---@brief ]]
 
-return require('please.plugin').commands
+return require 'please.please'

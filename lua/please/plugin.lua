@@ -26,10 +26,21 @@ end
 
 -- create the Please user command
 local create_user_command = function()
+  local cmds = {
+    jump_to_target = please.jump_to_target,
+    build = please.build,
+    test = please.test,
+    run = please.run,
+    yank = please.yank,
+    restore_popup = popup.restore,
+    reload = M.reload,
+    toggle_debug_logs = logging.toggle_debug,
+  }
   local cmd_name_to_opts = {
     test = { 'under_cursor' },
   }
-  command.create_user_command(M.commands, cmd_name_to_opts)
+
+  command.create_user_command(cmds, cmd_name_to_opts)
 end
 
 -- make sure that the python parser is installed and configure it be used for please files
@@ -44,7 +55,7 @@ M.load = function()
   create_user_command()
 end
 
-local reload = function()
+M.reload = function()
   for pkg, _ in pairs(package.loaded) do
     if vim.startswith(pkg, 'please') then
       package.loaded[pkg] = nil
@@ -53,16 +64,5 @@ local reload = function()
   require('please.plugin').load()
   logging.info 'reloaded plugin'
 end
-
-M.commands = {
-  jump_to_target = please.jump_to_target,
-  build = please.build,
-  test = please.test,
-  run = please.run,
-  yank = please.yank,
-  restore_popup = popup.restore,
-  reload = reload,
-  toggle_debug_logs = logging.toggle_debug,
-}
 
 return M
