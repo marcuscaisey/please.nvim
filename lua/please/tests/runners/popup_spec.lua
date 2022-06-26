@@ -1,4 +1,4 @@
-local runners = require 'please.runners'
+local popup = require 'please.runners.popup'
 
 local start_winid = vim.api.nvim_get_current_win()
 
@@ -84,7 +84,7 @@ local wait_for_win = function(winid, timeout)
   assert(current_win_correct, string.format('expected current window to be %d, was %d', winid, current_winid))
 end
 
-describe('popup', function()
+describe('run', function()
   before_each(function()
     vim.api.nvim_set_current_win(start_winid)
   end)
@@ -93,7 +93,7 @@ describe('popup', function()
     local cmd = 'bash'
     local args = { '-c', 'for i in $(seq 1 5); do echo line $i; done' }
 
-    runners.popup(cmd, args)
+    popup.run(cmd, args)
 
     local popup_winid = wait_for_new_win()
     assert_win_lines({ 'line 1', 'line 2', 'line 3', 'line 4', 'line 5' }, popup_winid)
@@ -103,7 +103,7 @@ describe('popup', function()
     local cmd = 'bash'
     local args = { '-c', 'for i in $(seq 1 5); do echo line $i >&2; done' }
 
-    runners.popup(cmd, args)
+    popup.run(cmd, args)
 
     local popup_winid = wait_for_new_win()
     assert_win_lines({ 'line 1', 'line 2', 'line 3', 'line 4', 'line 5' }, popup_winid)
@@ -113,7 +113,7 @@ describe('popup', function()
     local cmd = 'bash'
     local args = { '-c', 'echo stdout; echo stderr >&2' }
 
-    runners.popup(cmd, args)
+    popup.run(cmd, args)
 
     local popup_winid = wait_for_new_win()
     assert_win_lines({ 'stdout', 'stderr' }, popup_winid)
@@ -123,7 +123,7 @@ describe('popup', function()
     local cmd = 'ls'
     local args = {}
 
-    runners.popup(cmd, args)
+    popup.run(cmd, args)
     local popup_winid = wait_for_new_win()
 
     vim.api.nvim_feedkeys('q', 'x', false)
@@ -136,7 +136,7 @@ describe('popup', function()
     local cmd = 'ls'
     local args = {}
 
-    runners.popup(cmd, args)
+    popup.run(cmd, args)
     local popup_winid = wait_for_new_win()
 
     vim.api.nvim_set_current_win(start_winid)
@@ -148,7 +148,7 @@ describe('popup', function()
     local cmd = 'bash'
     local args = { '-c', 'for i in $(seq 1 1000); do echo line $i && sleep 0.1; done' }
 
-    runners.popup(cmd, args)
+    popup.run(cmd, args)
     wait_for_new_win()
 
     vim.api.nvim_feedkeys('q', 'x', false)
@@ -165,7 +165,7 @@ describe('popup', function()
     local cmd = 'bash'
     local args = { '-c', 'for i in $(seq 1 1000); do echo line $i && sleep 0.1; done' }
 
-    runners.popup(cmd, args)
+    popup.run(cmd, args)
     local popup_winid = wait_for_new_win()
 
     vim.api.nvim_set_current_win(start_winid)
@@ -184,7 +184,7 @@ describe('popup', function()
   --   local cmd = 'ls'
   --   local args = {}
 
-  --   runners.popup(cmd, args)
+  --   popup.run(cmd, args)
   --   wait_for_new_win()
 
   --   vim.api.nvim_feedkeys('i', 'x', false)
@@ -199,7 +199,7 @@ describe('popup', function()
   --   local cmd = 'bash'
   --   local args = { '-c', 'for i in $(seq 1 5); do echo line $i; done' }
 
-  --   runners.popup(cmd, args)
+  --   popup.run(cmd, args)
 
   --   local popup_winid = wait_for_new_win()
   --   assert_win_lines({ 'line 1', 'line 2', 'line 3', 'line 4', 'line 5' }, popup_winid)
@@ -212,7 +212,7 @@ describe('popup', function()
     local cmd = 'bash'
     local args = { '-c', 'echo "hello"' }
 
-    runners.popup(cmd, args)
+    popup.run(cmd, args)
 
     local popup_winid = wait_for_new_win()
     assert_win_lines({ 'hello', '', 'Command:', 'bash -c echo "hello"' }, popup_winid)
@@ -220,7 +220,7 @@ describe('popup', function()
 end)
 
 local run_in_popup = function(cmd, args)
-  runners.popup(cmd, args)
+  popup.run(cmd, args)
   local winid = wait_for_new_win()
   local lines = wait_for_win_lines(winid)
   return winid, lines
@@ -236,7 +236,7 @@ describe('restore', function()
     local popup_winid, popup_lines = run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
 
-    runners.restore()
+    popup.restore()
 
     local restored_popup_winid = wait_for_new_win()
     assert.are_not.equal(
@@ -251,7 +251,7 @@ describe('restore', function()
     run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
 
-    runners.restore()
+    popup.restore()
     local restored_popup_winid = wait_for_new_win()
 
     vim.api.nvim_feedkeys('q', 'x', false)
@@ -264,7 +264,7 @@ describe('restore', function()
     run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
 
-    runners.restore()
+    popup.restore()
     local restored_popup_winid = wait_for_new_win()
 
     vim.api.nvim_set_current_win(start_winid)
@@ -273,11 +273,11 @@ describe('restore', function()
   end)
 
   it('should not open popup when previous popup command was not completed', function()
-    runners.popup('bash', { '-c', 'for i in $(seq 1 1000); do echo line $i && sleep 0.1; done' })
+    popup.run('bash', { '-c', 'for i in $(seq 1 1000); do echo line $i && sleep 0.1; done' })
     wait_for_new_win()
     quit_popup()
 
-    runners.restore()
+    popup.restore()
 
     vim.wait(500)
     local current_winid = vim.api.nvim_get_current_win()
@@ -288,11 +288,11 @@ describe('restore', function()
     local _, popup_lines = run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
 
-    runners.restore()
+    popup.restore()
     wait_for_new_win()
     quit_popup()
 
-    runners.restore()
+    popup.restore()
 
     local second_restored_popup_winid = wait_for_new_win()
     assert_win_lines(popup_lines, second_restored_popup_winid)
