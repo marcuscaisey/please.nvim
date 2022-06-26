@@ -50,6 +50,10 @@ runners.popup = function(cmd, args)
   local is_shutdown = false
 
   local output_lines = {}
+  local output_line = function(line)
+    table.insert(output_lines, line .. '\r\n')
+    vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+  end
 
   local first_stdout_line_written = false
   local on_stdout = vim.schedule_wrap(function(_, line)
@@ -61,28 +65,23 @@ runners.popup = function(cmd, args)
           -- stdout, but they don't seem to be getting output for us...
           line = '\x1b[0m\x1b[H\x1b[J' .. line
         end
-        table.insert(output_lines, line)
-        vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+        output_line(line)
       end
     end
   end)
 
   local on_stderr = vim.schedule_wrap(function(_, line)
     if line then
-      table.insert(output_lines, line)
       if not is_shutdown then
-        vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+        output_line(line)
       end
     end
   end)
 
   local on_exit = vim.schedule_wrap(function()
     if not is_shutdown then
-      local cmd_str = string.format('%s %s', cmd, table.concat(args, ' '))
-      local cmd_line = string.format('\r\n[1mCommand:\r\n[0m%s', cmd_str)
-      vim.api.nvim_chan_send(term_chan_id, cmd_line)
-
-      table.insert(output_lines, cmd_line)
+      output_line '\r\n[1mCommand:'
+      output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')))
       cached_popup_lines = output_lines
     end
   end)
