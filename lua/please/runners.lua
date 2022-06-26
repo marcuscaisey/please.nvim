@@ -6,7 +6,7 @@ local logging = require 'please.logging'
 
 local runners = {}
 
-local last_popup_lines = {}
+local group = vim.api.nvim_create_augroup('please.nvim', { clear = true })
 
 local close_win = function(winid)
   -- If we close multiple windows then sometimes the ones after the first are invalid by the time we get to calling
@@ -15,6 +15,8 @@ local close_win = function(winid)
     vim.api.nvim_win_close(winid, true)
   end
 end
+
+local last_popup_lines = {}
 
 ---Runs a command with the given args in a terminal in a popup.
 ---The output of the command is automatically scrolled through.
@@ -117,7 +119,7 @@ runners.popup = function(cmd, args)
   vim.keymap.set('n', 'q', close, { buffer = term_bufnr })
   -- close popup when focus lost
   vim.api.nvim_create_autocmd({ 'WinLeave' }, {
-    group = vim.api.nvim_create_augroup('please.nvim', { clear = true }),
+    group = group,
     buffer = term_bufnr,
     desc = 'close the popup when focus is lost',
     callback = close,
@@ -129,8 +131,11 @@ end
 
 ---Shows the output from a previous popup in a new popup.
 ---Only popups who's command ran to completion can be resumed, an error will be returned otherwise.
+---The popup can be exited with q or by focusing on another window.
 ---@return string|nil: error if any
 runners.resume_popup = function()
+  logging.debug 'runners.resume_popup called'
+
   local width = 0.8
   local height = 0.8
   local term_win_opts = {
@@ -149,6 +154,22 @@ runners.resume_popup = function()
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
   vim.api.nvim_chan_send(term_chan_id, table.concat(last_popup_lines, '\r\n'))
+
+  -- when closing the popup, shutdown the job as well
+  local close = function()
+    close_win(term_winid)
+    close_win(bg_winid)
+  end
+  -- close popup on q
+  vim.keymap.set('n', 'q', close, { buffer = term_bufnr })
+  -- close popup when focus lost
+  vim.api.nvim_create_autocmd({ 'WinLeave' }, {
+    group = group,
+    buffer = term_bufnr,
+    desc = 'close the popup when focus is lost',
+    callback = close,
+    once = true,
+  })
 end
 
 return runners

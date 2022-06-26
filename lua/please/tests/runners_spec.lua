@@ -236,4 +236,39 @@ describe('resume_popup', function()
     )
     assert_win_lines(popup_lines, resumed_popup_winid)
   end)
+
+  it('should close resumed popup when q is pressed', function()
+    runners.popup('bash', { '-c', 'echo "hello"' })
+    local popup_winid = wait_for_new_win()
+    wait_for_win_lines(popup_winid)
+
+    vim.api.nvim_feedkeys('q', 'x', false)
+    wait_for_win(start_winid)
+
+    local err = runners.resume_popup()
+    assert.is_nil(err, 'expected no error')
+    local resumed_popup_winid = wait_for_new_win()
+
+    vim.api.nvim_feedkeys('q', 'x', false)
+
+    wait_for_win(start_winid)
+    assert.is_false(vim.api.nvim_win_is_valid(resumed_popup_winid), 'expected resumed popup window to not be valid')
+  end)
+
+  it('should close when resumed popup focus is lost', function()
+    runners.popup('bash', { '-c', 'echo "hello"' })
+    local popup_winid = wait_for_new_win()
+    wait_for_win_lines(popup_winid)
+
+    vim.api.nvim_feedkeys('q', 'x', false)
+    wait_for_win(start_winid)
+
+    local err = runners.resume_popup()
+    assert.is_nil(err, 'expected no error')
+    local resumed_popup_winid = wait_for_new_win()
+
+    vim.api.nvim_set_current_win(start_winid)
+
+    assert.is_false(vim.api.nvim_win_is_valid(resumed_popup_winid), 'expected resumed popup window to not be valid')
+  end)
 end)
