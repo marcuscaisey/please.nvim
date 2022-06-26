@@ -52,9 +52,13 @@ popup.run = function(cmd, args)
   local is_shutdown = false
 
   local output_lines = {}
-  local output_line = function(line)
-    table.insert(output_lines, line .. '\r\n')
-    vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
+  local output_line = function(line, opts)
+    opts = opts or { new_line = true }
+    if opts.new_line then
+      line = line .. '\r\n'
+    end
+    table.insert(output_lines, line)
+    vim.api.nvim_chan_send(term_chan_id, line)
   end
 
   local first_stdout_line_written = false
@@ -83,7 +87,7 @@ popup.run = function(cmd, args)
   local on_exit = vim.schedule_wrap(function()
     if not is_shutdown then
       output_line '\r\n[1mCommand:'
-      output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')))
+      output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')), { new_line = false })
       cached_lines = output_lines
     end
   end)
