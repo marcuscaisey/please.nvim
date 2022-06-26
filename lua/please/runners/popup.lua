@@ -3,6 +3,7 @@
 local Job = require 'plenary.job'
 local plenary_popup = require 'plenary.popup'
 local logging = require 'please.logging'
+local cursor = require 'please.cursor'
 
 local popup = {}
 
@@ -16,7 +17,11 @@ local close_win = function(winid)
   end
 end
 
-local cached_lines = {}
+local cached_popup = {
+  valid = false,
+  lines = {},
+  cursor = {},
+}
 
 ---Runs a command with the given args in a terminal in a popup.
 ---The output of the command is automatically scrolled through.
@@ -28,7 +33,11 @@ popup.run = function(cmd, args)
 
   -- reset before we start running the command in case it doesn't finish successfully, otherwise we could restore the
   -- output from the popup run previous to this one
-  cached_lines = {}
+  cached_popup = {
+    valid = false,
+    lines = {},
+    cursor = {},
+  }
 
   local width = 0.8
   local height = 0.8
@@ -51,6 +60,7 @@ popup.run = function(cmd, args)
   -- potentially closed channel
   local is_shutdown = false
 
+  local is_complete = false
   local output_lines = {}
   local output_line = function(line, opts)
     opts = opts or { new_line = true }
@@ -63,24 +73,20 @@ popup.run = function(cmd, args)
 
   local first_stdout_line_written = false
   local on_stdout = vim.schedule_wrap(function(_, line)
-    if line then
-      if not is_shutdown then
-        if not first_stdout_line_written then
-          first_stdout_line_written = true
-          -- please usually outputs these control sequences to reset the text style and clear the screen before printing
-          -- stdout, but they don't seem to be getting output for us...
-          line = '\x1b[0m\x1b[H\x1b[J' .. line
-        end
-        output_line(line)
+    if not is_shutdown and line then
+      if not first_stdout_line_written then
+        first_stdout_line_written = true
+        -- please usually outputs these control sequences to reset the text style and clear the screen before printing
+        -- stdout, but they don't seem to be getting output for us...
+        line = '\x1b[0m\x1b[H\x1b[J' .. line
       end
+      output_line(line)
     end
   end)
 
   local on_stderr = vim.schedule_wrap(function(_, line)
-    if line then
-      if not is_shutdown then
-        output_line(line)
-      end
+    if not is_shutdown and line then
+      output_line(line)
     end
   end)
 
@@ -88,7 +94,7 @@ popup.run = function(cmd, args)
     if not is_shutdown then
       output_line '\r\n[1mCommand:'
       output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')), { new_line = false })
-      cached_lines = output_lines
+      is_complete = true
     end
   end)
 
@@ -107,8 +113,14 @@ popup.run = function(cmd, args)
   -- need to press <c-\><c-n> to get out
   vim.keymap.set('n', 'i', '<nop>', { buffer = term_bufnr })
 
-  -- when closing the popup, shutdown the job as well
   local close = function()
+    if is_complete and not is_shutdown then
+      cached_popup = {
+        valid = true,
+        lines = output_lines,
+        cursor = cursor.get(),
+      }
+    end
     is_shutdown = true
     close_win(term_winid)
     close_win(bg_winid)
@@ -132,13 +144,13 @@ popup.run = function(cmd, args)
   job:start()
 end
 
----Shows the output from a previous popup in a new popup.
+---Shows the output from a previous popup in a new popup, restoring the previous cursor position as well.
 ---Only popups who's command ran to completion can be restore, otherwise no popup will be opened.
 ---The popup can be exited with q or by focusing on another window.
 popup.restore = function()
   logging.debug 'runners.restore called'
 
-  if #cached_lines == 0 then
+  if not cached_popup.valid then
     logging.error 'no popup to restore'
     return
   end
@@ -160,10 +172,25 @@ popup.restore = function()
   local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
-  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_lines))
+  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup.lines))
 
-  -- when closing the popup, shutdown the job as well
+  -- we have to wait for the line which the cursor was previously on to be populated in the terminal buffer before we
+  -- can move the cursor back to it
+  local cached_cursor_line_num = cached_popup.cursor[1]
+  vim.wait(500, function()
+    -- we check the next line since then we know that the previous one has been fully written
+    local next_term_buf_line = vim.api.nvim_buf_get_lines(
+      term_bufnr,
+      cached_cursor_line_num + 1,
+      cached_cursor_line_num + 2,
+      false
+    )[1]
+    return next_term_buf_line ~= ''
+  end)
+  cursor.set(cached_popup.cursor)
+
   local close = function()
+    cached_popup.cursor = cursor.get()
     close_win(term_winid)
     close_win(bg_winid)
   end

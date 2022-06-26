@@ -1,4 +1,5 @@
 local popup = require 'please.runners.popup'
+local cursor = require 'please.cursor'
 
 local start_winid = vim.api.nvim_get_current_win()
 
@@ -227,11 +228,25 @@ local run_in_popup = function(cmd, args)
 end
 
 local quit_popup = function()
-  vim.api.nvim_feedkeys('q', 'x', false)
+  vim.api.nvim_set_current_win(start_winid)
   wait_for_win(start_winid)
 end
 
+local wait_for_cursor = function(expected_cursor_pos, opts)
+  opts = opts or {}
+  local actual_cursor_pos
+  vim.wait(opts.timeout or 500, function()
+    actual_cursor_pos = cursor.get()
+    return tables_equal(expected_cursor_pos, actual_cursor_pos)
+  end)
+  assert.are.same(expected_cursor_pos, actual_cursor_pos, 'incorrect cursor position')
+end
+
 describe('restore', function()
+  before_each(function()
+    vim.api.nvim_set_current_win(start_winid)
+  end)
+
   it('should show output from closed popup in new window', function()
     local popup_winid, popup_lines = run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
@@ -296,5 +311,39 @@ describe('restore', function()
 
     local second_restored_popup_winid = wait_for_new_win()
     assert_win_lines(popup_lines, second_restored_popup_winid)
+  end)
+
+  it('should restore the cursor position from closed popup', function()
+    local expected_cursor_pos = { 5, 3 }
+
+    run_in_popup('bash', { '-c', 'for i in $(seq 1 10); do echo line $i; done' })
+    cursor.set(expected_cursor_pos)
+    wait_for_cursor(expected_cursor_pos)
+    quit_popup()
+
+    popup.restore()
+    wait_for_new_win()
+
+    wait_for_cursor(expected_cursor_pos)
+  end)
+
+  it('should restore the cursor position from a previously closed restored popup', function()
+    local first_cursor_pos = { 5, 3 }
+    local second_cursor_pos = { 7, 2 }
+
+    run_in_popup('bash', { '-c', 'for i in $(seq 1 10); do echo line $i; done' })
+    cursor.set(first_cursor_pos)
+    wait_for_cursor(first_cursor_pos)
+    quit_popup()
+
+    popup.restore()
+    wait_for_new_win()
+    cursor.set(second_cursor_pos)
+    quit_popup()
+
+    popup.restore()
+    wait_for_new_win()
+
+    wait_for_cursor(second_cursor_pos)
   end)
 end)
