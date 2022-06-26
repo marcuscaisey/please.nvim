@@ -219,14 +219,22 @@ describe('popup', function()
   end)
 end)
 
+local run_in_popup = function(cmd, args)
+  runners.popup(cmd, args)
+  local winid = wait_for_new_win()
+  local lines = wait_for_win_lines(winid)
+  return winid, lines
+end
+
+local quit_popup = function()
+  vim.api.nvim_feedkeys('q', 'x', false)
+  wait_for_win(start_winid)
+end
+
 describe('resume_popup', function()
   it('should show output from closed popup in new window', function()
-    runners.popup('bash', { '-c', 'echo "hello"' })
-    local popup_winid = wait_for_new_win()
-    local popup_lines = wait_for_win_lines(popup_winid)
-
-    vim.api.nvim_feedkeys('q', 'x', false)
-    wait_for_win(start_winid)
+    local popup_winid, popup_lines = run_in_popup('bash', { '-c', 'echo "hello"' })
+    quit_popup()
 
     runners.resume_popup()
 
@@ -240,12 +248,8 @@ describe('resume_popup', function()
   end)
 
   it('should close resumed popup when q is pressed', function()
-    runners.popup('bash', { '-c', 'echo "hello"' })
-    local popup_winid = wait_for_new_win()
-    wait_for_win_lines(popup_winid)
-
-    vim.api.nvim_feedkeys('q', 'x', false)
-    wait_for_win(start_winid)
+    run_in_popup('bash', { '-c', 'echo "hello"' })
+    quit_popup()
 
     runners.resume_popup()
     local resumed_popup_winid = wait_for_new_win()
@@ -257,12 +261,8 @@ describe('resume_popup', function()
   end)
 
   it('should close when resumed popup focus is lost', function()
-    runners.popup('bash', { '-c', 'echo "hello"' })
-    local popup_winid = wait_for_new_win()
-    wait_for_win_lines(popup_winid)
-
-    vim.api.nvim_feedkeys('q', 'x', false)
-    wait_for_win(start_winid)
+    run_in_popup('bash', { '-c', 'echo "hello"' })
+    quit_popup()
 
     runners.resume_popup()
     local resumed_popup_winid = wait_for_new_win()
@@ -275,20 +275,26 @@ describe('resume_popup', function()
   it('should not open popup when previous popup command was not completed', function()
     runners.popup('bash', { '-c', 'for i in $(seq 1 1000); do echo line $i && sleep 0.1; done' })
     wait_for_new_win()
-
-    vim.api.nvim_feedkeys('q', 'x', false)
-    wait_for_win(start_winid)
+    quit_popup()
 
     runners.resume_popup()
 
-    vim.defer_fn(function()
-      local current_winid = vim.api.nvim_get_current_win()
-      assert.are.equal(
-        start_winid,
-        current_winid,
-        'expected no popup to be opened, current window has id: %d',
-        current_winid
-      )
-    end, 500)
+    vim.wait(500)
+    local current_winid = vim.api.nvim_get_current_win()
+    assert.are.equal(start_winid, current_winid, 'expected current window to be the start window')
+  end)
+
+  it("should open resumed popup again after it's been closed", function()
+    local _, popup_lines = run_in_popup('bash', { '-c', 'echo "hello"' })
+    quit_popup()
+
+    runners.resume_popup()
+    wait_for_new_win()
+    quit_popup()
+
+    runners.resume_popup()
+
+    local second_resumed_popup_winid = wait_for_new_win()
+    assert_win_lines(popup_lines, second_resumed_popup_winid)
   end)
 end)

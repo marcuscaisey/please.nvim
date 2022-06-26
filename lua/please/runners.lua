@@ -135,6 +135,7 @@ runners.resume_popup = function()
 
   if #cached_popup_lines == 0 then
     logging.info 'no popup to resume'
+    return
   end
 
   local width = 0.8
