@@ -16,7 +16,7 @@ local close_win = function(winid)
   end
 end
 
-local last_popup_lines = {}
+local cached_popup_lines = {}
 
 ---Runs a command with the given args in a terminal in a popup.
 ---The output of the command is automatically scrolled through.
@@ -26,7 +26,7 @@ local last_popup_lines = {}
 runners.popup = function(cmd, args)
   logging.debug('runners.popup called with cmd=%s, args=%s', cmd, vim.inspect(args))
 
-  last_popup_lines = {}
+  cached_popup_lines = {}
 
   local width = 0.8
   local height = 0.8
@@ -59,9 +59,7 @@ runners.popup = function(cmd, args)
           first_stdout_line_written = true
           -- please usually outputs these control sequences to reset the text style and clear the screen before printing
           -- stdout, but they don't seem to be getting output for us...
-          local control_sequence_line = '\x1b[0m\x1b[H\x1b[J'
-          table.insert(output_lines, control_sequence_line)
-          vim.api.nvim_chan_send(term_chan_id, control_sequence_line)
+          line = '\x1b[0m\x1b[H\x1b[J' .. line
         end
         table.insert(output_lines, line)
         vim.api.nvim_chan_send(term_chan_id, line .. '\r\n')
@@ -85,7 +83,7 @@ runners.popup = function(cmd, args)
       vim.api.nvim_chan_send(term_chan_id, cmd_line)
 
       table.insert(output_lines, cmd_line)
-      last_popup_lines = output_lines
+      cached_popup_lines = output_lines
     end
   end)
 
@@ -130,11 +128,14 @@ runners.popup = function(cmd, args)
 end
 
 ---Shows the output from a previous popup in a new popup.
----Only popups who's command ran to completion can be resumed, an error will be returned otherwise.
+---Only popups who's command ran to completion can be resumed, otherwise no popup will be opened.
 ---The popup can be exited with q or by focusing on another window.
----@return string|nil: error if any
 runners.resume_popup = function()
   logging.debug 'runners.resume_popup called'
+
+  if #cached_popup_lines == 0 then
+    logging.info 'no popup to resume'
+  end
 
   local width = 0.8
   local height = 0.8
@@ -153,7 +154,7 @@ runners.resume_popup = function()
   local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
-  vim.api.nvim_chan_send(term_chan_id, table.concat(last_popup_lines, '\r\n'))
+  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup_lines, '\r\n'))
 
   -- when closing the popup, shutdown the job as well
   local close = function()

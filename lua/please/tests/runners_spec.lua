@@ -42,8 +42,10 @@ local assert_win_lines = function(expected_lines, winid, opts)
 end
 
 local wait_for_win_lines = function(winid, opts)
+  opts = opts or {}
+
   local current_win_lines = get_win_lines(winid)
-  local lines_changed = false
+  local lines_changed = true
 
   -- Wait for at most timeout milliseconds after each change to the win lines for another one. Assuming that if no
   -- changes come within that time, then there won't be anymore.
@@ -51,6 +53,7 @@ local wait_for_win_lines = function(winid, opts)
     vim.wait(opts.timeout or 500, function()
       local new_win_lines = get_win_lines(winid)
       lines_changed = not tables_equal(new_win_lines, current_win_lines)
+      current_win_lines = new_win_lines
       return lines_changed
     end)
   end
@@ -225,8 +228,7 @@ describe('resume_popup', function()
     vim.api.nvim_feedkeys('q', 'x', false)
     wait_for_win(start_winid)
 
-    local err = runners.resume_popup()
-    assert.is_nil(err, 'expected no error')
+    runners.resume_popup()
 
     local resumed_popup_winid = wait_for_new_win()
     assert.are_not.equal(
@@ -245,8 +247,7 @@ describe('resume_popup', function()
     vim.api.nvim_feedkeys('q', 'x', false)
     wait_for_win(start_winid)
 
-    local err = runners.resume_popup()
-    assert.is_nil(err, 'expected no error')
+    runners.resume_popup()
     local resumed_popup_winid = wait_for_new_win()
 
     vim.api.nvim_feedkeys('q', 'x', false)
@@ -263,12 +264,31 @@ describe('resume_popup', function()
     vim.api.nvim_feedkeys('q', 'x', false)
     wait_for_win(start_winid)
 
-    local err = runners.resume_popup()
-    assert.is_nil(err, 'expected no error')
+    runners.resume_popup()
     local resumed_popup_winid = wait_for_new_win()
 
     vim.api.nvim_set_current_win(start_winid)
 
     assert.is_false(vim.api.nvim_win_is_valid(resumed_popup_winid), 'expected resumed popup window to not be valid')
+  end)
+
+  it('should not open popup when previous popup command was not completed', function()
+    runners.popup('bash', { '-c', 'for i in $(seq 1 1000); do echo line $i && sleep 0.1; done' })
+    wait_for_new_win()
+
+    vim.api.nvim_feedkeys('q', 'x', false)
+    wait_for_win(start_winid)
+
+    runners.resume_popup()
+
+    vim.defer_fn(function()
+      local current_winid = vim.api.nvim_get_current_win()
+      assert.are.equal(
+        start_winid,
+        current_winid,
+        'expected no popup to be opened, current window has id: %d',
+        current_winid
+      )
+    end, 500)
   end)
 end)
