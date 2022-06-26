@@ -1,10 +1,10 @@
 -- The plan is to provide multiple runners which accept cmd / args for running commands in different ways like opening
 -- in a new tmux pane or using the in built terminal etc
 local Job = require 'plenary.job'
-local popup = require 'plenary.popup'
+local plenary_popup = require 'plenary.popup'
 local logging = require 'please.logging'
 
-local runners = {}
+local popup = {}
 
 local group = vim.api.nvim_create_augroup('please.nvim', { clear = true })
 
@@ -16,17 +16,19 @@ local close_win = function(winid)
   end
 end
 
-local cached_popup_lines = {}
+local cached_lines = {}
 
 ---Runs a command with the given args in a terminal in a popup.
 ---The output of the command is automatically scrolled through.
 ---The popup can be exited with q or by focusing on another window.
 ---@param cmd string: Command to run.
 ---@param args string[]: Args to pass to the command.
-runners.popup = function(cmd, args)
+popup.run = function(cmd, args)
   logging.debug('runners.popup called with cmd=%s, args=%s', cmd, vim.inspect(args))
 
-  cached_popup_lines = {}
+  -- reset before we start running the command in case it doesn't finish successfully, otherwise we could restore the
+  -- output from the popup run previous to this one
+  cached_lines = {}
 
   local width = 0.8
   local height = 0.8
@@ -40,8 +42,8 @@ runners.popup = function(cmd, args)
     minheight = term_win_opts.minheight + 2,
   }
 
-  local bg_winid = popup.create({}, bg_win_opts)
-  local term_winid = popup.create({}, term_win_opts)
+  local bg_winid = plenary_popup.create({}, bg_win_opts)
+  local term_winid = plenary_popup.create({}, term_win_opts)
   local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
@@ -82,7 +84,7 @@ runners.popup = function(cmd, args)
     if not is_shutdown then
       output_line '\r\n[1mCommand:'
       output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')))
-      cached_popup_lines = output_lines
+      cached_lines = output_lines
     end
   end)
 
@@ -129,10 +131,10 @@ end
 ---Shows the output from a previous popup in a new popup.
 ---Only popups who's command ran to completion can be restore, otherwise no popup will be opened.
 ---The popup can be exited with q or by focusing on another window.
-runners.restore = function()
+popup.restore = function()
   logging.debug 'runners.restore called'
 
-  if #cached_popup_lines == 0 then
+  if #cached_lines == 0 then
     logging.info 'no popup to restore'
     return
   end
@@ -149,12 +151,12 @@ runners.restore = function()
     minheight = term_win_opts.minheight + 2,
   }
 
-  local bg_winid = popup.create({}, bg_win_opts)
-  local term_winid = popup.create({}, term_win_opts)
+  local bg_winid = plenary_popup.create({}, bg_win_opts)
+  local term_winid = plenary_popup.create({}, term_win_opts)
   local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
-  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup_lines))
+  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_lines))
 
   -- when closing the popup, shutdown the job as well
   local close = function()
@@ -173,4 +175,4 @@ runners.restore = function()
   })
 end
 
-return runners
+return popup

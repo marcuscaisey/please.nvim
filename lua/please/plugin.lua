@@ -1,7 +1,7 @@
 local command = require 'please.command'
 local logging = require 'please.logging'
 local please = require 'please.please'
-local runners = require 'please.runners'
+local popup = require 'please.runners.popup'
 
 local M = {}
 
@@ -60,7 +60,7 @@ M.commands = {
   test = please.test,
   run = please.run,
   yank = please.yank,
-  restore_popup = runners.restore,
+  restore_popup = popup.restore,
   reload = reload,
   toggle_debug_logs = logging.toggle_debug,
 }
