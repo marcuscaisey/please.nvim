@@ -139,7 +139,7 @@ popup.restore = function()
   logging.debug 'runners.restore called'
 
   if #cached_lines == 0 then
-    logging.info 'no popup to restore'
+    logging.error 'no popup to restore'
     return
   end
 
