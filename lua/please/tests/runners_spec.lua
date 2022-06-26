@@ -231,45 +231,45 @@ local quit_popup = function()
   wait_for_win(start_winid)
 end
 
-describe('resume_popup', function()
+describe('restore', function()
   it('should show output from closed popup in new window', function()
     local popup_winid, popup_lines = run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
 
-    runners.resume_popup()
+    runners.restore()
 
-    local resumed_popup_winid = wait_for_new_win()
+    local restored_popup_winid = wait_for_new_win()
     assert.are_not.equal(
       popup_winid,
-      resumed_popup_winid,
-      'expected popup winid and resumed popup winid to be different'
+      restored_popup_winid,
+      'expected popup winid and restored popup winid to be different'
     )
-    assert_win_lines(popup_lines, resumed_popup_winid)
+    assert_win_lines(popup_lines, restored_popup_winid)
   end)
 
-  it('should close resumed popup when q is pressed', function()
+  it('should close restored popup when q is pressed', function()
     run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
 
-    runners.resume_popup()
-    local resumed_popup_winid = wait_for_new_win()
+    runners.restore()
+    local restored_popup_winid = wait_for_new_win()
 
     vim.api.nvim_feedkeys('q', 'x', false)
 
     wait_for_win(start_winid)
-    assert.is_false(vim.api.nvim_win_is_valid(resumed_popup_winid), 'expected resumed popup window to not be valid')
+    assert.is_false(vim.api.nvim_win_is_valid(restored_popup_winid), 'expected restored popup window to not be valid')
   end)
 
-  it('should close when resumed popup focus is lost', function()
+  it('should close restored popup when focus is lost', function()
     run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
 
-    runners.resume_popup()
-    local resumed_popup_winid = wait_for_new_win()
+    runners.restore()
+    local restored_popup_winid = wait_for_new_win()
 
     vim.api.nvim_set_current_win(start_winid)
 
-    assert.is_false(vim.api.nvim_win_is_valid(resumed_popup_winid), 'expected resumed popup window to not be valid')
+    assert.is_false(vim.api.nvim_win_is_valid(restored_popup_winid), 'expected restored popup window to not be valid')
   end)
 
   it('should not open popup when previous popup command was not completed', function()
@@ -277,24 +277,24 @@ describe('resume_popup', function()
     wait_for_new_win()
     quit_popup()
 
-    runners.resume_popup()
+    runners.restore()
 
     vim.wait(500)
     local current_winid = vim.api.nvim_get_current_win()
     assert.are.equal(start_winid, current_winid, 'expected current window to be the start window')
   end)
 
-  it("should open resumed popup again after it's been closed", function()
+  it("should open restored popup again after it's been closed", function()
     local _, popup_lines = run_in_popup('bash', { '-c', 'echo "hello"' })
     quit_popup()
 
-    runners.resume_popup()
+    runners.restore()
     wait_for_new_win()
     quit_popup()
 
-    runners.resume_popup()
+    runners.restore()
 
-    local second_resumed_popup_winid = wait_for_new_win()
-    assert_win_lines(popup_lines, second_resumed_popup_winid)
+    local second_restored_popup_winid = wait_for_new_win()
+    assert_win_lines(popup_lines, second_restored_popup_winid)
   end)
 end)

@@ -81,7 +81,7 @@ runners.popup = function(cmd, args)
   local on_exit = vim.schedule_wrap(function()
     if not is_shutdown then
       output_line '\r\n[1mCommand:'
-      output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')))
+      output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')))
       cached_popup_lines = output_lines
     end
   end)
@@ -127,13 +127,13 @@ runners.popup = function(cmd, args)
 end
 
 ---Shows the output from a previous popup in a new popup.
----Only popups who's command ran to completion can be resumed, otherwise no popup will be opened.
+---Only popups who's command ran to completion can be restore, otherwise no popup will be opened.
 ---The popup can be exited with q or by focusing on another window.
-runners.resume_popup = function()
-  logging.debug 'runners.resume_popup called'
+runners.restore = function()
+  logging.debug 'runners.restore called'
 
   if #cached_popup_lines == 0 then
-    logging.info 'no popup to resume'
+    logging.info 'no popup to restore'
     return
   end
 
@@ -154,7 +154,7 @@ runners.resume_popup = function()
   local term_bufnr = vim.fn.winbufnr(term_winid)
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
-  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup_lines, '\r\n'))
+  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup_lines))
 
   -- when closing the popup, shutdown the job as well
   local close = function()

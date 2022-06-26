@@ -60,7 +60,7 @@ M.commands = {
   test = please.test,
   run = please.run,
   yank = please.yank,
-  resume = runners.resume_popup,
+  restore_popup = runners.restore,
   reload = reload,
   toggle_debug_logs = logging.toggle_debug,
 }
