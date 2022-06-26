@@ -1,3 +1,4 @@
 - add LSP setup
 - use something else for docs generation (there's some other CLI we can use instead of the docker thing)
 - run tests and gendocs in github actions
+- document runners
