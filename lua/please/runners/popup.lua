@@ -174,18 +174,13 @@ popup.restore = function()
 
   vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup.lines))
 
-  -- we have to wait for the line which the cursor was previously on to be populated in the terminal buffer before we
-  -- can move the cursor back to it
-  local cached_cursor_line_num = cached_popup.cursor[1]
+  -- we have to wait for the character which the cursor was previously on to be populated in the terminal buffer before
+  -- we can move the cursor back to it
+  local cached_row, cached_col = unpack(cached_popup.cursor)
   vim.wait(500, function()
-    -- we check the next line since then we know that the previous one has been fully written
-    local next_term_buf_line = vim.api.nvim_buf_get_lines(
-      term_bufnr,
-      cached_cursor_line_num + 1,
-      cached_cursor_line_num + 2,
-      false
-    )[1]
-    return next_term_buf_line ~= ''
+    -- [cached_row-1, cached_row) gets us the cached_row'th line (cached_row is 1-based, nvim_buf_get_lines is 0-based)
+    local term_buf_line = vim.api.nvim_buf_get_lines(term_bufnr, cached_row - 1, cached_row, false)[1]
+    return term_buf_line and #term_buf_line >= cached_col
   end)
   cursor.set(cached_popup.cursor)
 
