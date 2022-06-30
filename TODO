@@ -5,3 +5,11 @@
 - cleanup popup.lua?
 - run commands with pleasew instead of plz?
 - add "q to close" message at bottom of popup
+- add run failed tests command
+- add test picker
+- simplify defensive code? i.e. remove checks whether paths are absolute etc
+- allow passing args to things like run / debug / test
+- command history
+- use vim.notify for logging?
+- integrate tmux runner
+- add debug test under cursor command

@@ -1,10 +1,10 @@
 ================================================================================
-                                                                   *please.nvim*
+NVIM                                                               *please.nvim*
 
 please.nvim is a plugin which allows you interact with your Please repository
 from the comfort of NeoVim.
 
-COMMANDS                                               *please-commands-intro*
+COMMANDS                                                 *please-commands-intro*
 
 Commands can be called either through the Lua or the VimL API.
 
@@ -31,11 +31,12 @@ build : build a build target
 test : test a build target
 run : run a build target
 yank : yank a build label
+debug : debug a build target
 
 
 See |please-commands| for more detailed descriptions of each command.
 
-MAPPINGS                                                     *please-mappings*
+MAPPINGS                                                       *please-mappings*
 
 please.nvim doesn't come with any mappings defined out of the box so that you
 can customise how you use it. Below are some examples for each command to get
@@ -52,6 +53,7 @@ Lua:
   end, { silent = true })
   vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
   vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
+  vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
 <
 
 VimL:
@@ -62,9 +64,10 @@ VimL:
   nnoremap <leader>pct silent <cmd>Please test under_cursor<cr>
   nnoremap <leader>pr silent <cmd>Please run<cr>
   nnoremap <leader>py silent <cmd>Please yank<cr>
+  nnoremap <leader>pd silent <cmd>Please debug<cr>
 <
 
-DEBUGGING                                                   *please-debugging*
+DEBUG LOGS                                                   *please-debug-logs*
 
 Debug logs can be enabled with
 >
@@ -78,7 +81,7 @@ enable showing file / line numbers of error logs.
 
 
 ================================================================================
-                                                               *please-commands*
+PLEASE-COMMANDS                                                *please-commands*
 
 When using a command which involves the build target which takes the current
 file as an input, there may be multiple targets found if the file is referenced
@@ -135,6 +138,17 @@ please.yank()                                                  *please.yank()*
     If the current file is a BUILD file, yank the label of the target which is
     under the cursor. Otherwise, yank the label of the target which takes the
     current file as an input.
+
+
+
+please.debug()                                                *please.debug()*
+    If the current file is a BUILD file, debug the target which is under the
+    cursor. Otherwise, debug the target which takes the current file as an
+    input.
+
+    Debug support is provided by https://github.com/mfussenegger/nvim-dap. This
+    is supported for the following languages:
+    - Go (Delve)
 
 
 

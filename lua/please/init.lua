@@ -4,7 +4,7 @@
 --- please.nvim is a plugin which allows you interact with your Please repository from the comfort of NeoVim.
 ---
 --- <pre>
---- COMMANDS                                               *please-commands-intro*
+--- COMMANDS                                                 *please-commands-intro*
 --- </pre>
 ---
 --- Commands can be called either through the Lua or the VimL API.
@@ -32,11 +32,12 @@
 --- test : test a build target<br>
 --- run : run a build target<br>
 --- yank : yank a build label<br>
+--- debug : debug a build target<br>
 ---
 --- See |please-commands| for more detailed descriptions of each command.
 ---
 --- <pre>
---- MAPPINGS                                                     *please-mappings*
+--- MAPPINGS                                                       *please-mappings*
 --- </pre>
 ---
 --- please.nvim doesn't come with any mappings defined out of the box so that you can customise how you use it. Below
@@ -53,6 +54,7 @@
 ---   end, { silent = true })
 ---   vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
 ---   vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
+---   vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
 --- </code>
 ---
 --- VimL:
@@ -63,10 +65,11 @@
 ---   nnoremap <leader>pct silent <cmd>Please test under_cursor<cr>
 ---   nnoremap <leader>pr silent <cmd>Please run<cr>
 ---   nnoremap <leader>py silent <cmd>Please yank<cr>
+---   nnoremap <leader>pd silent <cmd>Please debug<cr>
 --- </code>
 ---
 --- <pre>
---- DEBUGGING                                                   *please-debugging*
+--- DEBUG LOGS                                                   *please-debug-logs*
 --- </pre>
 ---
 --- Debug logs can be enabled with

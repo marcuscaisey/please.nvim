@@ -36,6 +36,11 @@ M.info = function(msg, ...)
   end)
 end
 
+M.warn = function(msg, ...)
+  -- TODO: do something instead of deferring to info (add level to message? vim.notify?)
+  M.info(msg, ...)
+end
+
 M.error = function(msg, ...)
   local formatted_msg = format_log(msg, ...)
   vim.schedule(function()

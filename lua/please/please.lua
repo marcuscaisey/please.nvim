@@ -1,9 +1,9 @@
-local Path = require 'plenary.path'
 local query = require 'please.query'
 local parsing = require 'please.parsing'
 local runners = require 'please.runners'
 local logging = require 'please.logging'
 local cursor = require 'please.cursor'
+local debug = require 'please.debug'
 
 ---@tag please-commands
 
@@ -50,19 +50,10 @@ local validate_opts = function(opts, valid_opts)
   return true
 end
 
-local run_plz_cmd = function(root, ...)
-  local args = { '--repo_root', root, '--interactive_output', '--colour', ... }
-  logging.debug('running plz with args: %s', vim.inspect(args))
-  runners.popup('plz', args)
-end
-
-local get_build_target_at_cursor = function(root, filepath)
-  local pkg = get_pkg(root, filepath)
-  local target, err = parsing.get_target_at_cursor()
-  if err then
-    return nil, err
-  end
-  return string.format('//%s:%s', pkg, target), nil
+local run_plz_cmd = function(root, args, opts)
+  local cmd_args = { '--repo_root', root, '--interactive_output', '--colour', unpack(args) }
+  logging.debug('running plz with args: %s', vim.inspect(cmd_args))
+  runners.popup('plz', cmd_args, opts)
 end
 
 local get_filepath = function()
@@ -108,7 +99,7 @@ please.build = function()
     else
       local labels = assert(query.whatinputs(root, filepath))
       run_with_selected(labels, 'Select target to build', function(label)
-        run_plz_cmd(root, 'build', label)
+        run_plz_cmd(root, { 'build', label })
       end)
     end
   end)
@@ -150,7 +141,7 @@ please.test = function(opts)
       end
 
       run_with_selected(labels, 'Select target to test', function(label)
-        run_plz_cmd(root, 'test', label, unpack(test_args))
+        run_plz_cmd(root, { 'test', label, unpack(test_args) })
       end)
     end
   end)
@@ -171,7 +162,7 @@ please.run = function()
     else
       local labels = assert(query.whatinputs(root, filepath))
       run_with_selected(labels, 'Select target to test', function(label)
-        run_plz_cmd(root, 'run', label)
+        run_plz_cmd(root, { 'run', label })
       end)
     end
   end)
@@ -211,6 +202,43 @@ please.yank = function()
       local labels = assert(query.whatinputs(root, filepath))
       run_with_selected(labels, 'Select target to test', function(label)
         yank(label)
+      end)
+    end
+  end)
+end
+
+---If the current file is a BUILD file, debug the target which is under the cursor. Otherwise, debug the target which
+---takes the current file as an input.
+---
+---Debug support is provided by https://github.com/mfussenegger/nvim-dap. This is supported for the following languages:
+---- Go (Delve)
+please.debug = function()
+  logging.debug 'please.debug called'
+
+  logging.log_errors(function()
+    local filepath = assert(get_filepath())
+    local root = assert(query.reporoot(filepath))
+
+    if vim.bo.filetype == 'please' then
+      local label, rule = assert(parsing.get_target_at_cursor(root))
+      local lang = rule:match '(%w+)_.+' -- assumes that rules will be formatted like $lang_xxx which feels pretty safe
+      local launcher = debug.launchers[lang]
+      run_plz_cmd(root, { 'build', '--config', 'dbg', label }, {
+        on_success = function(close)
+          close()
+          launcher(root, label)
+        end,
+      })
+    else
+      local labels = assert(query.whatinputs(root, filepath))
+      local launcher = debug.launchers[vim.bo.filetype]
+      run_with_selected(labels, 'Select target to debug', function(label)
+        run_plz_cmd(root, { 'build', '--config', 'dbg', label }, {
+          on_success = function(close)
+            close()
+            launcher(root, label)
+          end,
+        })
       end)
     end
   end)

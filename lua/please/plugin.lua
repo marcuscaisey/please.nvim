@@ -2,6 +2,7 @@ local command = require 'please.command'
 local logging = require 'please.logging'
 local please = require 'please.please'
 local popup = require 'please.runners.popup'
+local debug = require 'please.debug'
 
 local M = {}
 
@@ -31,6 +32,7 @@ local create_user_command = function()
     build = please.build,
     test = please.test,
     run = please.run,
+    debug = please.debug,
     yank = please.yank,
     restore_popup = popup.restore,
     reload = M.reload,
@@ -53,6 +55,7 @@ M.load = function()
   configure_filetype()
   configure_treesitter()
   create_user_command()
+  debug.setup()
 end
 
 M.reload = function()

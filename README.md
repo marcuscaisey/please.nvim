@@ -10,6 +10,7 @@ Currently implemented features of `please.nvim` are:
 - running specific tests (`Please test under_cursor`)
 - running (`Please run`)
 - yanking build labels (`Please yank`)
+- debugging using [nvim-dap](https://github.com/mfussenegger/nvim-dap) (`Please debug`)
 - `please` filetype configured for the following files:
     - `BUILD`
     - `*.plz`
@@ -40,6 +41,7 @@ Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```viml
 Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'nvim-lua/plenary.nvim'
+Plug 'mfussenegger/nvim-dap'
 Plug 'marcuscaisey/please.nvim'
 ```
 
@@ -47,8 +49,17 @@ Using [dein](https://github.com/Shougo/dein.vim)
 ```viml
 call dein#add('nvim-treesitter/nvim-treesitter')
 call dein#add('nvim-lua/plenary.nvim')
+call dein#add('mfussenegger/nvim-dap')
 call dein#add('marcuscaisey/please.nvim')
 ```
+
+#### Recommended additional plugins
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - excellent fuzzy finder
+- [dressing.nvim](https://github.com/stevearc/dressing.nvim) - pairs with `telescope.nvim` to
+  provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`)
+- [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - embeds variable
+  values as virtual text
+- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for `nvim-dap`
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
@@ -57,6 +68,7 @@ use {
   requires = {
     'nvim-lua/plenary.nvim',
     'nvim-treesitter/nvim-treesitter',
+    'mfussenegger/nvim-dap',
   },
 }
 ```
@@ -92,6 +104,7 @@ vim.keymap.set('n', '<leader>pct', function()
 end, { silent = true })
 vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
 vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
+vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
 ```
 
 VimL:
@@ -102,4 +115,5 @@ nnoremap <leader>pt silent <cmd>Please test<cr>
 nnoremap <leader>pct silent <cmd>Please test under_cursor<cr>
 nnoremap <leader>pr silent <cmd>Please run<cr>
 nnoremap <leader>py silent <cmd>Please yank<cr>
+nnoremap <leader>pd silent <cmd>Please debug<cr>
 ```
