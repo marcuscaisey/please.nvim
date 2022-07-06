@@ -255,7 +255,7 @@ describe('get_test_at_cursor', function()
             }]],
         },
         cursor = { 2, 4 },
-        expected_name = 'TestFunc',
+        expected_name = 'TestFunc$',
       },
       {
         name = 'should return error if func name does not start with Test',
@@ -277,7 +277,7 @@ describe('get_test_at_cursor', function()
             }]],
         },
         cursor = { 2, 4 },
-        expected_name = '/TestMethod',
+        expected_name = '/TestMethod$',
       },
       {
         name = 'should return error if testify suite method name does not start with Test',
@@ -362,7 +362,7 @@ describe('get_test_at_cursor', function()
         run_test {
           tree = tree,
           cursor = case.cursor,
-          expected_name = 'TestFunc',
+          expected_name = 'TestFunc$',
         }
       end)
     end
@@ -423,7 +423,7 @@ describe('get_test_at_cursor', function()
             }]],
       },
       cursor = { 6, 4 },
-      expected_name = 'TestFuncTwo',
+      expected_name = 'TestFuncTwo$',
     },
     {
       name = 'should raise error if language of file is not supported',

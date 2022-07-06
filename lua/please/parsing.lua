@@ -95,6 +95,9 @@ parsing.locate_build_target = function(root, label)
 end
 
 -- TODO: add support for at least python and maybe javascript
+-- TODO: This method of starting at the current node felt good at the time because it should be more efficient than
+-- iterating all of the matches for some query matching the test func pattern. The downside is that it's pretty awkward
+-- to read (and write), we should just replace this method with using queries instead.
 local test_name_getters = {
   go = {
     test_func = function(node)
@@ -102,7 +105,7 @@ local test_name_getters = {
         local identifier_node = node:field('name')[1]
         local func_name = treesitter_query.get_node_text(identifier_node, 0)
         if vim.startswith(func_name, 'Test') then
-          return func_name, true
+          return func_name .. '$', true
         end
       end
       return nil, false
@@ -112,7 +115,7 @@ local test_name_getters = {
         local identifier_node = node:field('name')[1]
         local func_name = treesitter_query.get_node_text(identifier_node, 0)
         if vim.startswith(func_name, 'Test') then
-          return '/' .. func_name, true
+          return '/' .. func_name .. '$', true
         end
       end
       return nil, false
