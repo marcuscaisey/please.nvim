@@ -28,8 +28,11 @@ local cached_popup = {
 ---The popup can be exited with q or by focusing on another window.
 ---@param cmd string: Command to run.
 ---@param args string[]: Args to pass to the command.
-popup.run = function(cmd, args)
-  logging.debug('runners.popup called with cmd=%s, args=%s', cmd, vim.inspect(args))
+---@param opts table
+---@field on_success function: callback which is called if the command is successful
+popup.run = function(cmd, args, opts)
+  opts = opts or {}
+  logging.debug('runners.popup called with cmd=%s, args=%s, opts=%s', cmd, vim.inspect(args), vim.inspect(opts))
 
   -- reset before we start running the command in case it doesn't finish successfully, otherwise we could restore the
   -- output from the popup run previous to this one
@@ -98,6 +101,11 @@ popup.run = function(cmd, args)
     end
   end)
 
+  local close_windows = function()
+    close_win(term_winid)
+    close_win(bg_winid)
+  end
+
   local job = Job:new {
     command = cmd,
     args = args,
@@ -105,6 +113,12 @@ popup.run = function(cmd, args)
     on_stderr = on_stderr,
     on_exit = on_exit,
   }
+
+  if opts.on_success then
+    job:after_success(vim.schedule_wrap(function()
+      opts.on_success(close_windows)
+    end))
+  end
 
   -- move the cursor to the last line so that the output automatically scrolls
   vim.api.nvim_feedkeys('G', 'n', false)
@@ -122,8 +136,7 @@ popup.run = function(cmd, args)
       }
     end
     is_shutdown = true
-    close_win(term_winid)
-    close_win(bg_winid)
+    close_windows()
     -- Calling shutdown in the handler adds a bit of delay before the popup closes for some reason, as if its waiting
     -- for the end of the shutdown call. Maybe it is. Either way, scheduling the shutdown gets rid of the delay.
     vim.schedule(function()

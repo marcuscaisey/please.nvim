@@ -218,6 +218,56 @@ describe('run', function()
     local popup_winid = wait_for_new_win()
     assert_win_lines({ 'hello', '', 'Command:', 'bash -c echo "hello"' }, popup_winid)
   end)
+
+  it('should call on_success if command is successful', function()
+    local cmd = 'bash'
+    local args = { '-c', 'echo "hello"' }
+    local on_success_called = false
+    local opts = {
+      on_success = function()
+        on_success_called = true
+      end,
+    }
+
+    popup.run(cmd, args, opts)
+
+    vim.wait(500, function()
+      return on_success_called
+    end)
+    assert.is_true(on_success_called, 'expected on_success to be called')
+  end)
+
+  it('should not call on_success if command fails', function()
+    local cmd = 'bash'
+    local args = { '-c', 'command-does-not-exist' }
+    local on_success_called = false
+    local opts = {
+      on_success = function()
+        on_success_called = true
+      end,
+    }
+
+    popup.run(cmd, args, opts)
+
+    local popup_winid = wait_for_new_win()
+    assert_win_lines({ 'bash: line 1: command-does-not-exist: command not found' }, popup_winid)
+    assert.is_false(on_success_called, 'expected on_success to not be called')
+  end)
+
+  it('should pass callback to on_success which closes popup', function()
+    local cmd = 'bash'
+    local args = { '-c', 'sleep 0.5' }
+    local opts = {
+      on_success = function(close)
+        close()
+      end,
+    }
+
+    popup.run(cmd, args, opts)
+
+    wait_for_new_win()
+    wait_for_win(start_winid, 1000)
+  end)
 end)
 
 local run_in_popup = function(cmd, args)

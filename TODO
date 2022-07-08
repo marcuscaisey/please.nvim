@@ -3,3 +3,5 @@
 - run tests and gendocs in github actions
 - document runners
 - cleanup popup.lua?
+- run commands with pleasew instead of plz?
+- add "q to close" message at bottom of popup
