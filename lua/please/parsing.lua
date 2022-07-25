@@ -12,7 +12,7 @@ local parsing = {}
 local make_build_target_query = function(name)
   local query = [[
     (call
-      function: (identifier)
+      function: (identifier) @rule
       arguments: (argument_list
         (keyword_argument
           name: (
@@ -192,12 +192,26 @@ local position_in_node_range = function(position, node, bufnr)
     or (row == end_row and col <= end_col)
 end
 
----Returns the name of the build target under the cursor.
----@return string: a build target
----@return string|nil: error if any, this should be checked before using the build target
-parsing.get_target_at_cursor = function()
+local build_label = function(root, build_file, target)
+  local pkg = Path:new(build_file):parent():make_relative(root)
+  if pkg == '.' then
+    pkg = ''
+  end
+  return string.format('//%s:%s', pkg, target)
+end
+
+---Returns the label and rule of the build target under the cursor.
+---@param root string: an absolute path to the repo root
+---@return string: a build label
+---@return string: a build rule
+---@return string|nil: error if any, this should be checked before using the label and rule
+parsing.get_target_at_cursor = function(root)
   if vim.bo.filetype ~= 'please' then
     error(string.format('file (%s) is not a BUILD file', vim.bo.filetype))
+  end
+
+  if not Path:new(root):is_absolute() then
+    error(string.format('root must be absolute, got "%s"', root))
   end
 
   local tree = treesitter.get_parser(0, 'python'):parse()[1]
@@ -209,11 +223,14 @@ parsing.get_target_at_cursor = function()
 
     if position_in_node_range(cursor_pos, captured_nodes.target) then
       local name = treesitter_query.get_node_text(captured_nodes.name, 0)
-      return name:match '^"(.+)"$', nil
+      name = name:match '^"(.+)"$' -- name returned by treesitter is surrounded by quotes
+      local rule = treesitter_query.get_node_text(captured_nodes.rule, 0)
+      local build_file = vim.fn.expand '%:p'
+      return build_label(root, build_file, name), rule, nil
     end
   end
 
-  return nil, 'cursor is not in a build target definition'
+  return nil, nil, 'cursor is not in a build target definition'
 end
 
 return parsing

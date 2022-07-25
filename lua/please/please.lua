@@ -34,15 +34,6 @@ local run_with_selected = function(options, prompt, func)
   end
 end
 
--- gets pkg name of BUILD file
-local get_pkg = function(root, build_file_path)
-  local pkg = Path:new(build_file_path):parent():make_relative(root)
-  if pkg == '.' then
-    pkg = ''
-  end
-  return pkg
-end
-
 -- validate that all opts are:
 -- - one of valid_opts
 -- - boolean
@@ -112,8 +103,8 @@ please.build = function()
     local root = assert(query.reporoot(filepath))
 
     if vim.bo.filetype == 'please' then
-      local label = assert(get_build_target_at_cursor(root, filepath))
-      run_plz_cmd(root, 'build', label)
+      local label = assert(parsing.get_target_at_cursor(root))
+      run_plz_cmd(root, { 'build', label })
     else
       local labels = assert(query.whatinputs(root, filepath))
       run_with_selected(labels, 'Select target to build', function(label)
@@ -147,8 +138,8 @@ please.test = function(opts)
     local root = assert(query.reporoot(filepath))
 
     if vim.bo.filetype == 'please' then
-      local label = assert(get_build_target_at_cursor(root, filepath))
-      run_plz_cmd(root, 'test', label)
+      local label = assert(parsing.get_target_at_cursor(root))
+      run_plz_cmd(root, { 'test', label })
     else
       local labels = assert(query.whatinputs(root, filepath))
 
@@ -175,8 +166,8 @@ please.run = function()
     local root = assert(query.reporoot(filepath))
 
     if vim.bo.filetype == 'please' then
-      local label = assert(get_build_target_at_cursor(root, filepath))
-      run_plz_cmd(root, 'run', label)
+      local label = assert(parsing.get_target_at_cursor(root))
+      run_plz_cmd(root, { 'run', label })
     else
       local labels = assert(query.whatinputs(root, filepath))
       run_with_selected(labels, 'Select target to test', function(label)
@@ -214,7 +205,7 @@ please.yank = function()
     local root = assert(query.reporoot(filepath))
 
     if vim.bo.filetype == 'please' then
-      local label = assert(get_build_target_at_cursor(root, filepath))
+      local label = assert(parsing.get_target_at_cursor(root))
       yank(label)
     else
       local labels = assert(query.whatinputs(root, filepath))

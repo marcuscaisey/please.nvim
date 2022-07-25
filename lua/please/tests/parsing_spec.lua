@@ -442,32 +442,36 @@ describe('get_target_at_cursor', function()
     local root, teardown = temptree.create_temp_tree(case.tree)
     teardowns:add(teardown)
 
-    vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
+    vim.cmd('edit ' .. root .. '/' .. case.file)
     cursor.set(case.cursor)
 
     if case.raises_err then
       assert.has_error(function()
-        parsing.get_target_at_cursor()
+        parsing.get_target_at_cursor(root)
       end, case.expected_err, 'incorrect error')
       return
     end
 
-    local target, err = parsing.get_target_at_cursor()
+    local label, rule, err = parsing.get_target_at_cursor(root)
 
-    if case.expected_target then
-      assert.are.equal(case.expected_target, target, 'incorrect target')
+    if case.expected_label then
+      assert.are.equal(case.expected_label, label, 'incorrect label')
+    end
+    if case.expected_rule then
+      assert.are.equal(case.expected_rule, rule, 'incorrect rule')
     end
 
     if case.expected_err then
       assert.is_not_nil(err, 'expected error')
       assert.are.equal(case.expected_err, err, 'incorrect error')
-      assert.is_nil(target, 'expected no target')
+      assert.is_nil(label, 'expected no label')
+      assert.is_nil(rule, 'expected no rule')
     else
       assert.is_nil(err, 'expected no error')
     end
   end
 
-  describe('should return name of target when cursor is inside build target definition', function()
+  describe('should return label and rule of target when cursor is inside build target definition', function()
     local tree = {
       BUILD = strings.dedent [[
         export_file(
@@ -495,20 +499,41 @@ describe('get_target_at_cursor', function()
       it('- ' .. case.name, function()
         run_test {
           tree = tree,
+          file = 'BUILD',
           cursor = case.cursor,
-          expected_target = 'foo',
+          expected_label = '//:foo',
+          expected_rule = 'export_file',
         }
       end)
     end
   end)
 
-  it('should return name of target when there are multiple build targets in the BUILD file', function()
+  it('should return label of target in BUILD file in child dir of root', function()
+    local tree = {
+      ['pkg/'] = {
+        BUILD = strings.dedent [[
+          export_file(
+              name = "foo",
+              src = "foo.txt",
+          )]],
+      },
+    }
+
+    run_test {
+      tree = tree,
+      file = 'pkg/BUILD',
+      cursor = { 2, 1 },
+      expected_label = '//pkg:foo',
+    }
+  end)
+
+  it('should return label and rule when there are multiple build targets in the BUILD file', function()
     run_test {
       tree = {
         BUILD = strings.dedent [[
-          export_file(
+          filegroup(
               name = "foo1",
-              src = "foo1.txt",
+              srcs = ["foo1.txt"],
           )
 
           export_file(
@@ -516,8 +541,10 @@ describe('get_target_at_cursor', function()
               src = "foo2.txt",
           )]],
       },
+      file = 'BUILD',
       cursor = { 7, 4 },
-      expected_target = 'foo2',
+      expected_label = '//:foo2',
+      expected_rule = 'export_file',
     }
   end)
 
@@ -555,6 +582,7 @@ describe('get_target_at_cursor', function()
       it('- ' .. case.name, function()
         run_test {
           tree = tree,
+          file = 'BUILD',
           cursor = case.cursor,
           expected_err = 'cursor is not in a build target definition',
         }
@@ -562,11 +590,18 @@ describe('get_target_at_cursor', function()
     end
   end)
 
+  it('should raise error if root is not absolute', function()
+    assert.has_error(function()
+      parsing.get_target_at_cursor 'repo'
+    end, 'root must be absolute, got "repo"', 'incorrect error')
+  end)
+
   it('should raise error if file is not a BUILD file', function()
     run_test {
       tree = {
         ['hello.py'] = 'print("Hello, World!")',
       },
+      file = 'hello.py',
       cursor = { 1, 1 },
       raises_err = true,
       expected_err = 'file (python) is not a BUILD file',
