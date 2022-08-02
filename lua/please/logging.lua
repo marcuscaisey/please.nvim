@@ -22,16 +22,25 @@ end
 
 M.debug = function(msg, ...)
   if debug then
-    print(format_log(msg, ...))
+    local formatted_msg = format_log(msg, ...)
+    vim.schedule(function()
+      print(formatted_msg)
+    end)
   end
 end
 
 M.info = function(msg, ...)
-  print(format_log(msg, ...))
+  local formatted_msg = format_log(msg, ...)
+  vim.schedule(function()
+    print(formatted_msg)
+  end)
 end
 
 M.error = function(msg, ...)
-  vim.api.nvim_err_writeln(format_log(msg, ...))
+  local formatted_msg = format_log(msg, ...)
+  vim.schedule(function()
+    vim.api.nvim_err_writeln(formatted_msg)
+  end)
 end
 
 ---Wraps a function and logs any errors raised inside it. Intended to be used in combination with assert to clean up
