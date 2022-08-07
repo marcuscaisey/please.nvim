@@ -212,6 +212,7 @@ end
 ---
 ---Debug support is provided by https://github.com/mfussenegger/nvim-dap. This is supported for the following languages:
 ---- Go (Delve)
+---- Python (debugpy)
 please.debug = function()
   logging.debug 'please.debug called'
 

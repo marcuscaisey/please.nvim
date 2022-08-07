@@ -4,3 +4,11 @@ version = 16.21.3
 [go]
 gotool = //third_party/go:toolchain|go
 delvetool = //third_party/go:dlv
+
+[python]
+disablevendorflags = true
+moduledir = third_party/python
+
+[sandbox]
+build = true
+test = true

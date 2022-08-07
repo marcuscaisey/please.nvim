@@ -13,3 +13,5 @@
 - use vim.notify for logging?
 - integrate tmux runner
 - add debug test under cursor command
+- add nvim-dap adapter so that you can debug with dap.continue instead of :Please debug
+- get rid of unneeded strings.dedent usage in test BUILD files (we never look at the contents anyway)

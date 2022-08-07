@@ -4,6 +4,7 @@ local dap = require 'dap'
 local repl = require 'dap.repl'
 local logging = require 'please.logging'
 local utils = require 'please.utils'
+local query = require 'please.query'
 
 local M = {}
 
@@ -71,20 +72,30 @@ M.setup = function()
     -- FIXME: wait for a bit before connecting to the server. nvim-dap retries a couple of times but this usually isn't
     -- enough. would be nice if there was a way to make this configurable (number of retries and wait interval between them)
     vim.defer_fn(function()
-      vim.schedule(function()
-        callback { type = 'server', port = port }
-      end)
-    end, 500)
+      callback { type = 'server', port = port }
+    end, 5000)
   end
+
+  -- TODO: remove after upgrading debugpy version used by plz to >= 1.5.1 which sets only uncaught by default (currently
+  -- debugpy also sets userUnhandled as well which is super annoying to use)
+  dap.defaults.plz.exception_breakpoints = { 'uncaught' }
+end
+
+local join_paths = function(...)
+  return Path:new(...).filename
+end
+
+local target_debug_directory = function(root, label)
+  local pkg = label:match '//(.+):.+'
+  return join_paths(root, 'plz-out/debug', pkg)
 end
 
 local launch_delve = function(root, label)
   logging.debug('launch_delve called with root=%s, label=%s', root, label)
 
-  local pkg = label:match '//(.+):.+'
   local substitutePath = {
     {
-      from = Path:new(root, 'plz-out/debug', pkg, 'third_party').filename,
+      from = join_paths(target_debug_directory(root, label), 'third_party'),
       to = 'third_party',
     },
   }
@@ -105,7 +116,7 @@ local launch_delve = function(root, label)
   local children = vim.fn.systemlist('ls ' .. root)
   for _, path in ipairs(children) do
     table.insert(substitutePath, {
-      from = Path:new(root, path).filename,
+      from = join_paths(root, path),
       to = path,
     })
   end
@@ -122,27 +133,59 @@ local launch_delve = function(root, label)
 end
 
 local launch_debugpy = function(root, label)
-  local pkg = label:match '//(.+):.+'
-  local substitutePath = {
-    {
-      from = table.concat({ root, 'plz-out/debug', pkg, 'third_party' }, '/'),
-      to = 'third_party',
-    },
-  }
-  local root_paths = vim.fn.systemlist('ls ' .. root)
-  for _, path in ipairs(root_paths) do
-    table.insert(substitutePath, {
-      from = root .. '/' .. path,
-      to = path,
-    })
+  logging.debug('launch_debugpy called with root=%s, label=%s', root, label)
+
+  local relative_sandbox_location = '.cache/pex/pex-debug'
+  local local_explode_location = join_paths(target_debug_directory(root, label), relative_sandbox_location)
+  local sandbox_explode_location = join_paths('/tmp/plz_sandbox', relative_sandbox_location)
+
+  local pathMappings
+
+  local is_target_sandboxed = function()
+    local target_sandboxed, err = query.is_target_sandboxed(root, label)
+    assert(not err, err)
+    return target_sandboxed
   end
+
+  if (vim.loop.os_uname().sysname == 'Linux') and is_target_sandboxed() then
+    pathMappings = {
+      {
+        localRoot = join_paths(local_explode_location, '.bootstrap'),
+        remoteRoot = join_paths(sandbox_explode_location, '.bootstrap'),
+      },
+      {
+        localRoot = join_paths(local_explode_location, 'third_party'),
+        remoteRoot = join_paths(sandbox_explode_location, 'third_party'),
+      },
+      {
+        localRoot = root,
+        remoteRoot = sandbox_explode_location,
+      },
+    }
+  else
+    pathMappings = {
+      {
+        localRoot = join_paths(local_explode_location, '.bootstrap'),
+        remoteRoot = join_paths(local_explode_location, '.bootstrap'),
+      },
+      {
+        localRoot = join_paths(local_explode_location, 'third_party'),
+        remoteRoot = join_paths(local_explode_location, 'third_party'),
+      },
+      {
+        localRoot = root,
+        remoteRoot = local_explode_location,
+      },
+    }
+  end
+
   dap.run {
     type = 'plz',
     name = 'Launch plz debug with debugpy',
     request = 'attach',
     mode = 'remote',
-    -- TODO: copy what should go in here from please-vscode
-    -- substitutePath = substitutePath,
+    pathMappings = pathMappings,
+    justMyCode = false,
     root = root,
     label = label,
     extra_args = { '-o=python.debugger:debugpy' },
