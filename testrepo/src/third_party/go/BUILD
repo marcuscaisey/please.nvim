@@ -40,9 +40,12 @@ go_module(
         "internal",
         "internal/btf",
         "internal/unix",
+        "link",
+        "ringbuf",
     ],
     module = "github.com/cilium/ebpf",
     version = "v0.7.0",
+    deps = [":sys"],
 )
 
 go_module(
