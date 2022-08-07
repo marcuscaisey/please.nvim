@@ -590,6 +590,21 @@ describe('get_target_at_cursor', function()
     end
   end)
 
+  it('should return label when rule uses single quotes', function()
+    run_test {
+      tree = {
+        BUILD = strings.dedent [[
+          export_file(
+              name = 'foo',
+              # src = 'foo2.txt',
+          )]],
+      },
+      file = 'BUILD',
+      cursor = { 1, 1 },
+      expected_label = '//:foo',
+    }
+  end)
+
   it('should raise error if root is not absolute', function()
     assert.has_error(function()
       parsing.get_target_at_cursor 'repo'

@@ -206,6 +206,8 @@ end
 ---@return string: a build rule
 ---@return string|nil: error if any, this should be checked before using the label and rule
 parsing.get_target_at_cursor = function(root)
+  logging.debug('parsing.get_target_at_cursor called with root=%s', root)
+
   if vim.bo.filetype ~= 'please' then
     error(string.format('file (%s) is not a BUILD file', vim.bo.filetype))
   end
@@ -223,7 +225,12 @@ parsing.get_target_at_cursor = function(root)
 
     if position_in_node_range(cursor_pos, captured_nodes.target) then
       local name = treesitter_query.get_node_text(captured_nodes.name, 0)
-      name = name:match '^"(.+)"$' -- name returned by treesitter is surrounded by quotes
+      -- name returned by treesitter is surrounded by quotes
+      if name:sub(1, 1) == '"' then
+        name = name:match '^"(.+)"$'
+      else
+        name = name:match "^'(.+)'$"
+      end
       local rule = treesitter_query.get_node_text(captured_nodes.rule, 0)
       local build_file = vim.fn.expand '%:p'
       return build_label(root, build_file, name), rule, nil
