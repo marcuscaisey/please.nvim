@@ -89,7 +89,14 @@ M.log_errors = function(f)
       return
     end
     -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
-    local user_msg = err:match '.-:%d+: (.+)'
+    --
+    -- some errors won't contain this information so default back to the whole error in this case (assert called with
+    -- the result of a function which returns three values i.e.
+    -- function foo()
+    --   return nil, nil, 'error message'
+    -- end
+    -- won't raise an error filename / location)
+    local user_msg = err:match '.-:%d+: (.+)' or err
     M.error(user_msg)
   end
 end
