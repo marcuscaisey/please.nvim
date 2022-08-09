@@ -18,7 +18,20 @@ local please = {}
 
 local run_with_selected = function(options, prompt, func)
   if #options > 1 then
-    vim.ui.select(options, { prompt = prompt }, function(selected)
+    local max_option_length = 0
+    for _, option in ipairs(options) do
+      max_option_length = math.max(#option, max_option_length)
+    end
+    local padding = 7
+    vim.ui.select(options, {
+      prompt = prompt,
+      telescope = {
+        layout_config = {
+          width = max_option_length + padding,
+          height = #options + padding,
+        },
+      },
+    }, function(selected)
       -- selected is nil if the input is cancelled
       if not selected then
         return
