@@ -8,9 +8,9 @@ local debug = require 'please.debug'
 ---@tag please-commands
 
 ---@brief [[
---- When using a command which involves the build target which takes the current file as an input, there may be multiple
---- targets found if the file is referenced in multiple places. In such cases, you'll be prompted for which one to use.
---- This prompt uses |vim.ui.select()| which allows you to customise the appearance to your taste (see
+--- Some commands may prompt you to choose between different options. For example, when building a file which is an
+--- input to multiple build targets, you'll be prompted to choose which target to build. This prompt uses
+--- |vim.ui.select()| which allows you to customise the appearance to your taste (see
 --- https://github.com/stevearc/dressing.nvim and |lua-ui|).
 ---@brief ]]
 
@@ -32,18 +32,18 @@ local run_with_selected = function(items, prompt, func)
           height = 15,
         },
       },
-    }, function(selected)
+    }, function(item, idx)
       -- selected is nil if the input is cancelled
-      if not selected then
+      if not item then
         return
       end
       logging.log_errors(function()
-        func(selected)
+        func(item, idx)
       end)
     end)
   else
     logging.log_errors(function()
-      func(items[1])
+      func(items[1], 1)
     end)
   end
 end
@@ -122,22 +122,24 @@ end
 ---If the current file is a BUILD file, test the target which is under the cursor. Otherwise, test the target which
 ---takes the current file as an input.
 ---
----Optionally (when in a source file), you can specify that only the test function which is under the cursor should be
----run. This is supported for the following languages:
+---Optionally (when in a source file), you can run only a specific test. Either by running the test which is under the
+---cursor or by choosing which test to run from a list of tests in the current file. This is supported for the following
+---languages:
 ---- Go
----  - regular go test functions (not subtests)
+---  - regular test functions (not subtests)
 ---  - testify suite test methods
 ---- Python
 ---  - unittest test methods
 ---@param opts table
----@field under_cursor boolean: run only the test under the cursor
+---@field under_cursor boolean: run the test under the cursor
+---@field list boolean: select which test to run
 please.test = function(opts)
   logging.debug('please.test called with opts=%s', vim.inspect(opts))
 
   opts = opts or {}
 
   logging.log_errors(function()
-    assert(validate_opts(opts, { 'under_cursor' }))
+    assert(validate_opts(opts, { 'under_cursor', 'list' }))
 
     local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
@@ -148,15 +150,27 @@ please.test = function(opts)
     else
       local labels = assert(query.whatinputs(root, filepath))
 
-      local test_args = {}
-      if opts.under_cursor then
-        local test_name = assert(parsing.get_test_at_cursor())
-        test_args = { test_name }
+      local run_plz_test = function(test_selector)
+        local args = test_selector and { test_selector } or {}
+        run_with_selected(labels, 'Select target to test', function(label)
+          run_plz_cmd(root, { 'test', label, unpack(args) })
+        end)
       end
 
-      run_with_selected(labels, 'Select target to test', function(label)
-        run_plz_cmd(root, { 'test', label, unpack(test_args) })
-      end)
+      if opts.under_cursor then
+        local test_selector = assert(parsing.get_test_selector_at_cursor())
+        run_plz_test(test_selector)
+      elseif opts.list then
+        local tests = assert(parsing.list_tests_in_file())
+        local test_names = vim.tbl_map(function(test)
+          return test.name
+        end, tests)
+        run_with_selected(test_names, 'Select test to run', function(_, idx)
+          run_plz_test(tests[idx].selector)
+        end)
+      else
+        run_plz_test()
+      end
     end
   end)
 end

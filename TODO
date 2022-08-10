@@ -6,7 +6,6 @@
 - run commands with pleasew instead of plz?
 - add "q to close" message at bottom of popup
 - add run failed tests command
-- add test picker
 - simplify defensive code? i.e. remove checks whether paths are absolute etc
 - allow passing args to things like run / debug / test
 - command history
@@ -16,3 +15,4 @@
 - add nvim-dap adapter so that you can debug with dap.continue instead of :Please debug
 - get rid of unneeded strings.dedent usage in test BUILD files (we never look at the contents anyway)
 - allow breakpoints to be set in plz-out/gen/third_party etc
+- autoformatting
