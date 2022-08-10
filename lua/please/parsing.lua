@@ -94,52 +94,78 @@ parsing.locate_build_target = function(root, label)
   return nil, nil, string.format('no build file exists for package "%s"', pkg)
 end
 
--- TODO: add support for at least python and maybe javascript
--- TODO: This method of starting at the current node felt good at the time because it should be more efficient than
--- iterating all of the matches for some query matching the test func pattern. The downside is that it's pretty awkward
--- to read (and write), we should just replace this method with using queries instead.
-local test_name_getters = {
+-- extracts the captured nodes from a match returned from Query:iter_matches
+local extract_captures_from_match = function(match, query)
+  local captured_nodes = {}
+  for id, node in pairs(match) do
+    local name = query.captures[id]
+    captured_nodes[name] = node
+  end
+  return captured_nodes
+end
+
+-- checks if the cursor is in a given treesitter node's range (inclusive ends)
+local cursor_in_node_range = function(node)
+  local cursor_pos = cursor.get()
+  local row, col = unpack(cursor_pos)
+  local start_row, start_col, end_row, end_col = ts_utils.get_vim_range { node:range() }
+  return (row == start_row and col >= start_col)
+    or (start_row < row and row < end_row)
+    or (row == end_row and col <= end_col)
+end
+
+local test_func_query_configs = {
   go = {
-    test_func = function(node)
-      if node:type() == 'function_declaration' then
-        local identifier_node = node:field('name')[1]
-        local func_name = treesitter_query.get_node_text(identifier_node, 0)
-        if vim.startswith(func_name, 'Test') then
-          return func_name .. '$', true
-        end
-      end
-      return nil, false
-    end,
-    testify_suite_method = function(node)
-      if node:type() == 'method_declaration' then
-        local identifier_node = node:field('name')[1]
-        local func_name = treesitter_query.get_node_text(identifier_node, 0)
-        if vim.startswith(func_name, 'Test') then
-          return '/' .. func_name .. '$', true
-        end
-      end
-      return nil, false
-    end,
+    test_func = {
+      query = [[
+        (function_declaration
+          name: (
+            (identifier) @name
+            (#match? @name "^Test.+"))
+          parameters: (parameter_list
+            (parameter_declaration
+              name: (identifier)
+              type: (
+                (pointer_type) @param_type
+                (#eq? @param_type "*testing.T"))))) @test
+      ]],
+      get_test_name = function(captures)
+        local name = treesitter_query.get_node_text(captures.name, 0)
+        return name .. '$'
+      end,
+    },
+    testify_suite_method = {
+      query = [[
+        (method_declaration
+          name: (
+            (field_identifier) @name
+            (#match? @name "^Test.+"))) @test
+      ]],
+      get_test_name = function(captures)
+        local name = treesitter_query.get_node_text(captures.name, 0)
+        return '/' .. name .. '$'
+      end,
+    },
   },
   python = {
-    unittest_method = function(node)
-      if node:type() == 'function_definition' then
-        local func_name = treesitter_query.get_node_text(node:field('name')[1], 0)
-        if vim.startswith(func_name, 'test_') then
-          local block = node:parent()
-          if block then
-            local class = block:parent()
-            if class and class:type() == 'class_definition' then
-              local class_name = treesitter_query.get_node_text(class:field('name')[1], 0)
-              if vim.startswith(class_name, 'Test') then
-                return string.format('%s.%s', class_name, func_name), true
-              end
-            end
-          end
-        end
-      end
-      return nil, false
-    end,
+    unittest_method = {
+      query = [[
+        (class_definition
+          name: (
+            (identifier) @class_name
+            (#match? @class_name "^Test.+"))
+          body: (block
+            ((function_definition
+              name: (
+                (identifier) @name
+                (#match? @name "^test_.+")))) @test))
+      ]],
+      get_test_name = function(captures)
+        local class_name = treesitter_query.get_node_text(captures.class_name, 0)
+        local name = treesitter_query.get_node_text(captures.name, 0)
+        return class_name .. '.' .. name
+      end,
+    },
   },
 }
 
@@ -155,41 +181,23 @@ local test_name_getters = {
 parsing.get_test_at_cursor = function()
   logging.debug 'parsing.get_test_at_cursor called'
 
-  local getters = test_name_getters[vim.bo.filetype]
-  if not getters then
+  local configs = test_func_query_configs[vim.bo.filetype]
+  if not configs then
     error(string.format('finding tests is not supported for %s files', vim.bo.filetype))
   end
 
-  local current_node = ts_utils.get_node_at_cursor()
-  while current_node do
-    for _, get_test_name in ipairs(vim.tbl_values(getters)) do
-      local test_name, ok = get_test_name(current_node)
-      if ok then
-        return test_name, nil
+  local tree = treesitter.get_parser(0, vim.bo.filetype):parse()[1]
+  for _, config in ipairs(vim.tbl_values(configs)) do
+    local query = treesitter_query.parse_query(vim.bo.filetype, config.query)
+    for _, match in query:iter_matches(tree:root(), 0) do
+      local captures = extract_captures_from_match(match, query)
+      if cursor_in_node_range(captures.test) then
+        return config.get_test_name(captures)
       end
     end
-    current_node = current_node:parent()
   end
+
   return nil, 'cursor is not in a test function'
-end
-
--- extracts the captured nodes from a match returned from Query:iter_matches
-local extract_captures_from_match = function(match, query)
-  local captured_nodes = {}
-  for id, node in pairs(match) do
-    local name = query.captures[id]
-    captured_nodes[name] = node
-  end
-  return captured_nodes
-end
-
--- checks if a position is in a given range (inclusive ends)
-local position_in_node_range = function(position, node, bufnr)
-  local row, col = unpack(position)
-  local start_row, start_col, end_row, end_col = ts_utils.get_vim_range({ node:range() }, bufnr)
-  return (row == start_row and col >= start_col)
-    or (start_row < row and row < end_row)
-    or (row == end_row and col <= end_col)
 end
 
 local build_label = function(root, build_file, target)
@@ -219,19 +227,17 @@ parsing.get_target_at_cursor = function(root)
   local tree = treesitter.get_parser(0, 'python'):parse()[1]
   local query = treesitter_query.parse_query('python', make_build_target_query())
 
-  local cursor_pos = cursor.get()
   for _, match in query:iter_matches(tree:root(), 0) do
-    local captured_nodes = extract_captures_from_match(match, query)
-
-    if position_in_node_range(cursor_pos, captured_nodes.target) then
-      local name = treesitter_query.get_node_text(captured_nodes.name, 0)
+    local captures = extract_captures_from_match(match, query)
+    if cursor_in_node_range(captures.target) then
+      local name = treesitter_query.get_node_text(captures.name, 0)
       -- name returned by treesitter is surrounded by quotes
       if name:sub(1, 1) == '"' then
         name = name:match '^"(.+)"$'
       else
         name = name:match "^'(.+)'$"
       end
-      local rule = treesitter_query.get_node_text(captured_nodes.rule, 0)
+      local rule = treesitter_query.get_node_text(captures.rule, 0)
       local build_file = vim.fn.expand '%:p'
       return build_label(root, build_file, name), rule, nil
     end

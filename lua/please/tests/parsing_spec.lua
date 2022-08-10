@@ -269,6 +269,17 @@ describe('get_test_at_cursor', function()
         expected_err = 'cursor is not in a test function',
       },
       {
+        name = 'should return error if func does not have a single *testing.T param',
+        tree = {
+          ['foo_test.go'] = strings.dedent [[
+            func TestFunc() {
+                fmt.Println("oh no")
+            }]],
+        },
+        cursor = { 2, 1 },
+        expected_err = 'cursor is not in a test function',
+      },
+      {
         name = 'should return name of method if cursor is inside testify suite test method definition',
         tree = {
           ['foo_test.go'] = strings.dedent [[
