@@ -102,6 +102,9 @@ vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
 vim.keymap.set('n', '<leader>pct', function()
   require('please').test { under_cursor = true}
 end, { silent = true })
+vim.keymap.set('n', '<leader>plt', function()
+  require('please').test { list = true}
+end, { silent = true })
 vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
 vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
 vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
@@ -113,6 +116,7 @@ nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
 nnoremap <leader>pb silent <cmd>Please build<cr>
 nnoremap <leader>pt silent <cmd>Please test<cr>
 nnoremap <leader>pct silent <cmd>Please test under_cursor<cr>
+nnoremap <leader>plt silent <cmd>Please test list<cr>
 nnoremap <leader>pr silent <cmd>Please run<cr>
 nnoremap <leader>py silent <cmd>Please yank<cr>
 nnoremap <leader>pd silent <cmd>Please debug<cr>

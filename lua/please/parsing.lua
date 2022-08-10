@@ -114,7 +114,7 @@ local cursor_in_node_range = function(node)
     or (row == end_row and col <= end_col)
 end
 
-local test_func_query_configs = {
+local find_test_configs = {
   go = {
     test_func = {
       query = [[
@@ -130,6 +130,9 @@ local test_func_query_configs = {
                 (#eq? @param_type "*testing.T"))))) @test
       ]],
       get_test_name = function(captures)
+        return treesitter_query.get_node_text(captures.name, 0)
+      end,
+      get_test_selector = function(captures)
         local name = treesitter_query.get_node_text(captures.name, 0)
         return name .. '$'
       end,
@@ -142,6 +145,9 @@ local test_func_query_configs = {
             (#match? @name "^Test.+"))) @test
       ]],
       get_test_name = function(captures)
+        return treesitter_query.get_node_text(captures.name, 0)
+      end,
+      get_test_selector = function(captures)
         local name = treesitter_query.get_node_text(captures.name, 0)
         return '/' .. name .. '$'
       end,
@@ -165,11 +171,16 @@ local test_func_query_configs = {
         local name = treesitter_query.get_node_text(captures.name, 0)
         return class_name .. '.' .. name
       end,
+      get_test_selector = function(captures)
+        local class_name = treesitter_query.get_node_text(captures.class_name, 0)
+        local name = treesitter_query.get_node_text(captures.name, 0)
+        return class_name .. '.' .. name
+      end,
     },
   },
 }
 
----Returns the name of the test under the cursor.
+---Returns the selector for the test under the cursor.
 ---Current supported languages are:
 ---- Go
 ---  - regular go test functions (not subtests)
@@ -178,10 +189,10 @@ local test_func_query_configs = {
 ---  - unittest test methods
 ---@return string
 ---@return string|nil: error if any, this should be checked before using the test name
-parsing.get_test_at_cursor = function()
-  logging.debug 'parsing.get_test_at_cursor called'
+parsing.get_test_selector_at_cursor = function()
+  logging.debug 'parsing.get_test_selector_at_cursor called'
 
-  local configs = test_func_query_configs[vim.bo.filetype]
+  local configs = find_test_configs[vim.bo.filetype]
   if not configs then
     error(string.format('finding tests is not supported for %s files', vim.bo.filetype))
   end
@@ -192,12 +203,63 @@ parsing.get_test_at_cursor = function()
     for _, match in query:iter_matches(tree:root(), 0) do
       local captures = extract_captures_from_match(match, query)
       if cursor_in_node_range(captures.test) then
-        return config.get_test_name(captures)
+        return config.get_test_selector(captures)
       end
     end
   end
 
   return nil, 'cursor is not in a test function'
+end
+
+---@class Test
+---@field name string
+---@field selector string
+
+---Returns the tests from the current file.
+---Current supported languages are:
+---- Go
+---  - regular test functions (not subtests)
+---  - testify suite test methods
+---- Python
+---  - unittest test methods
+---@return Test[]
+---@return string|nil: error if any, this should be checked before using the tests
+parsing.list_tests_in_file = function()
+  logging.debug 'parsing.list_test_in_file called'
+
+  local configs = find_test_configs[vim.bo.filetype]
+  if not configs then
+    error(string.format('listing tests is not supported for %s files', vim.bo.filetype))
+  end
+
+  local tests = {}
+  local tree = treesitter.get_parser(0, vim.bo.filetype):parse()[1]
+  for _, config in ipairs(vim.tbl_values(configs)) do
+    local query = treesitter_query.parse_query(vim.bo.filetype, config.query)
+    for _, match in query:iter_matches(tree:root(), 0) do
+      local captures = extract_captures_from_match(match, query)
+      table.insert(tests, {
+        row = captures.test:start(),
+        name = config.get_test_name(captures),
+        selector = config.get_test_selector(captures),
+      })
+    end
+  end
+
+  if #tests == 0 then
+    return nil, string.format('%s contains no tests', vim.fn.expand '%:t')
+  end
+
+  table.sort(tests, function(a, b)
+    return a.row < b.row
+  end)
+
+  return vim.tbl_map(function(test)
+    return {
+      name = test.name,
+      selector = test.selector,
+    }
+  end, tests)
 end
 
 local build_label = function(root, build_file, target)

@@ -51,6 +51,9 @@ Lua:
   vim.keymap.set('n', '<leader>pct', function()
     require('please').test { under_cursor = true}
   end, { silent = true })
+  vim.keymap.set('n', '<leader>plt', function()
+    require('please').test { list = true}
+  end, { silent = true })
   vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
   vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
   vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
@@ -62,6 +65,7 @@ VimL:
   nnoremap <leader>pb silent <cmd>Please build<cr>
   nnoremap <leader>pt silent <cmd>Please test<cr>
   nnoremap <leader>pct silent <cmd>Please test under_cursor<cr>
+  nnoremap <leader>plt silent <cmd>Please test list<cr>
   nnoremap <leader>pr silent <cmd>Please run<cr>
   nnoremap <leader>py silent <cmd>Please yank<cr>
   nnoremap <leader>pd silent <cmd>Please debug<cr>
@@ -83,11 +87,11 @@ enable showing file / line numbers of error logs.
 ================================================================================
 PLEASE-COMMANDS                                                *please-commands*
 
-When using a command which involves the build target which takes the current
-file as an input, there may be multiple targets found if the file is referenced
-in multiple places. In such cases, you'll be prompted for which one to use.
-This prompt uses |vim.ui.select()| which allows you to customise the appearance
-to your taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
+Some commands may prompt you to choose between different options. For example,
+when building a file which is an input to multiple build targets, you'll be
+prompted to choose which target to build. This prompt uses |vim.ui.select()|
+which allows you to customise the appearance to your taste (see
+https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
 please.jump_to_target()                              *please.jump_to_target()*
     Jumps to the location of the build target which takes the current file as
@@ -111,11 +115,12 @@ please.test({opts})                                            *please.test()*
     cursor. Otherwise, test the target which takes the current file as an
     input.
 
-    Optionally (when in a source file), you can specify that only the test
-    function which is under the cursor should be run. This is supported for the
-    following languages:
+    Optionally (when in a source file), you can run only a specific test.
+    Either by running the test which is under the cursor or by choosing which
+    test to run from a list of tests in the current file. This is supported for
+    the following languages:
     - Go
-     - regular go test functions (not subtests)
+     - regular test functions (not subtests)
      - testify suite test methods
     - Python
      - unittest test methods
@@ -125,7 +130,8 @@ please.test({opts})                                            *please.test()*
         {opts} (table)
 
     Fields: ~
-        {under_cursor} (boolean)  run only the test under the cursor
+        {under_cursor} (boolean)  run the test under the cursor
+        {list}         (boolean)  select which test to run
 
 
 please.run()                                                    *please.run()*
