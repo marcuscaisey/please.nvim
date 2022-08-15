@@ -27,7 +27,7 @@ local run_with_selected = function(options, prompt, func)
       prompt = prompt,
       telescope = {
         layout_config = {
-          width = max_option_length + padding,
+          width = math.max(max_option_length, #prompt) + padding,
           height = #options + padding,
         },
       },
