@@ -53,14 +53,6 @@ call dein#add('mfussenegger/nvim-dap')
 call dein#add('marcuscaisey/please.nvim')
 ```
 
-#### Recommended additional plugins
-- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - excellent fuzzy finder
-- [dressing.nvim](https://github.com/stevearc/dressing.nvim) - pairs with `telescope.nvim` to
-  provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`)
-- [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - embeds variable
-  values as virtual text
-- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for `nvim-dap`
-
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
 use {
@@ -72,6 +64,14 @@ use {
   },
 }
 ```
+
+#### Recommended additional plugins
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - excellent fuzzy finder
+- [dressing.nvim](https://github.com/stevearc/dressing.nvim) - pairs with `telescope.nvim` to
+  provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`)
+- [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - embeds variable
+  values as virtual text
+- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for `nvim-dap`
 
 ### `nvim-treesitter` configuration
 `please.nvim` configures [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) so
