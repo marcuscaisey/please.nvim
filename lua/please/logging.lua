@@ -44,7 +44,7 @@ end
 M.error = function(msg, ...)
   local formatted_msg = format_log(msg, ...)
   vim.schedule(function()
-    vim.api.nvim_err_writeln(formatted_msg)
+    vim.api.nvim_echo({ { formatted_msg, 'ErrorMsg' } }, true, {})
   end)
 end
 
