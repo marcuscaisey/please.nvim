@@ -16,19 +16,20 @@ local debug = require 'please.debug'
 
 local please = {}
 
-local run_with_selected = function(options, prompt, func)
-  if #options > 1 then
-    local max_option_length = 0
-    for _, option in ipairs(options) do
-      max_option_length = math.max(#option, max_option_length)
+local run_with_selected = function(items, prompt, func)
+  if #items > 1 then
+    local max_item_length = 0
+    for _, item in ipairs(items) do
+      max_item_length = math.max(#item, max_item_length)
     end
     local padding = 7
-    vim.ui.select(options, {
+    local min_width = 80
+    vim.ui.select(items, {
       prompt = prompt,
       telescope = {
         layout_config = {
-          width = math.max(max_option_length, #prompt) + padding,
-          height = #options + padding,
+          width = math.max(min_width, math.max(max_item_length, #prompt) + padding),
+          height = 15,
         },
       },
     }, function(selected)
@@ -42,7 +43,7 @@ local run_with_selected = function(options, prompt, func)
     end)
   else
     logging.log_errors(function()
-      func(options[1])
+      func(items[1])
     end)
   end
 end
