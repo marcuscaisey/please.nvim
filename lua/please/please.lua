@@ -148,11 +148,10 @@ please.test = function(opts)
       local label = assert(parsing.get_target_at_cursor(root))
       run_plz_cmd(root, { 'test', label })
     else
-      local labels = assert(query.whatinputs(root, filepath))
-
       local run_plz_test = function(test_selector)
-        local args = test_selector and { test_selector } or {}
+        local labels = assert(query.whatinputs(root, filepath))
         run_with_selected(labels, 'Select target to test', function(label)
+          local args = test_selector and { test_selector } or {}
           run_plz_cmd(root, { 'test', label, unpack(args) })
         end)
       end
