@@ -7,7 +7,6 @@
 - simplify defensive code? i.e. remove checks whether paths are absolute etc
 - allow passing args to things like run / debug / test
 - command history
-- use vim.notify for logging?
 - integrate tmux runner
 - add debug test under cursor command
 - add nvim-dap adapter so that you can debug with dap.continue instead of :Please debug

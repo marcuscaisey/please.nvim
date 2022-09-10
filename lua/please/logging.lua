@@ -1,53 +1,41 @@
 local M = {}
 
-local debug = false
+local enabled = false
 
 M.toggle_debug = function()
-  if debug then
+  if enabled then
     M.info 'debug logs disabled'
-    debug = false
+    enabled = false
   else
     M.info 'debug logs enabled'
-    debug = true
+    enabled = true
   end
 end
 
-local format_log = function(msg, ...)
+local log = function(msg, level, ...)
   local formatted_msg = string.format(msg, ...)
-  return string.format('[please.nvim]: %s', formatted_msg)
+  formatted_msg = string.format('[please.nvim]: %s', formatted_msg)
+  vim.schedule(function()
+    vim.notify(formatted_msg, level)
+  end)
 end
 
--- TODO: use vim.notify for logging? that handles something to do with logging levels, not sure what effect they have
--- though
-
 M.debug = function(msg, ...)
-  if debug then
-    local formatted_msg = format_log(msg, ...)
-    vim.schedule(function()
-      print(formatted_msg)
-    end)
+  if enabled then
+    log(msg, vim.log.levels.DEBUG, ...)
   end
 end
 
 M.info = function(msg, ...)
-  local formatted_msg = format_log(msg, ...)
-  vim.schedule(function()
-    print(formatted_msg)
-  end)
+  log(msg, vim.log.levels.INFO, ...)
 end
 
 M.warn = function(msg, ...)
-  local formatted_msg = format_log(msg, ...)
-  vim.schedule(function()
-    vim.api.nvim_echo({ { formatted_msg, 'WarningMsg' } }, true, {})
-  end)
+  log(msg, vim.log.levels.WARN, ...)
 end
 
 M.error = function(msg, ...)
-  local formatted_msg = format_log(msg, ...)
-  vim.schedule(function()
-    vim.api.nvim_echo({ { formatted_msg, 'ErrorMsg' } }, true, {})
-  end)
+  log(msg, vim.log.levels.ERROR, ...)
 end
 
 ---Wraps a function and logs any errors raised inside it. Intended to be used in combination with assert to clean up
@@ -86,7 +74,7 @@ end
 M.log_errors = function(f)
   local ok, err = pcall(f)
   if not ok then
-    if debug then
+    if enabled then
       M.error(err)
       return
     end
