@@ -21,14 +21,27 @@ local get_win_lines = function(winid, num_lines)
   return vim.api.nvim_buf_get_lines(bufnr, 0, num_lines, false)
 end
 
+local wrap_lines = function(lines, width)
+  local wrapped_lines = {}
+  for _, line in ipairs(lines) do
+    for i = 1, math.ceil(#lines / width), 1 do
+      table.insert(wrapped_lines, line:sub((i - 1) * width, i * width))
+    end
+  end
+  return wrapped_lines
+end
+
 local assert_win_lines = function(expected_lines, winid, opts)
   opts = opts or {}
 
+  -- lines exceeding the width of the window will be wrapped when output, so we need to wrap expected_lines to match
+  local win_width = vim.fn.winwidth(winid)
+  local wrapped_expected_lines = wrap_lines(expected_lines, win_width)
+
   local actual_lines, actual_lines_correct
   vim.wait(opts.timeout or 500, function()
-    actual_lines = get_win_lines(winid, #expected_lines)
-    actual_lines_correct = tables_equal(expected_lines, actual_lines)
-
+    actual_lines = get_win_lines(winid, #wrapped_expected_lines)
+    actual_lines_correct = tables_equal(wrapped_expected_lines, actual_lines)
     return actual_lines_correct
   end)
 
@@ -36,7 +49,7 @@ local assert_win_lines = function(expected_lines, winid, opts)
     actual_lines_correct,
     string.format(
       'incorrect lines in buffer, expected %s, got %s',
-      vim.inspect(expected_lines),
+      vim.inspect(wrapped_expected_lines),
       vim.inspect(actual_lines)
     )
   )
@@ -209,14 +222,21 @@ describe('run', function()
   --   assert.are.equal(last_buf_line, current_cursor_line, 'incorrect cursor line')
   -- end)
 
-  it('should output the command and args after it exits', function()
+  it('should output the command / args and quit / restore info after it exits', function()
     local cmd = 'bash'
     local args = { '-c', 'echo "hello"' }
 
     popup.run(cmd, args)
 
     local popup_winid = wait_for_new_win()
-    assert_win_lines({ 'hello', '', 'Command:', 'bash -c echo "hello"' }, popup_winid)
+    assert_win_lines({
+      'hello',
+      '',
+      'bash -c echo "hello"',
+      '',
+      'Press q to quit',
+      [[Call Please restore_popup or require('please.runners.popup').restore() to restore]],
+    }, popup_winid)
   end)
 
   it('should call on_success if command is successful', function()

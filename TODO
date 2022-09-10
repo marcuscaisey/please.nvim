@@ -4,7 +4,6 @@
 - document runners
 - cleanup popup.lua?
 - run commands with pleasew instead of plz?
-- add "q to close" message at bottom of popup
 - add run failed tests command
 - simplify defensive code? i.e. remove checks whether paths are absolute etc
 - allow passing args to things like run / debug / test

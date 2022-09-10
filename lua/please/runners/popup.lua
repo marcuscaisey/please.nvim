@@ -1,5 +1,3 @@
--- The plan is to provide multiple runners which accept cmd / args for running commands in different ways like opening
--- in a new tmux pane or using the in built terminal etc
 local Job = require 'plenary.job'
 local plenary_popup = require 'plenary.popup'
 local logging = require 'please.logging'
@@ -21,6 +19,23 @@ local cached_popup = {
   valid = false,
   lines = {},
   cursor = {},
+}
+
+local ansi = {
+  bold = '\x1b[1m',
+  italic = '\x1b[3m',
+  black = '\x1b[30m',
+  red = '\x1b[31m',
+  green = '\x1b[32m',
+  yellow = '\x1b[33m',
+  blue = '\x1b[34m',
+  magenta = '\x1b[35m',
+  cyan = '\x1b[36m',
+  white = '\x1b[37m',
+  default = '\x1b[39m',
+  reset = '\x1b[0m',
+  move_cursor_home = '\x1b[H',
+  erase_in_display = '\x1b[J',
 }
 
 ---Runs a command with the given args in a terminal in a popup.
@@ -66,6 +81,7 @@ popup.run = function(cmd, args, opts)
   local is_complete = false
   local output_lines = {}
   local output_line = function(line, opts)
+    line = line or ''
     opts = opts or { new_line = true }
     if opts.new_line then
       line = line .. '\r\n'
@@ -81,7 +97,7 @@ popup.run = function(cmd, args, opts)
         first_stdout_line_written = true
         -- please usually outputs these control sequences to reset the text style and clear the screen before printing
         -- stdout, but they don't seem to be getting output for us...
-        line = '\x1b[0m\x1b[H\x1b[J' .. line
+        line = ansi.reset .. ansi.move_cursor_home .. ansi.erase_in_display .. line
       end
       output_line(line)
     end
@@ -95,8 +111,22 @@ popup.run = function(cmd, args, opts)
 
   local on_exit = vim.schedule_wrap(function()
     if not is_shutdown then
-      output_line '\r\n[1mCommand:'
-      output_line(string.format('[0m%s %s', cmd, table.concat(args, ' ')), { new_line = false })
+      output_line()
+      output_line(ansi.italic .. ansi.yellow .. cmd .. ' ' .. table.concat(args, ' '))
+      output_line()
+      output_line(ansi.default .. 'Press ' .. ansi.magenta .. 'q' .. ansi.default .. ' to quit')
+      output_line(
+        'Call '
+          .. ansi.magenta
+          .. 'Please restore_popup'
+          .. ansi.default
+          .. ' or '
+          .. ansi.magenta
+          .. [[require('please.runners.popup').restore()]]
+          .. ansi.default
+          .. ' to restore',
+        { new_line = false }
+      )
       is_complete = true
     end
   end)
