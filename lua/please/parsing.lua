@@ -64,17 +64,7 @@ end
 parsing.locate_build_target = function(root, label)
   logging.debug('parsing.locate_build_target called with root=%s, label=%s', root, label)
 
-  -- TODO: do this with the plz LSP instead?
   local root_obj = Path:new(root)
-  if not root_obj:is_absolute() then
-    error(string.format('root must be absolute, got "%s"', root))
-  end
-
-  -- I'm not actually sure what characters are allowed in a label so we won't bother filtering out anything unless it's
-  -- obviously wrong like : in the pkg or / in the target.
-  if not label:match '^//[^:]*:[^/]+$' then
-    error(string.format('label must be in //path/to/pkg:target format, got "%s"', label))
-  end
 
   local pkg, target = label:match '^//([^:]*):([^/]+)$'
   local pkg_path = root_obj:joinpath(pkg)
@@ -194,7 +184,7 @@ parsing.get_test_selector_at_cursor = function()
 
   local configs = find_test_configs[vim.bo.filetype]
   if not configs then
-    error(string.format('finding tests is not supported for %s files', vim.bo.filetype))
+    return nil, string.format('finding tests is not supported for %s files', vim.bo.filetype)
   end
 
   local tree = treesitter.get_parser(0, vim.bo.filetype):parse()[1]
@@ -229,7 +219,7 @@ parsing.list_tests_in_file = function()
 
   local configs = find_test_configs[vim.bo.filetype]
   if not configs then
-    error(string.format('listing tests is not supported for %s files', vim.bo.filetype))
+    return nil, string.format('listing tests is not supported for %s files', vim.bo.filetype)
   end
 
   local tests = {}
@@ -277,14 +267,6 @@ end
 ---@return string|nil: error if any, this should be checked before using the label and rule
 parsing.get_target_at_cursor = function(root)
   logging.debug('parsing.get_target_at_cursor called with root=%s', root)
-
-  if vim.bo.filetype ~= 'please' then
-    error(string.format('file (%s) is not a BUILD file', vim.bo.filetype))
-  end
-
-  if not Path:new(root):is_absolute() then
-    error(string.format('root must be absolute, got "%s"', root))
-  end
 
   local tree = treesitter.get_parser(0, 'python'):parse()[1]
   local query = treesitter_query.parse_query('python', make_build_target_query())

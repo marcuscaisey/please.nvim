@@ -6,14 +6,6 @@ local query = require 'please.query'
 local teardowns = TeardownFuncs:new()
 
 describe('reporoot', function()
-  it('should raise error when path is not absolute', function()
-    local path = 'not/absolute/path.txt'
-
-    assert.has_error(function()
-      query.reporoot(path)
-    end, 'path must be absolute, got not/absolute/path.txt')
-  end)
-
   it('should return root when path is a directory inside a plz repo', function()
     local temp_root, teardown = temptree.create_temp_tree {
       '.plzconfig',
@@ -171,41 +163,6 @@ describe('whatinputs', function()
     assert.is_not_nil(err, 'expected error')
     assert.are.equal('string', type(err), 'expected error to be string')
     assert.is_truthy(err:match 'not a source', string.format('expected error to contain "not a source", got %s', err))
-  end)
-
-  it('should raise error if filepath is an absolute directory', function()
-    local repo_root, teardown = temptree.create_temp_tree {
-      'BUILD',
-      'foo/',
-    }
-    teardowns:add(teardown)
-    local filepath = repo_root .. '/foo'
-
-    assert.has_error(function()
-      query.whatinputs(repo_root, filepath)
-    end, 'filepath must point to a file, got ' .. filepath)
-  end)
-
-  it('should raise error if filepath is a relative directory', function()
-    local repo_root, teardown = temptree.create_temp_tree {
-      'BUILD',
-      'foo/',
-    }
-    teardowns:add(teardown)
-    local filepath = 'foo'
-
-    assert.has_error(function()
-      query.whatinputs(repo_root, filepath)
-    end, 'filepath must point to a file, got foo')
-  end)
-
-  it('should raise error is root is not absolute', function()
-    local root = 'test_repo'
-    local filepath = 'foo/foo.txt'
-
-    assert.has_error(function()
-      query.whatinputs(root, filepath)
-    end, 'root must be absolute, got test_repo')
   end)
 end)
 

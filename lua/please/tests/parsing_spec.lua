@@ -144,45 +144,10 @@ describe('locate_build_target', function()
       label = '//:foo',
       expected_position = { 1, 1 },
     },
-    {
-      name = 'should raise error if root is not absolute',
-      root = 'repo',
-      label = '//foo:foo',
-      raises_error = true,
-      expected_err = 'root must be absolute, got "repo"',
-    },
-    {
-      name = 'should raise error if label is relative',
-      root = '/tmp/root',
-      label = ':foo',
-      raises_error = true,
-      expected_err = 'label must be in //path/to/pkg:target format, got ":foo"',
-    },
-    {
-      name = 'should raise error if label does not have target',
-      root = '/tmp/root',
-      label = '//foo',
-      raises_error = true,
-      expected_err = 'label must be in //path/to/pkg:target format, got "//foo"',
-    },
-    {
-      name = 'should raise error if label is not a build label',
-      root = '/tmp/root',
-      label = 'foo',
-      raises_error = true,
-      expected_err = 'label must be in //path/to/pkg:target format, got "foo"',
-    },
   }
 
   for _, case in ipairs(test_cases) do
     it(case.name, function()
-      if case.raises_error then
-        assert.has_error(function()
-          parsing.locate_build_target(case.root, case.label)
-        end, case.expected_err, 'incorrect error')
-        return
-      end
-
       local root, teardown = temptree.create_temp_tree(case.tree)
       teardowns:add(teardown)
 
@@ -214,13 +179,6 @@ describe('get_test_selector_at_cursor', function()
 
     vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
     cursor.set(case.cursor)
-
-    if case.raises_error then
-      assert.has_error(function()
-        parsing.get_test_selector_at_cursor()
-      end, case.expected_err, 'incorrect error')
-      return
-    end
 
     local selector, err = parsing.get_test_selector_at_cursor()
 
@@ -437,12 +395,11 @@ describe('get_test_selector_at_cursor', function()
       expected_selector = 'TestFuncTwo$',
     },
     {
-      name = 'should raise error if language of file is not supported',
+      name = 'should return error if language of file is not supported',
       tree = {
         ['hello.rb'] = 'puts "Hello, World!"',
       },
       cursor = { 1, 1 },
-      raises_error = true,
       expected_err = 'finding tests is not supported for ruby files',
     },
   }
@@ -492,11 +449,10 @@ describe('list_tests_in_file', function()
       },
     },
     {
-      name = 'should raise error if language of file is not supported',
+      name = 'should return error if language of file is not supported',
       tree = {
         ['hello.rb'] = 'puts "Hello, World!"',
       },
-      raises_error = true,
       expected_err = 'listing tests is not supported for ruby files',
     },
     {
@@ -516,13 +472,6 @@ describe('list_tests_in_file', function()
       teardowns:add(teardown)
 
       vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(tc.tree)[1])
-
-      if tc.raises_error then
-        assert.has_error(function()
-          parsing.list_tests_in_file()
-        end, tc.expected_err, 'incorrect error')
-        return
-      end
 
       local tests, err = parsing.list_tests_in_file()
 
@@ -548,13 +497,6 @@ describe('get_target_at_cursor', function()
 
     vim.cmd('edit ' .. root .. '/' .. case.file)
     cursor.set(case.cursor)
-
-    if case.raises_err then
-      assert.has_error(function()
-        parsing.get_target_at_cursor(root)
-      end, case.expected_err, 'incorrect error')
-      return
-    end
 
     local label, rule, err = parsing.get_target_at_cursor(root)
 
@@ -706,24 +648,6 @@ describe('get_target_at_cursor', function()
       file = 'BUILD',
       cursor = { 1, 1 },
       expected_label = '//:foo',
-    }
-  end)
-
-  it('should raise error if root is not absolute', function()
-    assert.has_error(function()
-      parsing.get_target_at_cursor 'repo'
-    end, 'root must be absolute, got "repo"', 'incorrect error')
-  end)
-
-  it('should raise error if file is not a BUILD file', function()
-    run_test {
-      tree = {
-        ['hello.py'] = 'print("Hello, World!")',
-      },
-      file = 'hello.py',
-      cursor = { 1, 1 },
-      raises_err = true,
-      expected_err = 'file (python) is not a BUILD file',
     }
   end)
 end)

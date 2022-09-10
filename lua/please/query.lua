@@ -41,10 +41,6 @@ query.reporoot = function(path)
 
   local path_obj = Path:new(path)
 
-  if not path_obj:is_absolute() then
-    error(string.format('path must be absolute, got %s', path))
-  end
-
   if not path_obj:is_dir() then
     path_obj = path_obj:parent()
   end
@@ -71,20 +67,6 @@ end
 ---@return string|nil: error if any, this should be checked before using the labels
 query.whatinputs = function(root, filepath)
   logging.debug('query.whatinputs called with root=%s, filepath=%s', root, filepath)
-
-  local root_obj = Path:new(root)
-  local filepath_obj = Path:new(filepath)
-
-  if not root_obj:is_absolute() then
-    error(string.format('root must be absolute, got %s', root))
-  end
-
-  if
-    (filepath_obj:is_absolute() and filepath_obj:is_dir())
-    or (not filepath_obj:is_absolute() and root_obj:joinpath(filepath_obj):is_dir())
-  then
-    error(string.format('filepath must point to a file, got %s', filepath))
-  end
 
   filepath = Path:new(filepath):make_relative(root)
 
