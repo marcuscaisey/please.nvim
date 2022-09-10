@@ -391,6 +391,33 @@ describe('test', function()
       teardown_tree()
     end)
   end)
+
+  describe('with failed=true', function()
+    it('should run test with --failed', function()
+      local root, teardown_tree = temptree.create_temp_tree {
+        '.plzconfig',
+        BUILD = strings.dedent [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )]],
+        ['foo.txt'] = 'foo content',
+      }
+      local mock_plz_popup = MockPlzPopup:new(root)
+
+      -- GIVEN we're editing a file in the repo
+      vim.cmd('edit ' .. root .. '/foo.txt')
+
+      -- WHEN we call test with failed=true
+      please.test { failed = true }
+
+      -- THEN test is run with --failed
+      mock_plz_popup:assert_called_with { 'test', '--failed' }
+
+      mock_plz_popup:revert()
+      teardown_tree()
+    end)
+  end)
 end)
 
 describe('run', function()

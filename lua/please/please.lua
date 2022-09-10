@@ -133,13 +133,14 @@ end
 ---@param opts table
 ---@field under_cursor boolean: run the test under the cursor
 ---@field list boolean: select which test to run
+---@field failed boolean: run just the test cases which failed from the immediately previous run
 please.test = function(opts)
   logging.debug('please.test called with opts=%s', vim.inspect(opts))
 
   opts = opts or {}
 
   logging.log_errors(function()
-    assert(validate_opts(opts, { 'under_cursor', 'list' }))
+    assert(validate_opts(opts, { 'under_cursor', 'list', 'failed' }))
 
     local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
@@ -167,6 +168,8 @@ please.test = function(opts)
         run_with_selected(test_names, 'Select test to run', function(_, idx)
           run_plz_test(tests[idx].selector)
         end)
+      elseif opts.failed then
+        run_plz_cmd(root, { 'test', '--failed' })
       else
         run_plz_test()
       end
