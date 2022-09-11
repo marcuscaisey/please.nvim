@@ -3,7 +3,6 @@
 - run tests and gendocs in github actions
 - document runners
 - cleanup popup.lua?
-- run commands with pleasew instead of plz?
 - command history
 - integrate tmux runner
 - add debug test under cursor command
