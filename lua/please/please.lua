@@ -149,7 +149,7 @@ please.test = function(opts)
       local label = assert(parsing.get_target_at_cursor(root))
       run_plz_cmd(root, { 'test', label })
     else
-      local run_plz_test = function(test_selector)
+      local plz_test = function(test_selector)
         local labels = assert(query.whatinputs(root, filepath))
         run_with_selected(labels, 'Select target to test', function(label)
           local args = test_selector and { test_selector } or {}
@@ -159,26 +159,27 @@ please.test = function(opts)
 
       if opts.under_cursor then
         local test_selector = assert(parsing.get_test_selector_at_cursor())
-        run_plz_test(test_selector)
+        plz_test(test_selector)
       elseif opts.list then
         local tests = assert(parsing.list_tests_in_file())
         local test_names = vim.tbl_map(function(test)
           return test.name
         end, tests)
         run_with_selected(test_names, 'Select test to run', function(_, idx)
-          run_plz_test(tests[idx].selector)
+          plz_test(tests[idx].selector)
         end)
       elseif opts.failed then
         run_plz_cmd(root, { 'test', '--failed' })
       else
-        run_plz_test()
+        plz_test()
       end
     end
   end)
 end
 
 ---If the current file is a BUILD file, run the target which is under the cursor. Otherwise, run the target which
----takes the current file as an input.
+---takes the current file as an input. Program arguments can be entered via a |vim.ui.input()| prompt which allows you
+---to customise the appearance to your taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
 please.run = function()
   logging.debug 'please.run called'
 
@@ -186,13 +187,23 @@ please.run = function()
     local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
 
+    local plz_run = function(label)
+      vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
+        local args = {}
+        if input then
+          args = vim.split(input, ' ')
+        end
+        run_plz_cmd(root, { 'run', label, '--', unpack(args) })
+      end)
+    end
+
     if vim.bo.filetype == 'please' then
       local label = assert(parsing.get_target_at_cursor(root))
-      run_plz_cmd(root, { 'run', label })
+      plz_run(label)
     else
       local labels = assert(query.whatinputs(root, filepath))
-      run_with_selected(labels, 'Select target to test', function(label)
-        run_plz_cmd(root, { 'run', label })
+      run_with_selected(labels, 'Select target to run', function(label)
+        plz_run(label)
       end)
     end
   end)

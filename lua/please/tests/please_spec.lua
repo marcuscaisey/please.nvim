@@ -15,25 +15,26 @@ function MockPlzPopup:new(root)
   assert.is_not_nil(root, 'root must be passed to MockPlzPopup')
   local obj = {
     _root = root,
-    _popup_called = false,
+    _called = false,
+    _cmd = nil,
+    _args = nil,
   }
-  local stubbed_popup = stub(runners, 'popup', function(cmd, args)
-    obj._popup_cmd, obj._popup_args = cmd, args
-    obj._popup_called = true
+  obj._stubbed_popup = stub(runners, 'popup', function(cmd, args)
+    obj._cmd, obj._args = cmd, args
+    obj._called = true
   end)
-  obj._stubbed_popup = stubbed_popup
   self.__index = self
   return setmetatable(obj, self)
 end
 
 function MockPlzPopup:assert_called_with(args)
-  if not self._popup_called then
+  if not self._called then
     error 'cannot assert on popup args before it has been called'
   end
-  assert.are.equal('plz', self._popup_cmd, 'incorrect command passed to popup')
+  assert.are.equal('plz', self._cmd, 'incorrect command passed to popup')
   assert.are.same(
     { '--repo_root', self._root, '--interactive_output', '--colour', unpack(args) },
-    self._popup_args,
+    self._args,
     'incorrect args passed to popup'
   )
 end
@@ -46,54 +47,92 @@ local MockSelect = {}
 
 function MockSelect:new()
   local obj = {
-    _select_called = false,
+    _called = false,
+    _items = nil,
+    _opts = nil,
+    _on_choice = nil,
   }
-  local stubbed_select = stub(vim.ui, 'select', function(items, opts, on_choice)
-    obj._select_items, obj._select_opts, obj._select_on_choice = items, opts, on_choice
-    obj._select_called = true
+  obj._stubbed_select = stub(vim.ui, 'select', function(items, opts, on_choice)
+    obj._items, obj._opts, obj._on_choice = items, opts, on_choice
+    obj._called = true
   end)
-  obj._stubbed_select = stubbed_select
   self.__index = self
   return setmetatable(obj, self)
 end
 
 function MockSelect:assert_items(items)
-  if not self._select_called then
+  if not self._called then
     error 'cannot assert on vim.ui.select items before it has been called'
   end
-  assert.are.same(items, self._select_items, 'incorrect items passed to vim.ui.select')
+  assert.are.same(items, self._items, 'incorrect items passed to vim.ui.select')
 end
 
 function MockSelect:assert_prompt(prompt)
-  if not self._select_called then
+  if not self._called then
     error 'cannot assert on vim.ui.select prompt before it has been called'
   end
-  assert.is_not_nil(self._select_opts.prompt, 'expected prompt opt passed to vim.ui.select')
-  assert.are.equal(prompt, self._select_opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
+  assert.is_not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.select')
+  assert.are.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
 end
 
 function MockSelect:choose_item(item)
-  if not self._select_called then
+  if not self._called then
     error 'cannot choose vim.ui.select item before it has been called'
   end
-  if not vim.tbl_contains(self._select_items, item) then
+  if not vim.tbl_contains(self._items, item) then
     error(
       string.format(
         'cannot choose item "%s" which was not passed to vim.ui.select, available choices are: %s',
         item,
-        vim.inspect(self._select_items)
+        vim.inspect(self._items)
       )
     )
   end
-  for i, v in ipairs(self._select_items) do
+  for i, v in ipairs(self._items) do
     if v == item then
-      self._select_on_choice(item, i)
+      self._on_choice(item, i)
     end
   end
 end
 
 function MockSelect:revert()
   self._stubbed_select:revert()
+end
+
+local MockInput = {}
+
+function MockInput:new()
+  local obj = {
+    _called = false,
+    _opts = nil,
+    _on_confirm = nil,
+    _stubbed_input = nil,
+  }
+  obj._stubbed_input = stub(vim.ui, 'input', function(opts, on_confirm)
+    obj._opts, obj._on_confirm = opts, on_confirm
+    obj._called = true
+  end)
+  self.__index = self
+  return setmetatable(obj, self)
+end
+
+function MockInput:assert_prompt(prompt)
+  if not self._called then
+    error 'cannot assert on vim.ui.input prompt before it has been called'
+  end
+  assert.is_not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.input')
+  assert.are.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.input')
+end
+
+function MockInput:enter_input(input)
+  if not self._called then
+    error 'cannot enter vim.ui.input input before it has been called'
+  end
+  self._on_confirm(input)
+end
+
+function MockInput:revert()
+  self._stubbed_input:revert()
 end
 
 -- TODO: add back tests in here which test vim.ui.select usage
@@ -434,6 +473,7 @@ describe('run', function()
     teardowns:add(teardown)
 
     local mock_plz_popup = MockPlzPopup:new(root)
+    local mock_input = MockInput:new()
 
     -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo.txt')
@@ -441,10 +481,17 @@ describe('run', function()
     -- WHEN we call run
     please.run()
 
-    -- THEN the target is run
-    mock_plz_popup:assert_called_with { 'run', '//:foo' }
+    -- THEN we're prompted to enter arguments for the program
+    mock_input:assert_prompt 'Enter program arguments'
+
+    -- WHEN we enter some program arguments
+    mock_input:enter_input '--foo foo --bar bar'
+
+    -- THEN the target is run with those arguments
+    mock_plz_popup:assert_called_with { 'run', '//:foo', '--', '--foo', 'foo', '--bar', 'bar' }
 
     mock_plz_popup:revert()
+    mock_input:revert()
   end)
 
   it('should run target under cursor when in BUILD file', function()
@@ -460,6 +507,7 @@ describe('run', function()
     teardowns:add(teardown)
 
     local mock_plz_popup = MockPlzPopup:new(root)
+    local mock_input = MockInput:new()
 
     -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
     vim.cmd('edit ' .. root .. '/BUILD')
@@ -468,10 +516,65 @@ describe('run', function()
     -- WHEN we call run
     please.run()
 
-    -- THEN the target is run
-    mock_plz_popup:assert_called_with { 'run', '//:foo' }
+    -- THEN we're prompted to enter arguments for the program
+    mock_input:assert_prompt 'Enter program arguments'
+
+    -- WHEN we enter some program arguments
+    mock_input:enter_input '--foo foo --bar bar'
+
+    -- THEN the target is run with those arguments
+    mock_plz_popup:assert_called_with { 'run', '//:foo', '--', '--foo', 'foo', '--bar', 'bar' }
 
     mock_plz_popup:revert()
+    mock_input:revert()
+  end)
+
+  it('should prompt user to choose which target to run if there is more than one', function()
+    local root, teardown = temptree.create_temp_tree {
+      '.plzconfig',
+      BUILD = strings.dedent [[
+        export_file(
+            name = "foo1",
+            src = "foo.txt",
+        )
+
+        export_file(
+            name = "foo2",
+            src = "foo.txt",
+        )]],
+      ['foo.txt'] = 'foo content',
+    }
+    teardowns:add(teardown)
+
+    local mock_plz_popup = MockPlzPopup:new(root)
+    local mock_select = MockSelect:new()
+    local mock_input = MockInput:new()
+
+    -- GIVEN we're editing a file referenced by multiple build targets
+    vim.cmd('edit ' .. root .. '/foo.txt')
+
+    -- WHEN we call run
+    please.run()
+
+    -- THEN we're prompted to choose which target to run
+    mock_select:assert_items { '//:foo1', '//:foo2' }
+    mock_select:assert_prompt 'Select target to run'
+
+    -- WHEN we select one of the targets
+    mock_select:choose_item '//:foo2'
+
+    -- THEN we're prompted to enter arguments for the program
+    mock_input:assert_prompt 'Enter program arguments'
+
+    -- WHEN we enter some program arguments
+    mock_input:enter_input '--foo foo --bar bar'
+
+    -- THEN the target is run with those arguments
+    mock_plz_popup:assert_called_with { 'run', '//:foo2', '--', '--foo', 'foo', '--bar', 'bar' }
+
+    mock_plz_popup:revert()
+    mock_select:revert()
+    mock_input:revert()
   end)
 end)
 

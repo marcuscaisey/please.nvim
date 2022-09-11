@@ -4,7 +4,6 @@
 - document runners
 - cleanup popup.lua?
 - run commands with pleasew instead of plz?
-- allow passing args to things like run / debug / test
 - command history
 - integrate tmux runner
 - add debug test under cursor command

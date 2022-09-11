@@ -143,6 +143,9 @@ please.test({opts})                                            *please.test()*
 please.run()                                                    *please.run()*
     If the current file is a BUILD file, run the target which is under the
     cursor. Otherwise, run the target which takes the current file as an input.
+    Program arguments can be entered via a |vim.ui.input()| prompt which allows
+    you to customise the appearance to your taste (see
+    https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
 
 

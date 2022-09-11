@@ -1,8 +1,13 @@
+import os
+import sys
+
 from third_party.python import requests
 
 if __name__ == "__main__":
-    resp = requests.get("https://google.com")
-    if resp.ok:
-        print("Google is up")
-    else:
-        print("Google is down")
+    if len(sys.argv) < 2:
+        print("Provide a URL to ping")
+        os.exit(1)
+    url = sys.argv[1]
+    resp = requests.get(url)
+    status = "up" if resp.ok else "down"
+    print(f"{url} is {status}")

@@ -8,7 +8,7 @@ Currently implemented features of `please.nvim` are:
 - building (`Please build`)
 - testing (`Please test`)
 - running the test under the cursor (`Please test under_cursor`)
-- listing and running a test from the current file (`Please test list`)
+- choosing a test to run from a list of tests in the current file (`Please test list`)
 - running the failed test cases from the last run (`Please test failed`)
 - running (`Please run`)
 - yanking build labels (`Please yank`)
