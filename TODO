@@ -2,7 +2,6 @@
 - use something else for docs generation (there's some other CLI we can use instead of the docker thing)
 - run tests and gendocs in github actions
 - document runners
-- cleanup popup.lua?
 - command history
 - integrate tmux runner
 - add debug test under cursor command
@@ -10,3 +9,4 @@
 - get rid of unneeded strings.dedent usage in test BUILD files (we never look at the contents anyway)
 - allow breakpoints to be set in plz-out/gen/third_party etc
 - autoformatting
+- log return values in debug logs

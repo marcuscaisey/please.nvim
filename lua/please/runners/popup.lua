@@ -8,8 +8,9 @@ local popup = {}
 local group = vim.api.nvim_create_augroup('please.nvim', { clear = true })
 
 local close_win = function(winid)
-  -- If we close multiple windows then sometimes the ones after the first are invalid by the time we get to calling
-  -- nvim_win_close. I'm not sure why this is but telescope.nvim does it as well which is good enough for me.
+  -- If we close multiple windows by calling this function multiple times, then sometimes the ones after the first are
+  -- invalid by the time we get to calling nvim_win_close. I'm not sure why this is but telescope.nvim does it as well
+  -- which is good enough for me.
   if vim.api.nvim_win_is_valid(winid) then
     vim.api.nvim_win_close(winid, true)
   end
@@ -47,10 +48,11 @@ local ansi = {
 ---@field on_success function: callback which is called if the command is successful
 popup.run = function(cmd, args, opts)
   opts = opts or {}
+
   logging.debug('runners.popup called with cmd=%s, args=%s, opts=%s', cmd, vim.inspect(args), vim.inspect(opts))
 
-  -- reset before we start running the command in case it doesn't finish successfully, otherwise we could restore the
-  -- output from the popup run previous to this one
+  -- reset before we start running the command, otherwise if it doesn't finish successfully and we restore, we will
+  -- restore the output from the popup run previous to this one
   cached_popup = {
     valid = false,
     lines = {},
@@ -78,7 +80,9 @@ popup.run = function(cmd, args, opts)
   -- potentially closed channel
   local is_shutdown = false
 
+  -- we need to track if the command completes so that we only cache the popup if this is the case
   local is_complete = false
+
   local output_lines = {}
   local output_line = function(line, opts)
     line = line or ''
@@ -96,7 +100,9 @@ popup.run = function(cmd, args, opts)
       if not first_stdout_line_written then
         first_stdout_line_written = true
         -- please usually outputs these control sequences to reset the text style and clear the screen before printing
-        -- stdout, but they don't seem to be getting output for us...
+        -- stdout, but they either:
+        -- - don't seem to be getting output
+        -- - don't seem to have any effect
         line = ansi.reset .. ansi.move_cursor_home .. ansi.erase_in_display .. line
       end
       output_line(line)
@@ -159,6 +165,8 @@ popup.run = function(cmd, args, opts)
 
   local close = function()
     if is_complete and not is_shutdown then
+      -- we cache the popup on closing rather than when the command completes so that we can save the current cursor
+      -- position
       cached_popup = {
         valid = true,
         lines = output_lines,
@@ -167,8 +175,7 @@ popup.run = function(cmd, args, opts)
     end
     is_shutdown = true
     close_windows()
-    -- Calling shutdown in the handler adds a bit of delay before the popup closes for some reason, as if its waiting
-    -- for the end of the shutdown call. Maybe it is. Either way, scheduling the shutdown gets rid of the delay.
+    -- FIXME: the editor is unresponsive for 1s when shutdown is called whilst the command is still running
     vim.schedule(function()
       job:shutdown()
     end)
@@ -188,7 +195,7 @@ popup.run = function(cmd, args, opts)
 end
 
 ---Shows the output from a previous popup in a new popup, restoring the previous cursor position as well.
----Only popups who's command ran to completion can be restore, otherwise no popup will be opened.
+---Only popups who's command ran to completion can be restored, otherwise no popup will be opened.
 ---The popup can be exited with q or by focusing on another window.
 popup.restore = function()
   logging.debug 'runners.restore called'
