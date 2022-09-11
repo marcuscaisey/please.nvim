@@ -176,9 +176,7 @@ popup.run = function(cmd, args, opts)
     is_shutdown = true
     close_windows()
     -- FIXME: the editor is unresponsive for 1s when shutdown is called whilst the command is still running
-    vim.schedule(function()
-      job:shutdown()
-    end)
+    job:shutdown()
   end
   -- close popup on q
   vim.keymap.set('n', 'q', close, { buffer = term_bufnr })
