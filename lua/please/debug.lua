@@ -32,11 +32,14 @@ local patch_dap_session_connect = function()
   local timeout = 5000
   local retry_interval = 100
 
+  local next_session_id = 1
+
   local function new_session(adapter, opts)
     local handlers = {}
     handlers.after = opts.after
     handlers.reverse_requests = {}
     local state = {
+      id = next_session_id,
       handlers = handlers,
       message_callbacks = {},
       message_requests = {},
@@ -47,7 +50,9 @@ local patch_dap_session_connect = function()
       threads = {},
       adapter = adapter,
       dirty = {},
+      capabilities = {},
     }
+    next_session_id = next_session_id + 1
     return setmetatable(state, { __index = Session })
   end
 
