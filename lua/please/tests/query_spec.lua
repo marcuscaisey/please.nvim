@@ -1,64 +1,59 @@
-local strings = require 'plenary.strings'
 local temptree = require 'please.tests.utils.temptree'
-local TeardownFuncs = require 'please.tests.utils.teardowns'
 local query = require 'please.query'
-
-local teardowns = TeardownFuncs:new()
 
 describe('reporoot', function()
   it('should return root when path is a directory inside a plz repo', function()
-    local temp_root, teardown = temptree.create {
+    local temp_root, teardown_tree = temptree.create {
       '.plzconfig',
       'foo/',
     }
-    teardowns:add(teardown)
     local path = temp_root .. '/foo'
 
     local root, err = query.reporoot(path)
 
     assert.is_nil(err, 'expected no error')
     assert.are.equal(temp_root, root, 'incorrect root')
+
+    teardown_tree()
   end)
 
   it('should return root when path is a file inside a plz repo', function()
-    local temp_root, teardown = temptree.create {
+    local temp_root, teardown_tree = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         'foo.go',
       },
     }
-    teardowns:add(teardown)
     local path = temp_root .. '/foo/foo.go'
 
     local root, err = query.reporoot(path)
 
     assert.is_nil(err, 'expected no error')
     assert.are.equal(temp_root, root, 'incorrect root')
+
+    teardown_tree()
   end)
 
   it('should return error when path is outside of a plz repo', function()
-    local temp_root, teardown = temptree.create {
+    local temp_root, teardown_tree = temptree.create {
       ['repo/'] = {
         '.plzconfig',
       },
     }
-    teardowns:add(teardown)
 
     local root, err = query.reporoot(temp_root)
 
     assert.is_nil(root, 'expected no root')
     assert.is_not_nil(err, 'expected error')
     assert.are.equal('string', type(err), 'expected error to be string')
+
+    teardown_tree()
   end)
 end)
 
 describe('whatinputs', function()
-  after_each(function()
-    teardowns:teardown()
-  end)
-
   it('should return target when filepath is relative', function()
-    local repo_root, teardown = temptree.create {
+    local repo_root, teardown_tree = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         BUILD = [[
@@ -69,17 +64,18 @@ describe('whatinputs', function()
         'foo.txt',
       },
     }
-    teardowns:add(teardown)
     local filepath = 'foo/foo.txt'
 
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
     assert.are.same({ '//foo:foo' }, labels, 'incorrect labels')
+
+    teardown_tree()
   end)
 
   it('should return target when filepath is absolute', function()
-    local repo_root, teardown = temptree.create {
+    local repo_root, teardown_tree = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         BUILD = [[
@@ -90,17 +86,18 @@ describe('whatinputs', function()
         'foo.txt',
       },
     }
-    teardowns:add(teardown)
     local filepath = repo_root .. '/foo/foo.txt'
 
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
     assert.are.same({ '//foo:foo' }, labels, 'incorrect labels')
+
+    teardown_tree()
   end)
 
   it('should return the labels of multiple targets if they exist', function()
-    local repo_root, teardown = temptree.create {
+    local repo_root, teardown_tree = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         BUILD = [[
@@ -115,23 +112,23 @@ describe('whatinputs', function()
         'foo.txt',
       },
     }
-    teardowns:add(teardown)
     local filepath = 'foo/foo.txt'
 
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
     assert.are.same({ '//foo:foo1', '//foo:foo2' }, labels, 'incorrect labels')
+
+    teardown_tree()
   end)
 
   it('should return error if no targets exist for a file which is not in a package', function()
-    local repo_root, teardown = temptree.create {
+    local repo_root, teardown_tree = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         'not_used.txt',
       },
     }
-    teardowns:add(teardown)
     local filepath = 'foo/not_used.txt'
 
     local labels, err = query.whatinputs(repo_root, filepath)
@@ -144,17 +141,18 @@ describe('whatinputs', function()
       err:match "doesn't exist",
       string.format([[expected error to contain "doesn't exist", got %s]], err)
     )
+
+    teardown_tree()
   end)
 
   it('should return error if no targets exist for a file which is in a package', function()
-    local repo_root, teardown = temptree.create {
+    local repo_root, teardown_tree = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         'BUILD',
         'not_used.txt',
       },
     }
-    teardowns:add(teardown)
     local filepath = 'foo/not_used.txt'
 
     local labels, err = query.whatinputs(repo_root, filepath)
@@ -163,6 +161,8 @@ describe('whatinputs', function()
     assert.is_not_nil(err, 'expected error')
     assert.are.equal('string', type(err), 'expected error to be string')
     assert.is_truthy(err:match 'not a source', string.format('expected error to contain "not a source", got %s', err))
+
+    teardown_tree()
   end)
 end)
 
@@ -249,5 +249,3 @@ describe('is_target_sandboxed', function()
     }
   end)
 end)
-
-teardowns:teardown()

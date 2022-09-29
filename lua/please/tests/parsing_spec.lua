@@ -1,10 +1,6 @@
-local strings = require 'plenary.strings'
 local temptree = require 'please.tests.utils.temptree'
-local TeardownFuncs = require 'please.tests.utils.teardowns'
 local cursor = require 'please.cursor'
 local parsing = require 'please.parsing'
-
-local teardowns = TeardownFuncs:new()
 
 describe('locate_build_target', function()
   local test_cases = {
@@ -148,8 +144,7 @@ describe('locate_build_target', function()
 
   for _, case in ipairs(test_cases) do
     it(case.name, function()
-      local root, teardown = temptree.create(case.tree)
-      teardowns:add(teardown)
+      local root, teardown_tree = temptree.create(case.tree)
 
       local filepath, position, err = parsing.locate_build_target(root, case.label)
 
@@ -168,14 +163,15 @@ describe('locate_build_target', function()
       else
         assert.is_nil(err, 'expected no error')
       end
+
+      teardown_tree()
     end)
   end
 end)
 
 describe('get_test_at_cursor', function()
   local run_test = function(case)
-    local root, teardown = temptree.create(case.tree)
-    teardowns:add(teardown)
+    local root, teardown_tree = temptree.create(case.tree)
 
     vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
     cursor.set(case.cursor)
@@ -192,6 +188,8 @@ describe('get_test_at_cursor', function()
     else
       assert.is_nil(err, 'expected no err')
     end
+
+    teardown_tree()
   end
 
   local run_tests = function(cases)
@@ -468,8 +466,7 @@ describe('list_tests_in_file', function()
 
   for _, tc in ipairs(test_cases) do
     it(tc.name, function()
-      local root, teardown = temptree.create(tc.tree)
-      teardowns:add(teardown)
+      local root, teardown_tree = temptree.create(tc.tree)
 
       vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(tc.tree)[1])
 
@@ -486,14 +483,15 @@ describe('list_tests_in_file', function()
       else
         assert.is_nil(err, 'expected no error')
       end
+
+      teardown_tree()
     end)
   end
 end)
 
 describe('get_target_at_cursor', function()
   local run_test = function(case)
-    local root, teardown = temptree.create(case.tree)
-    teardowns:add(teardown)
+    local root, teardown_tree = temptree.create(case.tree)
 
     vim.cmd('edit ' .. root .. '/' .. case.file)
     cursor.set(case.cursor)
@@ -515,6 +513,8 @@ describe('get_target_at_cursor', function()
     else
       assert.is_nil(err, 'expected no error')
     end
+
+    teardown_tree()
   end
 
   describe('should return label and rule of target when cursor is inside build target definition', function()
@@ -651,5 +651,3 @@ describe('get_target_at_cursor', function()
     }
   end)
 end)
-
-teardowns:teardown()
