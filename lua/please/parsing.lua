@@ -170,6 +170,10 @@ local find_test_configs = {
   },
 }
 
+---@class Test
+---@field name string: the name of the test
+---@field selector string: the selector that can be used to select only that test for running
+
 ---Returns the selector for the test under the cursor.
 ---Current supported languages are:
 ---- Go
@@ -177,10 +181,10 @@ local find_test_configs = {
 ---  - testify suite test methods
 ---- Python
 ---  - unittest test methods
----@return string
+---@return Test
 ---@return string|nil: error if any, this should be checked before using the test name
-parsing.get_test_selector_at_cursor = function()
-  logging.debug 'parsing.get_test_selector_at_cursor called'
+parsing.get_test_at_cursor = function()
+  logging.debug 'parsing.get_test_at_cursor called'
 
   local configs = find_test_configs[vim.bo.filetype]
   if not configs then
@@ -193,17 +197,16 @@ parsing.get_test_selector_at_cursor = function()
     for _, match in query:iter_matches(tree:root(), 0) do
       local captures = extract_captures_from_match(match, query)
       if cursor_in_node_range(captures.test) then
-        return config.get_test_selector(captures)
+        return {
+          name = config.get_test_name(captures),
+          selector = config.get_test_selector(captures),
+        }
       end
     end
   end
 
   return nil, 'cursor is not in a test function'
 end
-
----@class Test
----@field name string
----@field selector string
 
 ---Returns the tests from the current file.
 ---Current supported languages are:
@@ -265,6 +268,7 @@ end
 ---@return string: a build label
 ---@return string: a build rule
 ---@return string|nil: error if any, this should be checked before using the label and rule
+-- TODO: return a table instead of multiple values
 parsing.get_target_at_cursor = function(root)
   logging.debug('parsing.get_target_at_cursor called with root=%s', root)
 

@@ -1,294 +1,234 @@
-local strings = require 'plenary.strings'
-local stub = require 'luassert.stub'
-local temptree = require 'please.tests.utils.temptree'
-local TeardownFuncs = require 'please.tests.utils.teardowns'
 local please = require 'please.please'
-local runners = require 'please.runners'
 local cursor = require 'please.cursor'
+local temptree = require 'please.tests.utils.temptree'
+local mock = require 'please.tests.utils.mock'
 
--- TODO: get rid of this, i don't know why i thought it was a good idea lol
-local teardowns = TeardownFuncs:new()
-
-local MockPlzPopup = {}
-
-function MockPlzPopup:new(root)
-  assert.is_not_nil(root, 'root must be passed to MockPlzPopup')
-  local obj = {
-    _root = root,
-    _called = false,
-    _cmd = nil,
-    _args = nil,
-  }
-  obj._stubbed_popup = stub(runners, 'popup', function(cmd, args)
-    obj._cmd, obj._args = cmd, args
-    obj._called = true
-  end)
-  self.__index = self
-  return setmetatable(obj, self)
-end
-
-function MockPlzPopup:assert_called_with(args)
-  if not self._called then
-    error 'cannot assert on popup args before it has been called'
-  end
-  assert.are.equal('plz', self._cmd, 'incorrect command passed to popup')
-  assert.are.same(
-    { '--repo_root', self._root, '--interactive_output', '--colour', unpack(args) },
-    self._args,
-    'incorrect args passed to popup'
-  )
-end
-
-function MockPlzPopup:revert()
-  self._stubbed_popup:revert()
-end
-
-local MockSelect = {}
-
-function MockSelect:new()
-  local obj = {
-    _called = false,
-    _items = nil,
-    _opts = nil,
-    _on_choice = nil,
-  }
-  obj._stubbed_select = stub(vim.ui, 'select', function(items, opts, on_choice)
-    obj._items, obj._opts, obj._on_choice = items, opts, on_choice
-    obj._called = true
-  end)
-  self.__index = self
-  return setmetatable(obj, self)
-end
-
-function MockSelect:assert_items(items)
-  if not self._called then
-    error 'cannot assert on vim.ui.select items before it has been called'
-  end
-  assert.are.same(items, self._items, 'incorrect items passed to vim.ui.select')
-end
-
-function MockSelect:assert_prompt(prompt)
-  if not self._called then
-    error 'cannot assert on vim.ui.select prompt before it has been called'
-  end
-  assert.is_not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.select')
-  assert.are.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
-end
-
-function MockSelect:choose_item(item)
-  if not self._called then
-    error 'cannot choose vim.ui.select item before it has been called'
-  end
-  if not vim.tbl_contains(self._items, item) then
-    error(
-      string.format(
-        'cannot choose item "%s" which was not passed to vim.ui.select, available choices are: %s',
-        item,
-        vim.inspect(self._items)
-      )
-    )
-  end
-  for i, v in ipairs(self._items) do
-    if v == item then
-      self._on_choice(item, i)
-    end
-  end
-end
-
-function MockSelect:revert()
-  self._stubbed_select:revert()
-end
-
-local MockInput = {}
-
-function MockInput:new()
-  local obj = {
-    _called = false,
-    _opts = nil,
-    _on_confirm = nil,
-    _stubbed_input = nil,
-  }
-  obj._stubbed_input = stub(vim.ui, 'input', function(opts, on_confirm)
-    obj._opts, obj._on_confirm = opts, on_confirm
-    obj._called = true
-  end)
-  self.__index = self
-  return setmetatable(obj, self)
-end
-
-function MockInput:assert_prompt(prompt)
-  if not self._called then
-    error 'cannot assert on vim.ui.input prompt before it has been called'
-  end
-  assert.is_not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.input')
-  assert.are.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.input')
-end
-
-function MockInput:enter_input(input)
-  if not self._called then
-    error 'cannot enter vim.ui.input input before it has been called'
-  end
-  self._on_confirm(input)
-end
-
-function MockInput:revert()
-  self._stubbed_input:revert()
-end
-
--- TODO: add back tests in here which test vim.ui.select usage
 describe('jump_to_target', function()
-  it('should jump from file to build target which uses it as an input', function()
-    local root, teardown = temptree.create_temp_tree {
+  local create_temp_tree = function()
+    return temptree.create {
       '.plzconfig',
-      BUILD = strings.dedent [[
+      BUILD = [[
         export_file(
             name = "foo1",
             src = "foo1.txt",
         )
 
-        export_file(
-            name = "foo2",
-            src = "foo2.txt",
-        )]],
+        filegroup(
+            name = "foo1_and_foo2",
+            srcs = [
+                "foo1.txt",
+                "foo2.txt",
+            ],
+        )
+      ]],
       ['foo1.txt'] = 'foo1 content',
       ['foo2.txt'] = 'foo2 content',
     }
-    teardowns:add(teardown)
+  end
+
+  it('should jump from file to build target which uses it as an input', function()
+    local root, teardown_tree = create_temp_tree()
 
     -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo2.txt')
-
-    -- WHEN we jump_to_target
+    -- WHEN we call jump_to_target
     please.jump_to_target()
-
-    -- THEN the BUILD file containing the chosen build target for the file is opened
+    -- THEN the BUILD file containing the build target for the file is opened
     assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
     assert.are.same({ 6, 1 }, cursor.get(), 'incorrect cursor position')
+
+    teardown_tree()
+  end)
+
+  it('should add entry to action history', function()
+    local root, teardown_tree = create_temp_tree()
+    local mock_select = mock.Select:new()
+
+    -- GIVEN we've jumped to a target
+    vim.cmd('edit ' .. root .. '/foo2.txt')
+    please.jump_to_target()
+    -- AND we edit a different file
+    vim.cmd('edit ' .. root .. '/foo1.txt')
+    -- WHEN we call action_history
+    please.action_history()
+    -- THEN we're prompted to pick an action to run again
+    mock_select:assert_prompt 'Pick action to run again'
+    mock_select:assert_items { 'Jump to //:foo1_and_foo2' }
+    -- WHEN we select the jump action
+    mock_select:choose_item 'Jump to //:foo1_and_foo2'
+    -- THEN the BUILD file is opened again
+    assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
+    -- AND the cursor is moved to the build target again
+    assert.are.same({ 6, 1 }, cursor.get(), 'incorrect cursor position')
+
+    teardown_tree()
+  end)
+
+  it('should prompt user to choose which target to jump to if there is more than one', function()
+    local root, teardown_tree = create_temp_tree()
+    local mock_select = mock.Select:new()
+
+    -- GIVEN we're editing a file referenced by multiple BUILD targets
+    vim.cmd('edit ' .. root .. '/foo1.txt')
+    -- WHEN we call jump_to_target
+    please.jump_to_target()
+    -- THEN we're prompted to choose which target to jump to
+    mock_select:assert_prompt 'Select target to jump to'
+    mock_select:assert_items { '//:foo1', '//:foo1_and_foo2' }
+    -- WHEN we select one of the targets
+    mock_select:choose_item '//:foo1_and_foo2'
+    -- THEN the BUILD file containing the chosen build target is opened
+    assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
+    -- AND the cursor is moved to the build target
+    assert.are.same({ 6, 1 }, cursor.get(), 'incorrect cursor position')
+
+    teardown_tree()
   end)
 end)
 
 describe('build', function()
-  it('should build target which uses file as input', function()
-    local root, teardown = temptree.create_temp_tree {
+  local create_temp_tree = function()
+    return temptree.create {
       '.plzconfig',
-      BUILD = strings.dedent [[
+      BUILD = [[
         export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
+            name = "foo1",
+            src = "foo1.txt",
+        )
+
+        filegroup(
+            name = "foo1_and_foo2",
+            srcs = [
+                "foo1.txt",
+                "foo2.txt",
+            ],
+        )
+      ]],
+      ['foo1.txt'] = 'foo1 content',
+      ['foo2.txt'] = 'foo2 content',
     }
-    teardowns:add(teardown)
+  end
 
-    local mock_plz_popup = MockPlzPopup:new(root)
+  describe('in source file', function()
+    it('should build target which uses file as input', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
 
-    -- GIVEN we're editing a file
-    vim.cmd('edit ' .. root .. '/foo.txt')
+      -- GIVEN we're editing a file
+      vim.cmd('edit ' .. root .. '/foo2.txt')
+      -- WHEN we call build
+      please.build()
+      -- THEN the target which the file is an input for is built
+      mock_plz_popup:assert_called_with { 'build', '//:foo1_and_foo2' }
 
-    -- WHEN we call build
-    please.build()
+      teardown_tree()
+    end)
 
-    -- THEN the target is built
-    mock_plz_popup:assert_called_with { 'build', '//:foo' }
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_select = mock.Select:new()
 
-    mock_plz_popup:revert()
+      -- GIVEN we've built a target
+      vim.cmd('edit ' .. root .. '/foo2.txt')
+      please.build()
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Build //:foo1_and_foo2' }
+      -- WHEN we select the build action
+      mock_select:choose_item 'Build //:foo1_and_foo2'
+      -- THEN the target is built again
+      mock_plz_popup:assert_called_with { 'build', '//:foo1_and_foo2' }
+
+      teardown_tree()
+    end)
+
+    it('should prompt user to choose which target to build if there is more than one', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_select = mock.Select:new()
+
+      -- GIVEN we're editing a file referenced by multiple build targets
+      vim.cmd('edit ' .. root .. '/foo1.txt')
+      -- WHEN we call build
+      please.build()
+      -- THEN we're prompted to choose which target to build
+      mock_select:assert_prompt 'Select target to build'
+      mock_select:assert_items { '//:foo1', '//:foo1_and_foo2' }
+      -- WHEN we select one of the targets
+      mock_select:choose_item '//:foo1_and_foo2'
+      -- THEN the target is built
+      mock_plz_popup:assert_called_with { 'build', '//:foo1_and_foo2' }
+
+      teardown_tree()
+    end)
   end)
 
-  it('should build target under cursor when in BUILD file', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
-    }
-    teardowns:add(teardown)
+  describe('in BUILD file', function()
+    it('should build target under cursor', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
 
-    local mock_plz_popup = MockPlzPopup:new(root)
+      -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+      vim.cmd('edit ' .. root .. '/BUILD')
+      cursor.set { 6, 5 } -- inside definition of :foo1_and_foo2
+      -- WHEN we call build
+      please.build()
+      -- THEN the target under the cursor is built
+      mock_plz_popup:assert_called_with { 'build', '//:foo1_and_foo2' }
 
-    -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
-    vim.cmd('edit ' .. root .. '/BUILD')
-    cursor.set { 2, 5 }
+      teardown_tree()
+    end)
 
-    -- WHEN we call build
-    please.build()
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_select = mock.Select:new()
 
-    -- THEN the target is built
-    mock_plz_popup:assert_called_with { 'build', '//:foo' }
+      -- GIVEN we've built a target
+      vim.cmd('edit ' .. root .. '/BUILD')
+      cursor.set { 6, 5 } -- inside definition of :foo1_and_foo2
+      please.build()
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Build //:foo1_and_foo2' }
+      -- WHEN we select the build action
+      mock_select:choose_item 'Build //:foo1_and_foo2'
+      -- THEN the target is built again
+      mock_plz_popup:assert_called_with { 'build', '//:foo1_and_foo2' }
 
-    mock_plz_popup:revert()
+      teardown_tree()
+    end)
   end)
 end)
 
 describe('test', function()
-  it('should test target which uses file as input', function()
-    local root, teardown = temptree.create_temp_tree {
+  local create_temp_tree = function()
+    return temptree.create {
       '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
-    }
-    teardowns:add(teardown)
-
-    local mock_plz_popup = MockPlzPopup:new(root)
-
-    -- GIVEN we're editing a file
-    vim.cmd('edit ' .. root .. '/foo.txt')
-
-    -- WHEN we call test
-    please.test()
-
-    -- THEN the target is tested
-    mock_plz_popup:assert_called_with { 'test', '//:foo' }
-
-    mock_plz_popup:revert()
-  end)
-
-  it('should test target under cursor when in BUILD file', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
-    }
-    teardowns:add(teardown)
-
-    local mock_plz_popup = MockPlzPopup:new(root)
-
-    -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
-    vim.cmd('edit ' .. root .. '/BUILD')
-    cursor.set { 2, 5 }
-
-    -- WHEN we call test
-    please.test()
-
-    -- THEN the target is tested
-    mock_plz_popup:assert_called_with { 'test', '//:foo' }
-
-    mock_plz_popup:revert()
-  end)
-
-  describe('with under_cursor=true', function()
-    it('should run test under the cursor', function()
-      local root, teardown = temptree.create_temp_tree {
-        '.plzconfig',
-        ['foo/'] = {
-          BUILD = strings.dedent [[
+      ['foo/'] = {
+        BUILD = [[
           go_test(
-              name = "test",
-              srcs = glob(["*_test.go"]),
+              name = "foo1_test",
+              srcs = ["foo1_test.go"],
               external = True,
-          )]],
-          ['foo_test.go'] = strings.dedent [[
+          )
+
+          go_test(
+              name = "foo1_and_foo2_test",
+              srcs = [
+                  "foo1_test.go",
+                  "foo2_test.go",
+              ],
+              external = True,
+          )
+        ]],
+        ['foo1_test.go'] = [[
           package foo_test
 
           import "testing"
@@ -298,337 +238,615 @@ describe('test', function()
 
           func TestFails(t *testing.T) {
               t.Fatal("oh no")
-          }]],
-        },
-      }
-      teardowns:add(teardown)
+          }
+        ]],
+        ['foo2_test.go'] = [[
+          package foo_test
 
-      local mock_plz_popup = MockPlzPopup:new(root)
+          import "testing"
 
-      -- GIVEN we're editing a test file and the cursor is inside a test function
-      vim.cmd('edit ' .. root .. '/foo/foo_test.go')
-      cursor.set { 9, 5 } -- inside body of TestFails
+          func TestPasses(t *testing.T) {
+          }
 
-      -- WHEN we call test with under_cursor=true
-      please.test { under_cursor = true }
+          func TestFails(t *testing.T) {
+              t.Fatal("oh no")
+          }
+        ]],
+      },
+    }
+  end
 
-      -- THEN the test function under the cursor is tested
-      mock_plz_popup:assert_called_with { 'test', '//foo:test', 'TestFails$' }
+  describe('in source file', function()
+    it('should test target which uses file as input', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
 
-      mock_plz_popup:revert()
+      -- GIVEN we're editing a file
+      vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+      -- WHEN we call test
+      please.test()
+      -- THEN the target which the file is an input for is tested
+      mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test' }
+
+      teardown_tree()
     end)
-  end)
 
-  describe('with list=true', function()
-    it('should prompt user to choose which test to run', function()
-      local root, teardown_tree = temptree.create_temp_tree {
-        '.plzconfig',
-        ['foo/'] = {
-          BUILD = [[
-            go_test(
-                name = "test",
-                srcs = glob(["*_test.go"]),
-                external = True,
-            )
-          ]],
-          ['foo_test.go'] = [[
-            package foo_test
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_select = mock.Select:new()
 
-            import "testing"
+      -- GIVEN we've tested a file
+      vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+      please.test()
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Test //foo:foo1_and_foo2_test' }
+      -- WHEN we select the test action
+      mock_select:choose_item 'Test //foo:foo1_and_foo2_test'
+      -- THEN the target is tested again
+      mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test' }
 
-            func TestPasses(t *testing.T) {
-            }
-
-            func TestFails(t *testing.T) {
-                t.Fatal("oh no")
-            }
-          ]],
-        },
-      }
-      local mock_plz_popup = MockPlzPopup:new(root)
-      local mock_select = MockSelect:new()
-
-      -- GIVEN we're editing a test file
-      vim.cmd('edit ' .. root .. '/foo/foo_test.go')
-
-      -- WHEN we call test with list=true
-      please.test { list = true }
-
-      -- THEN we're prompted to pick a test from the test file
-      mock_select:assert_items { 'TestPasses', 'TestFails' }
-      mock_select:assert_prompt 'Select test to run'
-
-      -- WHEN we select one of the tests
-      mock_select:choose_item 'TestFails'
-
-      -- THEN the test is run
-      mock_plz_popup:assert_called_with { 'test', '//foo:test', 'TestFails$' }
-
-      mock_plz_popup:revert()
-      mock_select:revert()
       teardown_tree()
     end)
 
     it('should prompt user to choose which target to test if there is more than one', function()
-      local root, teardown_tree = temptree.create_temp_tree {
-        '.plzconfig',
-        ['foo/'] = {
-          BUILD = strings.dedent [[
-            go_test(
-                name = "test1",
-                srcs = glob(["*_test.go"]),
-                external = True,
-            )
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_select = mock.Select:new()
 
-            go_test(
-                name = "test2",
-                srcs = glob(["*_test.go"]),
-                external = True,
-            )]],
-          ['foo_test.go'] = strings.dedent [[
-            package foo_test
-
-            import "testing"
-
-            func TestPasses(t *testing.T) {
-            }
-
-            func TestFails(t *testing.T) {
-                t.Fatal("oh no")
-            }
-          ]],
-        },
-      }
-      local mock_plz_popup = MockPlzPopup:new(root)
-      local mock_select = MockSelect:new()
-
-      -- GIVEN we're editing a test file referenced by multiple build targets
-      vim.cmd('edit ' .. root .. '/foo/foo_test.go')
-
-      -- WHEN we call test with list=true
-      please.test { list = true }
-
-      -- THEN we're prompted to pick a test from the test file
-      mock_select:assert_items { 'TestPasses', 'TestFails' }
-      mock_select:assert_prompt 'Select test to run'
-
-      -- WHEN we select one of the tests
-      mock_select:choose_item 'TestFails'
-
+      -- GIVEN we're editing a file referenced by multiple build targets
+      vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
+      -- WHEN we call test
+      please.test()
       -- THEN we're prompted to choose which target to test
-      mock_select:assert_items { '//foo:test1', '//foo:test2' }
       mock_select:assert_prompt 'Select target to test'
-
+      mock_select:assert_items { '//foo:foo1_and_foo2_test', '//foo:foo1_test' }
       -- WHEN we select one of the targets
-      mock_select:choose_item '//foo:test2'
-
+      mock_select:choose_item '//foo:foo1_and_foo2_test'
       -- THEN the test is run
-      mock_plz_popup:assert_called_with { 'test', '//foo:test2', 'TestFails$' }
+      mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test' }
 
-      mock_plz_popup:revert()
-      mock_select:revert()
+      teardown_tree()
+    end)
+
+    describe('with under_cursor=true', function()
+      it('should run test under the cursor', function()
+        local root, teardown_tree = create_temp_tree()
+        local mock_plz_popup = mock.PlzPopup:new(root)
+
+        -- GIVEN we're editing a test file and the cursor is inside a test function
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        cursor.set { 9, 5 } -- inside body of TestFails
+        -- WHEN we call test with under_cursor=true
+        please.test { under_cursor = true }
+        -- THEN the test under the cursor is tested
+        mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test', 'TestFails$' }
+
+        teardown_tree()
+      end)
+
+      it('should add entry to action history', function()
+        local root, teardown_tree = create_temp_tree()
+        local mock_plz_popup = mock.PlzPopup:new(root)
+        local mock_select = mock.Select:new()
+
+        -- GIVEN we've tested the function under the cursor
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        cursor.set { 9, 5 } -- inside body of TestFails
+        please.test { under_cursor = true }
+        -- WHEN we call action_history
+        please.action_history()
+        -- THEN we're prompted to pick an action to run again
+        mock_select:assert_prompt 'Pick action to run again'
+        mock_select:assert_items { 'Test //foo:foo1_and_foo2_test (TestFails)' }
+        -- WHEN we select the test action
+        mock_select:choose_item 'Test //foo:foo1_and_foo2_test (TestFails)'
+        -- THEN the test is run again
+        mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test', 'TestFails$' }
+
+        teardown_tree()
+      end)
+
+      it('should prompt user to choose which target to test if there is more than one', function()
+        local root, teardown_tree = create_temp_tree()
+        local mock_plz_popup = mock.PlzPopup:new(root)
+        local mock_select = mock.Select:new()
+
+        -- GIVEN we're editing a test file referenced by multiple build targets and the cursor is inside a test function
+        vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
+        cursor.set { 9, 5 } -- inside body of TestFails
+        -- WHEN we call test with under_cursor=true
+        please.test { under_cursor = true }
+        -- THEN we're prompted to choose which target to test
+        mock_select:assert_prompt 'Select target to test'
+        mock_select:assert_items { '//foo:foo1_and_foo2_test', '//foo:foo1_test' }
+        -- WHEN we select one of the targets
+        mock_select:choose_item '//foo:foo1_and_foo2_test'
+        -- THEN the test is run
+        mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test', 'TestFails$' }
+
+        teardown_tree()
+      end)
+    end)
+
+    describe('with list=true', function()
+      it('should prompt user to choose which test to run', function()
+        local root, teardown_tree = create_temp_tree()
+        local mock_plz_popup = mock.PlzPopup:new(root)
+        local mock_select = mock.Select:new()
+
+        -- GIVEN we're editing a test file
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        -- WHEN we call test with list=true
+        please.test { list = true }
+        -- THEN we're prompted to pick a test from the test file
+        mock_select:assert_prompt 'Select test to run'
+        mock_select:assert_items { 'TestPasses', 'TestFails' }
+        -- WHEN we select one of the tests
+        mock_select:choose_item 'TestFails'
+        -- THEN the test is run
+        mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test', 'TestFails$' }
+
+        teardown_tree()
+      end)
+
+      it('should add entry to action history', function()
+        local root, teardown_tree = create_temp_tree()
+        local mock_plz_popup = mock.PlzPopup:new(root)
+        local mock_select = mock.Select:new()
+
+        -- GIVEN we've chosen a test to run from a list
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        please.test { list = true }
+        mock_select:choose_item 'TestFails'
+        -- WHEN we call action_history
+        please.action_history()
+        -- THEN we're prompted to pick an action to run again
+        mock_select:assert_prompt 'Pick action to run again'
+        mock_select:assert_items { 'Test //foo:foo1_and_foo2_test (TestFails)' }
+        -- WHEN we select the test action
+        mock_select:choose_item 'Test //foo:foo1_and_foo2_test (TestFails)'
+        -- THEN the test is run again
+        mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test', 'TestFails$' }
+
+        teardown_tree()
+      end)
+
+      it('should prompt user to choose which target to test if there is more than one', function()
+        local root, teardown_tree = create_temp_tree()
+        local mock_plz_popup = mock.PlzPopup:new(root)
+        local mock_select = mock.Select:new()
+
+        -- GIVEN we're editing a test file referenced by multiple build targets
+        vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
+        -- WHEN we call test with list=true
+        please.test { list = true }
+        -- THEN we're prompted to pick a test from the test file
+        mock_select:assert_prompt 'Select test to run'
+        mock_select:assert_items { 'TestPasses', 'TestFails' }
+        -- WHEN we select one of the tests
+        mock_select:choose_item 'TestFails'
+        -- THEN we're prompted to choose which target to test
+        mock_select:assert_prompt 'Select target to test'
+        mock_select:assert_items { '//foo:foo1_and_foo2_test', '//foo:foo1_test' }
+        -- WHEN we select one of the targets
+        mock_select:choose_item '//foo:foo1_and_foo2_test'
+        -- THEN the test is run
+        mock_plz_popup:assert_called_with { 'test', '//foo:foo1_and_foo2_test', 'TestFails$' }
+
+        teardown_tree()
+      end)
+    end)
+  end)
+
+  describe('in BUILD file', function()
+    it('should test target under cursor', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+
+      -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+      vim.cmd('edit ' .. root .. '/foo/BUILD')
+      cursor.set { 2, 5 } -- inside definition of :foo1_test
+      -- WHEN we call test
+      please.test()
+      -- THEN the target is tested
+      mock_plz_popup:assert_called_with { 'test', '//foo:foo1_test' }
+
+      teardown_tree()
+    end)
+
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_select = mock.Select:new()
+
+      -- GIVEN we've tested a build target
+      vim.cmd('edit ' .. root .. '/foo/BUILD')
+      cursor.set { 2, 5 } -- inside definition of :foo1_test
+      please.test()
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Test //foo:foo1_test' }
+      -- WHEN we select the test action
+      mock_select:choose_item 'Test //foo:foo1_test'
+      -- THEN the target is tested again
+      mock_plz_popup:assert_called_with { 'test', '//foo:foo1_test' }
+
       teardown_tree()
     end)
   end)
 
   describe('with failed=true', function()
     it('should run test with --failed', function()
-      local root, teardown_tree = temptree.create_temp_tree {
-        '.plzconfig',
-        BUILD = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-        ['foo.txt'] = 'foo content',
-      }
-      local mock_plz_popup = MockPlzPopup:new(root)
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
 
-      -- GIVEN we're editing a file in the repo
-      vim.cmd('edit ' .. root .. '/foo.txt')
-
+      -- GIVEN we're editing a file
+      vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
       -- WHEN we call test with failed=true
       please.test { failed = true }
-
       -- THEN test is run with --failed
       mock_plz_popup:assert_called_with { 'test', '--failed' }
 
-      mock_plz_popup:revert()
+      teardown_tree()
+    end)
+
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_select = mock.Select:new()
+
+      -- GIVEN we've run the failed tests
+      vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
+      please.test { failed = true }
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Run previously failed tests' }
+      -- WHEN we select the test action
+      mock_select:choose_item 'Run previously failed tests'
+      -- THEN test is run with --failed again
+      mock_plz_popup:assert_called_with { 'test', '--failed' }
+
       teardown_tree()
     end)
   end)
 end)
 
 describe('run', function()
-  it('should run target which uses file as input', function()
-    local root, teardown = temptree.create_temp_tree {
+  local create_temp_tree = function()
+    return temptree.create {
       '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
-    }
-    teardowns:add(teardown)
-
-    local mock_plz_popup = MockPlzPopup:new(root)
-    local mock_input = MockInput:new()
-
-    -- GIVEN we're editing a file
-    vim.cmd('edit ' .. root .. '/foo.txt')
-
-    -- WHEN we call run
-    please.run()
-
-    -- THEN we're prompted to enter arguments for the program
-    mock_input:assert_prompt 'Enter program arguments'
-
-    -- WHEN we enter some program arguments
-    mock_input:enter_input '--foo foo --bar bar'
-
-    -- THEN the target is run with those arguments
-    mock_plz_popup:assert_called_with { 'run', '//:foo', '--', '--foo', 'foo', '--bar', 'bar' }
-
-    mock_plz_popup:revert()
-    mock_input:revert()
-  end)
-
-  it('should run target under cursor when in BUILD file', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
-    }
-    teardowns:add(teardown)
-
-    local mock_plz_popup = MockPlzPopup:new(root)
-    local mock_input = MockInput:new()
-
-    -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
-    vim.cmd('edit ' .. root .. '/BUILD')
-    cursor.set { 2, 5 }
-
-    -- WHEN we call run
-    please.run()
-
-    -- THEN we're prompted to enter arguments for the program
-    mock_input:assert_prompt 'Enter program arguments'
-
-    -- WHEN we enter some program arguments
-    mock_input:enter_input '--foo foo --bar bar'
-
-    -- THEN the target is run with those arguments
-    mock_plz_popup:assert_called_with { 'run', '//:foo', '--', '--foo', 'foo', '--bar', 'bar' }
-
-    mock_plz_popup:revert()
-    mock_input:revert()
-  end)
-
-  it('should prompt user to choose which target to run if there is more than one', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
+      BUILD = [[
         export_file(
             name = "foo1",
-            src = "foo.txt",
+            src = "foo1.txt",
         )
 
-        export_file(
-            name = "foo2",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
+        filegroup(
+            name = "foo1_and_foo2",
+            srcs = [
+                "foo1.txt",
+                "foo2.txt",
+            ],
+        )
+      ]],
+      ['foo1.txt'] = 'foo1 content',
+      ['foo2.txt'] = 'foo2 content',
     }
-    teardowns:add(teardown)
+  end
 
-    local mock_plz_popup = MockPlzPopup:new(root)
-    local mock_select = MockSelect:new()
-    local mock_input = MockInput:new()
+  describe('in source file', function()
+    it('should run target which uses file as input', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_input = mock.Input:new()
 
-    -- GIVEN we're editing a file referenced by multiple build targets
-    vim.cmd('edit ' .. root .. '/foo.txt')
+      -- GIVEN we're editing a file
+      vim.cmd('edit ' .. root .. '/foo2.txt')
+      -- WHEN we call run
+      please.run()
+      -- THEN we're prompted to enter arguments for the program
+      mock_input:assert_prompt 'Enter program arguments'
+      -- WHEN we enter some program arguments
+      mock_input:enter_input '--foo foo --bar bar'
+      -- THEN the target which the file is an input for is run with those arguments
+      mock_plz_popup:assert_called_with { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' }
 
-    -- WHEN we call run
-    please.run()
+      teardown_tree()
+    end)
 
-    -- THEN we're prompted to choose which target to run
-    mock_select:assert_items { '//:foo1', '//:foo2' }
-    mock_select:assert_prompt 'Select target to run'
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_input = mock.Input:new()
+      local mock_select = mock.Select:new()
 
-    -- WHEN we select one of the targets
-    mock_select:choose_item '//:foo2'
+      -- GIVEN that we've run a build target
+      vim.cmd('edit ' .. root .. '/foo2.txt')
+      please.run()
+      mock_input:enter_input '--foo foo --bar bar'
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Run //:foo1_and_foo2 (--foo foo --bar bar)' }
+      -- WHEN we select the run action
+      mock_select:choose_item 'Run //:foo1_and_foo2 (--foo foo --bar bar)'
+      -- THEN the target is run again with the same arguments
+      mock_plz_popup:assert_called_with { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' }
 
-    -- THEN we're prompted to enter arguments for the program
-    mock_input:assert_prompt 'Enter program arguments'
+      teardown_tree()
+    end)
 
-    -- WHEN we enter some program arguments
-    mock_input:enter_input '--foo foo --bar bar'
+    it('should prompt user to choose which target to run if there is more than one', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_select = mock.Select:new()
+      local mock_input = mock.Input:new()
 
-    -- THEN the target is run with those arguments
-    mock_plz_popup:assert_called_with { 'run', '//:foo2', '--', '--foo', 'foo', '--bar', 'bar' }
+      -- GIVEN we're editing a file referenced by multiple build targets
+      vim.cmd('edit ' .. root .. '/foo1.txt')
+      -- WHEN we call run
+      please.run()
+      -- THEN we're prompted to choose which target to run
+      mock_select:assert_prompt 'Select target to run'
+      mock_select:assert_items { '//:foo1', '//:foo1_and_foo2' }
+      -- WHEN we select one of the targets
+      mock_select:choose_item '//:foo1_and_foo2'
+      -- THEN we're prompted to enter arguments for the program
+      mock_input:assert_prompt 'Enter program arguments'
+      -- WHEN we enter some program arguments
+      mock_input:enter_input '--foo foo --bar bar'
+      -- THEN the target is run with those arguments
+      mock_plz_popup:assert_called_with { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' }
 
-    mock_plz_popup:revert()
-    mock_select:revert()
-    mock_input:revert()
+      teardown_tree()
+    end)
+  end)
+
+  describe('in BUILD file', function()
+    it('should run target under cursor', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_input = mock.Input:new()
+
+      -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+      vim.cmd('edit ' .. root .. '/BUILD')
+      cursor.set { 2, 5 } -- in definition of :foo1
+      -- WHEN we call run
+      please.run()
+      -- THEN we're prompted to enter arguments for the program
+      mock_input:assert_prompt 'Enter program arguments'
+      -- WHEN we enter some program arguments
+      mock_input:enter_input '--foo foo --bar bar'
+      -- THEN the target is run with those arguments
+      mock_plz_popup:assert_called_with { 'run', '//:foo1', '--', '--foo', 'foo', '--bar', 'bar' }
+
+      teardown_tree()
+    end)
+
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_plz_popup = mock.PlzPopup:new(root)
+      local mock_input = mock.Input:new()
+      local mock_select = mock.Select:new()
+
+      -- GIVEN we've run a build target
+      vim.cmd('edit ' .. root .. '/BUILD')
+      cursor.set { 2, 5 } -- in definition of :foo1
+      please.run()
+      mock_input:enter_input '--foo foo --bar bar'
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Run //:foo1 (--foo foo --bar bar)' }
+      -- WHEN we select the run action
+      mock_select:choose_item 'Run //:foo1 (--foo foo --bar bar)'
+      -- THEN the target is run again with the same arguments
+      mock_plz_popup:assert_called_with { 'run', '//:foo1', '--', '--foo', 'foo', '--bar', 'bar' }
+
+      teardown_tree()
+    end)
   end)
 end)
 
 describe('yank', function()
-  it('should yank label of target which uses file as input', function()
-    local root, teardown = temptree.create_temp_tree {
+  local create_temp_tree = function()
+    return temptree.create {
       '.plzconfig',
-      BUILD = strings.dedent [[
+      BUILD = [[
         export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
+            name = "foo1",
+            src = "foo1.txt",
+        )
+
+        filegroup(
+            name = "foo1_and_foo2",
+            srcs = [
+                "foo1.txt",
+                "foo2.txt",
+            ],
+        )
+      ]],
+      ['foo1.txt'] = 'foo1 content',
+      ['foo2.txt'] = 'foo2 content',
     }
-    teardowns:add(teardown)
+  end
 
-    -- GIVEN we're editing a file
-    vim.cmd('edit ' .. root .. '/foo.txt')
+  describe('in source file', function()
+    it('should yank label of target which uses file as input', function()
+      local root, teardown_tree = create_temp_tree()
 
-    -- WHEN we call yank
-    please.yank()
+      -- GIVEN we're editing a file
+      vim.cmd('edit ' .. root .. '/foo2.txt')
+      -- WHEN we call yank
+      please.yank()
+      -- THEN the label of the target which the file is an input for is yanked into the " and * registers
+      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg '"', 'incorrect value in " register')
+      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg '*', 'incorrect value in * register')
 
-    -- THEN the target's label is yanked into the " and * register
-    local unnamed = vim.fn.getreg '"'
-    local star = vim.fn.getreg '*'
-    assert.are.equal('//:foo', unnamed, 'incorrect value in " register')
-    assert.are.equal('//:foo', star, 'incorrect value in * register')
+      teardown_tree()
+    end)
+
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_select = mock.Select:new()
+
+      -- GIVEN we've yanked a build target's label
+      vim.cmd('edit ' .. root .. '/foo2.txt')
+      please.yank()
+      -- fill the yank registers to make sure that we actually yank again below
+      vim.fn.setreg('"', 'foo')
+      vim.fn.setreg('*', 'foo')
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Yank //:foo1_and_foo2' }
+      -- WHEN we select the yank action
+      mock_select:choose_item 'Yank //:foo1_and_foo2'
+      -- THEN the label is yanked again
+      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg '"', 'incorrect value in " register')
+      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg '*', 'incorrect value in * register')
+
+      teardown_tree()
+    end)
+
+    it("should prompt user to choose which target's label to yank if there is more than one", function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_select = mock.Select:new()
+
+      -- GIVEN we're editing a file referenced by multiple build targets
+      vim.cmd('edit ' .. root .. '/foo1.txt')
+      -- WHEN we call yank
+      please.yank()
+      -- THEN we're prompted to choose which label to yank
+      mock_select:assert_prompt 'Select label to yank'
+      mock_select:assert_items { '//:foo1', '//:foo1_and_foo2' }
+      -- WHEN we select one of the labels
+      mock_select:choose_item '//:foo1_and_foo2'
+      -- THEN the label is yanked into the " and * registers
+      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg '"', 'incorrect value in " register')
+      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg '*', 'incorrect value in * register')
+
+      teardown_tree()
+    end)
   end)
 
-  it('should run target under cursor when in BUILD file', function()
-    local root, teardown = temptree.create_temp_tree {
-      '.plzconfig',
-      BUILD = strings.dedent [[
-        export_file(
-            name = "foo",
-            src = "foo.txt",
-        )]],
-      ['foo.txt'] = 'foo content',
-    }
-    teardowns:add(teardown)
+  describe('in BUILD file', function()
+    it('should yank target under cursor', function()
+      local root, teardown_tree = create_temp_tree()
 
-    -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
-    vim.cmd('edit ' .. root .. '/BUILD')
-    cursor.set { 2, 5 }
+      -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+      vim.cmd('edit ' .. root .. '/BUILD')
+      cursor.set { 2, 5 } -- inside definition of :foo1
+      -- WHEN we call yank
+      please.yank()
+      -- THEN the target's label is yanked into the " and * register
+      local unnamed = vim.fn.getreg '"'
+      local star = vim.fn.getreg '*'
+      assert.are.equal('//:foo1', unnamed, 'incorrect value in " register')
+      assert.are.equal('//:foo1', star, 'incorrect value in * register')
 
-    -- WHEN we call yank
-    please.yank()
+      teardown_tree()
+    end)
 
-    -- THEN the target's label is yanked into the " and * register
-    local unnamed = vim.fn.getreg '"'
-    local star = vim.fn.getreg '*'
-    assert.are.equal('//:foo', unnamed, 'incorrect value in " register')
-    assert.are.equal('//:foo', star, 'incorrect value in * register')
+    it('should add entry to action history', function()
+      local root, teardown_tree = create_temp_tree()
+      local mock_select = mock.Select:new()
+
+      -- GIVEN we've yanked a build target's label
+      vim.cmd('edit ' .. root .. '/BUILD')
+      cursor.set { 2, 5 } -- inside definition of :foo1
+      please.yank()
+      -- fill the yank registers to make sure that we actually yank again below
+      vim.fn.setreg('"', 'foo')
+      vim.fn.setreg('*', 'foo')
+      -- WHEN we call action_history
+      please.action_history()
+      -- THEN we're prompted to pick an action to run again
+      mock_select:assert_prompt 'Pick action to run again'
+      mock_select:assert_items { 'Yank //:foo1' }
+      -- WHEN we select the yank action
+      mock_select:choose_item 'Yank //:foo1'
+      -- THEN the label is yanked again
+      assert.are.equal('//:foo1', vim.fn.getreg '"', 'incorrect value in " register')
+      assert.are.equal('//:foo1', vim.fn.getreg '*', 'incorrect value in * register')
+
+      teardown_tree()
+    end)
   end)
 end)
 
-teardowns:teardown()
+describe('action_history', function()
+  local create_temp_tree = function()
+    return temptree.create {
+      '.plzconfig',
+      BUILD = [[
+        export_file(
+            name = "foo1",
+            src = "foo1.txt",
+        )
+
+        export_file(
+            name = "foo2",
+            src = "foo2.txt",
+        )
+
+        export_file(
+            name = "foo3",
+            src = "foo3.txt",
+        )
+      ]],
+      ['foo1.txt'] = 'foo1 content',
+      ['foo2.txt'] = 'foo2 content',
+      ['foo3.txt'] = 'foo3 content',
+    }
+  end
+
+  it('should order history items from most to least recent', function()
+    local root, teardown_tree = create_temp_tree()
+    local mock_select = mock.Select:new()
+
+    -- GIVEN we've yanked the label of three targets, one after the other
+    for _, filename in ipairs { 'foo1.txt', 'foo2.txt', 'foo3.txt' } do
+      vim.cmd('edit ' .. root .. '/' .. filename)
+      please.yank()
+    end
+    -- WHEN we call action_history
+    please.action_history()
+    -- THEN the actions to yank each label are ordered from most to least recent
+    mock_select:assert_items { 'Yank //:foo3', 'Yank //:foo2', 'Yank //:foo1' }
+
+    teardown_tree()
+  end)
+
+  it('should move rerun action to the top of history', function()
+    local root, teardown_tree = create_temp_tree()
+    local mock_select = mock.Select:new()
+
+    -- GIVEN we've yanked the label of three targets, one after the other
+    for _, filename in ipairs { 'foo1.txt', 'foo2.txt', 'foo3.txt' } do
+      vim.cmd('edit ' .. root .. '/' .. filename)
+      please.yank()
+    end
+    -- WHEN we call action_history
+    please.action_history()
+    -- AND rerun the second action
+    mock_select:assert_items { 'Yank //:foo3', 'Yank //:foo2', 'Yank //:foo1' }
+    mock_select:choose_item 'Yank //:foo2'
+    -- THEN it has been moved to the top of the history
+    please.action_history()
+    mock_select:assert_items { 'Yank //:foo2', 'Yank //:foo3', 'Yank //:foo1' }
+
+    teardown_tree()
+  end)
+end)

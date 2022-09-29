@@ -148,7 +148,7 @@ describe('locate_build_target', function()
 
   for _, case in ipairs(test_cases) do
     it(case.name, function()
-      local root, teardown = temptree.create_temp_tree(case.tree)
+      local root, teardown = temptree.create(case.tree)
       teardowns:add(teardown)
 
       local filepath, position, err = parsing.locate_build_target(root, case.label)
@@ -172,22 +172,22 @@ describe('locate_build_target', function()
   end
 end)
 
-describe('get_test_selector_at_cursor', function()
+describe('get_test_at_cursor', function()
   local run_test = function(case)
-    local root, teardown = temptree.create_temp_tree(case.tree)
+    local root, teardown = temptree.create(case.tree)
     teardowns:add(teardown)
 
     vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
     cursor.set(case.cursor)
 
-    local selector, err = parsing.get_test_selector_at_cursor()
+    local test, err = parsing.get_test_at_cursor()
 
-    if case.expected_selector then
-      assert.are.equal(case.expected_selector, selector, 'incorrect selector')
+    if case.expected_test then
+      assert.are.same(case.expected_test, test, 'incorrect test')
     end
 
     if case.expected_err then
-      assert.is_nil(selector, 'expected no name')
+      assert.is_nil(test, 'expected no name')
       assert.are.equal(case.expected_err, err, 'incorrect err')
     else
       assert.is_nil(err, 'expected no err')
@@ -205,7 +205,7 @@ describe('get_test_selector_at_cursor', function()
   describe('for go', function()
     run_tests {
       {
-        name = 'should return selector for func if cursor is inside test func definition',
+        name = 'should return test for func if cursor is inside test func definition',
         tree = {
           ['foo_test.go'] = strings.dedent [[
             func TestFunc(t *testing.T) {
@@ -213,7 +213,7 @@ describe('get_test_selector_at_cursor', function()
             }]],
         },
         cursor = { 2, 4 },
-        expected_selector = 'TestFunc$',
+        expected_test = { name = 'TestFunc', selector = 'TestFunc$' },
       },
       {
         name = 'should return error if func name does not start with Test',
@@ -238,7 +238,7 @@ describe('get_test_selector_at_cursor', function()
         expected_err = 'cursor is not in a test function',
       },
       {
-        name = 'should return selector for method if cursor is inside testify suite test method definition',
+        name = 'should return test for method if cursor is inside testify suite test method definition',
         tree = {
           ['foo_test.go'] = strings.dedent [[
             func (s *fooSuite) TestMethod() {
@@ -246,7 +246,7 @@ describe('get_test_selector_at_cursor', function()
             }]],
         },
         cursor = { 2, 4 },
-        expected_selector = '/TestMethod$',
+        expected_test = { name = 'TestMethod', selector = '/TestMethod$' },
       },
       {
         name = 'should return error if testify suite method name does not start with Test',
@@ -265,7 +265,7 @@ describe('get_test_selector_at_cursor', function()
   describe('for python', function()
     run_tests {
       {
-        name = 'should return selector for method if cursor is inside unittest test method definition',
+        name = 'should return test for method if cursor is inside unittest test method definition',
         tree = {
           ['foo_test.py'] = strings.dedent [[
             class TestFoo(unittest.TestCase):
@@ -274,7 +274,7 @@ describe('get_test_selector_at_cursor', function()
                 ]],
         },
         cursor = { 3, 5 },
-        expected_selector = 'TestFoo.test_method',
+        expected_test = { name = 'TestFoo.test_method', selector = 'TestFoo.test_method' },
       },
       {
         name = 'should return error if unittest method name does not start with test_',
@@ -303,7 +303,7 @@ describe('get_test_selector_at_cursor', function()
     }
   end)
 
-  describe('should return selector for func if cursor is inside test func definition', function()
+  describe('should return test for func if cursor is inside test func definition', function()
     local tree = {
       ['foo_test.go'] = strings.dedent [[
         func TestFunc(t *testing.T) {
@@ -331,7 +331,7 @@ describe('get_test_selector_at_cursor', function()
         run_test {
           tree = tree,
           cursor = case.cursor,
-          expected_selector = 'TestFunc$',
+          expected_test = { name = 'TestFunc', selector = 'TestFunc$' },
         }
       end)
     end
@@ -380,7 +380,7 @@ describe('get_test_selector_at_cursor', function()
 
   run_tests {
     {
-      name = 'should return name of func if there are multiple test funcs in the file',
+      name = 'should return test if there are multiple test funcs in the file',
       tree = {
         ['foo_test.go'] = strings.dedent [[
             func TestFuncOne(t *testing.T) {
@@ -392,7 +392,7 @@ describe('get_test_selector_at_cursor', function()
             }]],
       },
       cursor = { 6, 4 },
-      expected_selector = 'TestFuncTwo$',
+      expected_test = { name = 'TestFuncTwo', selector = 'TestFuncTwo$' },
     },
     {
       name = 'should return error if language of file is not supported',
@@ -468,7 +468,7 @@ describe('list_tests_in_file', function()
 
   for _, tc in ipairs(test_cases) do
     it(tc.name, function()
-      local root, teardown = temptree.create_temp_tree(tc.tree)
+      local root, teardown = temptree.create(tc.tree)
       teardowns:add(teardown)
 
       vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(tc.tree)[1])
@@ -492,7 +492,7 @@ end)
 
 describe('get_target_at_cursor', function()
   local run_test = function(case)
-    local root, teardown = temptree.create_temp_tree(case.tree)
+    local root, teardown = temptree.create(case.tree)
     teardowns:add(teardown)
 
     vim.cmd('edit ' .. root .. '/' .. case.file)

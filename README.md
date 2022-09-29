@@ -13,6 +13,7 @@ Currently implemented features of `please.nvim` are:
 - running (`Please run`)
 - yanking build labels (`Please yank`)
 - debugging using [nvim-dap](https://github.com/mfussenegger/nvim-dap) (`Please debug`)
+- a history of Please actions with the ability to rerun them (`Please action_history`)
 - `please` filetype configured for the following files:
     - `BUILD`
     - `*.plz`
@@ -113,6 +114,7 @@ end, { silent = true })
 vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
 vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
 vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
+vim.keymap.set('n', '<leader>pa', require("please").action_history, { silent = true })
 ```
 
 VimL:
@@ -126,4 +128,5 @@ nnoremap <leader>pft silent <cmd>Please test failed<cr>
 nnoremap <leader>pr silent <cmd>Please run<cr>
 nnoremap <leader>py silent <cmd>Please yank<cr>
 nnoremap <leader>pd silent <cmd>Please debug<cr>
+nnoremap <leader>pa silent <cmd>Please action_hitory<cr>
 ```

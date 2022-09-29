@@ -34,6 +34,7 @@ local create_user_command = function()
     run = please.run,
     debug = please.debug,
     yank = please.yank,
+    action_history = please.action_history,
     restore_popup = popup.restore,
     reload = M.reload,
     toggle_debug_logs = logging.toggle_debug,

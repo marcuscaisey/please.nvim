@@ -1,3 +1,4 @@
+local strings = require 'plenary.strings'
 local Path = require 'plenary.path'
 
 local M = {}
@@ -15,7 +16,12 @@ local function create_file_tree(root, tree, contents)
       local file_path = Path:new(root, path_tail)
       file_path:touch()
       if contents then
-        file_path:write(contents, 'w')
+        -- remove trailing empty lines
+        -- this needs to be done before dedenting otherwise the blank line will count as leading whitespace
+        contents = contents:match '^(.+\n?)%s*$'
+        -- remove common leading whitespace
+        contents = strings.dedent(contents)
+        file_path:write(strings.dedent(contents), 'w')
       end
     end
     return
@@ -46,7 +52,7 @@ end
 
 ---Creates a file tree in a temporary directory. The tree should be provided as a table in the following format:
 ---@param tree table: the file tree to create provided in the following format:
----create_temp_file_tree {
+---create {
 ---  'empty_file',
 ---  ['file'] = 'contents',
 ---  'empty_dir/',
@@ -60,9 +66,10 @@ end
 ---not
 ---- key value pairs where again the key is a string representing a file or directory to be created and the value is
 ---either the contents to write to the file or the file tree to create in the directory
+---File contents are written with common leading whitespace and blank final lines removed.
 ---@return string: the root of the temporary file tree
 ---@return function: a function which tears down the file tree when called
-M.create_temp_tree = function(tree)
+M.create = function(tree)
   local temp_dir = get_temp_dir()
   create_file_tree(temp_dir, tree)
   local teardown_func = function()

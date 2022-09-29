@@ -1,27 +1,31 @@
 local M = {}
 
-local enabled = false
+local debug_enabled = false
 
 M.toggle_debug = function()
-  if enabled then
+  if debug_enabled then
     M.info 'debug logs disabled'
-    enabled = false
+    debug_enabled = false
   else
     M.info 'debug logs enabled'
-    enabled = true
+    debug_enabled = true
   end
 end
 
 local log = function(msg, level, ...)
   local formatted_msg = string.format(msg, ...)
   formatted_msg = string.format('[please.nvim]: %s', formatted_msg)
-  vim.schedule(function()
+  if vim.in_fast_event() then
+    vim.schedule(function()
+      vim.notify(formatted_msg, level)
+    end)
+  else
     vim.notify(formatted_msg, level)
-  end)
+  end
 end
 
 M.debug = function(msg, ...)
-  if enabled then
+  if debug_enabled then
     log(msg, vim.log.levels.DEBUG, ...)
   end
 end
@@ -74,7 +78,7 @@ end
 M.log_errors = function(f)
   local ok, err = pcall(f)
   if not ok then
-    if enabled then
+    if debug_enabled then
       M.error(err)
       return
     end

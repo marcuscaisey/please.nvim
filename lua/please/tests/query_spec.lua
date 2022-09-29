@@ -7,7 +7,7 @@ local teardowns = TeardownFuncs:new()
 
 describe('reporoot', function()
   it('should return root when path is a directory inside a plz repo', function()
-    local temp_root, teardown = temptree.create_temp_tree {
+    local temp_root, teardown = temptree.create {
       '.plzconfig',
       'foo/',
     }
@@ -21,7 +21,7 @@ describe('reporoot', function()
   end)
 
   it('should return root when path is a file inside a plz repo', function()
-    local temp_root, teardown = temptree.create_temp_tree {
+    local temp_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         'foo.go',
@@ -37,7 +37,7 @@ describe('reporoot', function()
   end)
 
   it('should return error when path is outside of a plz repo', function()
-    local temp_root, teardown = temptree.create_temp_tree {
+    local temp_root, teardown = temptree.create {
       ['repo/'] = {
         '.plzconfig',
       },
@@ -58,7 +58,7 @@ describe('whatinputs', function()
   end)
 
   it('should return target when filepath is relative', function()
-    local repo_root, teardown = temptree.create_temp_tree {
+    local repo_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         BUILD = strings.dedent [[
@@ -79,7 +79,7 @@ describe('whatinputs', function()
   end)
 
   it('should return target when filepath is absolute', function()
-    local repo_root, teardown = temptree.create_temp_tree {
+    local repo_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         BUILD = strings.dedent [[
@@ -100,7 +100,7 @@ describe('whatinputs', function()
   end)
 
   it('should return the labels of multiple targets if they exist', function()
-    local repo_root, teardown = temptree.create_temp_tree {
+    local repo_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         BUILD = strings.dedent [[
@@ -125,7 +125,7 @@ describe('whatinputs', function()
   end)
 
   it('should return error if no targets exist for a file which is not in a package', function()
-    local repo_root, teardown = temptree.create_temp_tree {
+    local repo_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         'not_used.txt',
@@ -147,7 +147,7 @@ describe('whatinputs', function()
   end)
 
   it('should return error if no targets exist for a file which is in a package', function()
-    local repo_root, teardown = temptree.create_temp_tree {
+    local repo_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
         'BUILD',
@@ -222,7 +222,7 @@ describe('is_target_sandboxed', function()
           tree['.plzconfig'] = nil
         end
 
-        local root = temptree.create_temp_tree(tree)
+        local root = temptree.create(tree)
 
         local actual, err = query.is_target_sandboxed(root, '//:rule')
 

@@ -61,6 +61,7 @@
 ---   vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
 ---   vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
 ---   vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
+---   vim.keymap.set('n', '<leader>pa', require("please").action_history, { silent = true })
 --- </code>
 ---
 --- VimL:
@@ -74,6 +75,7 @@
 ---   nnoremap <leader>pr silent <cmd>Please run<cr>
 ---   nnoremap <leader>py silent <cmd>Please yank<cr>
 ---   nnoremap <leader>pd silent <cmd>Please debug<cr>
+---   nnoremap <leader>pa silent <cmd>Please action_history<cr>
 --- </code>
 ---
 --- <pre>
