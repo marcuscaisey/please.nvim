@@ -12,7 +12,7 @@ describe('locate_build_target', function()
       name = 'should return location of a BUILD file in the root of the repo',
       tree = {
         '.plzconfig',
-        BUILD = strings.dedent [[
+        BUILD = [[
         export_file(
             name = "foo",
             src = "foo.txt",
@@ -27,7 +27,7 @@ describe('locate_build_target', function()
       tree = {
         '.plzconfig',
         ['foo/'] = {
-          BUILD = strings.dedent [[
+          BUILD = [[
           export_file(
               name = "foo",
               src = "foo.txt",
@@ -42,7 +42,7 @@ describe('locate_build_target', function()
       name = 'should return location of a BUILD.plz file',
       tree = {
         '.plzconfig',
-        ['BUILD.plz'] = strings.dedent [[
+        ['BUILD.plz'] = [[
           export_file(
               name = "foo",
               src = "foo.txt",
@@ -57,7 +57,7 @@ describe('locate_build_target', function()
       tree = {
         '.plzconfig',
         'BUILD/',
-        ['BUILD.plz'] = strings.dedent [[
+        ['BUILD.plz'] = [[
           export_file(
               name = "foo",
               src = "foo.txt",
@@ -86,7 +86,7 @@ describe('locate_build_target', function()
       name = 'should return position for target at the start of a BUILD file',
       tree = {
         '.plzconfig',
-        BUILD = strings.dedent [[
+        BUILD = [[
           export_file(
               name = "foo",
               src = "foo.txt",
@@ -100,7 +100,7 @@ describe('locate_build_target', function()
       name = 'should return position for target in the middle of a BUILD file',
       tree = {
         '.plzconfig',
-        BUILD = strings.dedent [[
+        BUILD = [[
           export_file(
               name = "foo1",
               src = "foo1.txt",
@@ -120,7 +120,7 @@ describe('locate_build_target', function()
       name = 'should return position for target which is indented',
       tree = {
         '.plzconfig',
-        BUILD = strings.dedent [[
+        BUILD = [[
             export_file(
               name = "foo",
               src = "foo.txt",
@@ -134,7 +134,7 @@ describe('locate_build_target', function()
       name = 'should return first line and column if target cannot be found in BUILD file',
       tree = {
         '.plzconfig',
-        BUILD = strings.dedent [[
+        BUILD = [[
           export_file(
               name = "not_foo",
               src = "foo.txt",
@@ -207,7 +207,7 @@ describe('get_test_at_cursor', function()
       {
         name = 'should return test for func if cursor is inside test func definition',
         tree = {
-          ['foo_test.go'] = strings.dedent [[
+          ['foo_test.go'] = [[
             func TestFunc(t *testing.T) {
                 t.Fatal("oh no")
             }]],
@@ -218,7 +218,7 @@ describe('get_test_at_cursor', function()
       {
         name = 'should return error if func name does not start with Test',
         tree = {
-          ['foo_test.go'] = strings.dedent [[
+          ['foo_test.go'] = [[
             func Func(t *testing.T) {
                 t.Fatal("oh no")
             }]],
@@ -229,7 +229,7 @@ describe('get_test_at_cursor', function()
       {
         name = 'should return error if func does not have a single *testing.T param',
         tree = {
-          ['foo_test.go'] = strings.dedent [[
+          ['foo_test.go'] = [[
             func TestFunc() {
                 fmt.Println("oh no")
             }]],
@@ -240,7 +240,7 @@ describe('get_test_at_cursor', function()
       {
         name = 'should return test for method if cursor is inside testify suite test method definition',
         tree = {
-          ['foo_test.go'] = strings.dedent [[
+          ['foo_test.go'] = [[
             func (s *fooSuite) TestMethod() {
                 s.Fail("oh no")
             }]],
@@ -251,7 +251,7 @@ describe('get_test_at_cursor', function()
       {
         name = 'should return error if testify suite method name does not start with Test',
         tree = {
-          ['foo_test.go'] = strings.dedent [[
+          ['foo_test.go'] = [[
             func (s *fooSuite) Method() {
                 s.Fail("oh no")
             }]],
@@ -267,7 +267,7 @@ describe('get_test_at_cursor', function()
       {
         name = 'should return test for method if cursor is inside unittest test method definition',
         tree = {
-          ['foo_test.py'] = strings.dedent [[
+          ['foo_test.py'] = [[
             class TestFoo(unittest.TestCase):
                 def test_method(self):
                     self.assertEqual(1, 2)
@@ -279,7 +279,7 @@ describe('get_test_at_cursor', function()
       {
         name = 'should return error if unittest method name does not start with test_',
         tree = {
-          ['foo_test.py'] = strings.dedent [[
+          ['foo_test.py'] = [[
             class TestFoo(unittest.TestCase):
                 def method(self):
                     self.assertEqual(1, 2)
@@ -291,7 +291,7 @@ describe('get_test_at_cursor', function()
       {
         name = 'should return error if class name does not start with Test',
         tree = {
-          ['foo_test.py'] = strings.dedent [[
+          ['foo_test.py'] = [[
             class Foo:
                 def test_method(self):
                     self.assertEqual(1, 2)
@@ -305,7 +305,7 @@ describe('get_test_at_cursor', function()
 
   describe('should return test for func if cursor is inside test func definition', function()
     local tree = {
-      ['foo_test.go'] = strings.dedent [[
+      ['foo_test.go'] = [[
         func TestFunc(t *testing.T) {
             t.Fatal("oh no")
         }]],
@@ -339,7 +339,7 @@ describe('get_test_at_cursor', function()
 
   describe('should return error if cursor is outside test func definition', function()
     local tree = {
-      ['foo_test.go'] = strings.dedent [[
+      ['foo_test.go'] = [[
 
          func TestFunc(t *testing.T) {
             t.Fatal("oh no")
@@ -382,7 +382,7 @@ describe('get_test_at_cursor', function()
     {
       name = 'should return test if there are multiple test funcs in the file',
       tree = {
-        ['foo_test.go'] = strings.dedent [[
+        ['foo_test.go'] = [[
             func TestFuncOne(t *testing.T) {
                 t.Fatal("oh no")
             }
@@ -519,7 +519,7 @@ describe('get_target_at_cursor', function()
 
   describe('should return label and rule of target when cursor is inside build target definition', function()
     local tree = {
-      BUILD = strings.dedent [[
+      BUILD = [[
         export_file(
             name = "foo",
             src = "foo.txt",
@@ -557,7 +557,7 @@ describe('get_target_at_cursor', function()
   it('should return label of target in BUILD file in child dir of root', function()
     local tree = {
       ['pkg/'] = {
-        BUILD = strings.dedent [[
+        BUILD = [[
           export_file(
               name = "foo",
               src = "foo.txt",
@@ -576,7 +576,7 @@ describe('get_target_at_cursor', function()
   it('should return label and rule when there are multiple build targets in the BUILD file', function()
     run_test {
       tree = {
-        BUILD = strings.dedent [[
+        BUILD = [[
           filegroup(
               name = "foo1",
               srcs = ["foo1.txt"],
@@ -596,7 +596,7 @@ describe('get_target_at_cursor', function()
 
   describe('should return error when cursor is outside build target definition', function()
     local tree = {
-      BUILD = strings.dedent [[
+      BUILD = [[
 
          export_file(
             name = "foo",
@@ -639,7 +639,7 @@ describe('get_target_at_cursor', function()
   it('should return label when rule uses single quotes', function()
     run_test {
       tree = {
-        BUILD = strings.dedent [[
+        BUILD = [[
           export_file(
               name = 'foo',
               # src = 'foo2.txt',

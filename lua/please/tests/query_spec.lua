@@ -61,7 +61,7 @@ describe('whatinputs', function()
     local repo_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
-        BUILD = strings.dedent [[
+        BUILD = [[
           export_file(
               name = "foo",
               src = "foo.txt",
@@ -82,7 +82,7 @@ describe('whatinputs', function()
     local repo_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
-        BUILD = strings.dedent [[
+        BUILD = [[
           export_file(
               name = "foo",
               src = "foo.txt",
@@ -103,7 +103,7 @@ describe('whatinputs', function()
     local repo_root, teardown = temptree.create {
       '.plzconfig',
       ['foo/'] = {
-        BUILD = strings.dedent [[
+        BUILD = [[
           export_file(
               name = "foo1",
               src = "foo.txt",
