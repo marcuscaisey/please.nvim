@@ -128,9 +128,7 @@ local select = function(items, opts, on_choice)
     if not item then
       return
     end
-    logging.log_errors(function()
-      on_choice(item)
-    end)
+    logging.log_errors(on_choice)(item)
   end)
 end
 
@@ -139,9 +137,7 @@ local select_if_many = function(items, opts, on_choice)
   if #items > 1 then
     select(items, opts, on_choice)
   else
-    logging.log_errors(function()
-      on_choice(items[1])
-    end)
+    logging.log_errors(on_choice)(items[1])
   end
 end
 
@@ -173,51 +169,47 @@ end
 ---
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
 ---targets except for those with names which are generated when the BUILD file is executed.
-please.jump_to_target = function()
+please.jump_to_target = logging.log_errors(function()
   logging.debug 'please.jump_to_target called'
 
-  logging.log_errors(function()
-    local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
-    local labels = assert(query.whatinputs(root, filepath))
-    select_if_many(labels, { prompt = 'Select target to jump to' }, function(label)
-      local target_filepath, position = assert(parsing.locate_build_target(root, label))
-      logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
-      run_and_save_action(root, {
-        name = 'jump_to_target',
-        args = { target_filepath, position },
-        description = 'Jump to ' .. label,
-      })
-    end)
+  local filepath = assert(get_filepath())
+  local root = assert(query.reporoot(filepath))
+  local labels = assert(query.whatinputs(root, filepath))
+  select_if_many(labels, { prompt = 'Select target to jump to' }, function(label)
+    local target_filepath, position = assert(parsing.locate_build_target(root, label))
+    logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
+    run_and_save_action(root, {
+      name = 'jump_to_target',
+      args = { target_filepath, position },
+      description = 'Jump to ' .. label,
+    })
   end)
-end
+end, 'Failed to jump to target')
 
 ---If the current file is a BUILD file, builds the target which is under the cursor. Otherwise, builds the target which
 ---takes the current file as an input.
-please.build = function()
+please.build = logging.log_errors(function()
   logging.debug 'please.build called'
 
-  logging.log_errors(function()
-    local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+  local filepath = assert(get_filepath())
+  local root = assert(query.reporoot(filepath))
 
-    local labels
-    if vim.bo.filetype == 'please' then
-      local label = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
-    else
-      labels = assert(query.whatinputs(root, filepath))
-    end
+  local labels
+  if vim.bo.filetype == 'please' then
+    local label = assert(parsing.get_target_at_cursor(root))
+    labels = { label }
+  else
+    labels = assert(query.whatinputs(root, filepath))
+  end
 
-    select_if_many(labels, { prompt = 'Select target to build' }, function(label)
-      run_and_save_action(root, {
-        name = 'build',
-        args = { root, label },
-        description = 'Build ' .. label,
-      })
-    end)
+  select_if_many(labels, { prompt = 'Select target to build' }, function(label)
+    run_and_save_action(root, {
+      name = 'build',
+      args = { root, label },
+      description = 'Build ' .. label,
+    })
   end)
-end
+end, 'Failed to build')
 
 ---If the current file is a BUILD file, test the target which is under the cursor. Otherwise, test the target which
 ---takes the current file as an input.
@@ -234,72 +226,43 @@ end
 ---@field under_cursor boolean: run the test under the cursor
 ---@field list boolean: select which test to run
 ---@field failed boolean: run just the test cases which failed from the immediately previous run
-please.test = function(opts)
+please.test = logging.log_errors(function(opts)
   logging.debug('please.test called with opts=%s', vim.inspect(opts))
 
   opts = opts or {}
 
-  logging.log_errors(function()
-    assert(validate_opts(opts, { 'under_cursor', 'list', 'failed' }))
+  assert(validate_opts(opts, { 'under_cursor', 'list', 'failed' }))
 
-    local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+  local filepath = assert(get_filepath())
+  local root = assert(query.reporoot(filepath))
 
-    if opts.under_cursor or opts.list then
-      local tests
-      if opts.under_cursor then
-        tests = { assert(parsing.get_test_at_cursor()) }
-      elseif opts.list then
-        tests = assert(parsing.list_tests_in_file())
-      end
-      local get_test_name = function(test)
-        return test.name
-      end
-      local labels = assert(query.whatinputs(root, filepath))
-      select_if_many(tests, { prompt = 'Select test to run', format_item = get_test_name }, function(test)
-        select_if_many(labels, { prompt = 'Select target to test' }, function(label)
-          run_and_save_action(root, {
-            name = 'test_selector',
-            args = { root, label, test.selector },
-            description = string.format('Test %s (%s)', label, test.name),
-          })
-        end)
-      end)
-    elseif opts.failed then
-      run_and_save_action(root, {
-        name = 'test_failed',
-        args = { root },
-        description = 'Run previously failed tests',
-      })
-    else
-      local labels
-      if vim.bo.filetype == 'please' then
-        local label = assert(parsing.get_target_at_cursor(root))
-        labels = { label }
-      else
-        labels = assert(query.whatinputs(root, filepath))
-      end
+  if opts.under_cursor or opts.list then
+    local tests
+    if opts.under_cursor then
+      tests = { assert(parsing.get_test_at_cursor()) }
+    elseif opts.list then
+      tests = assert(parsing.list_tests_in_file())
+    end
+    local get_test_name = function(test)
+      return test.name
+    end
+    local labels = assert(query.whatinputs(root, filepath))
+    select_if_many(tests, { prompt = 'Select test to run', format_item = get_test_name }, function(test)
       select_if_many(labels, { prompt = 'Select target to test' }, function(label)
         run_and_save_action(root, {
-          name = 'test',
-          args = { root, label },
-          description = 'Test ' .. label,
+          name = 'test_selector',
+          args = { root, label, test.selector },
+          description = string.format('Test %s (%s)', label, test.name),
         })
       end)
-    end
-  end)
-end
-
----If the current file is a BUILD file, run the target which is under the cursor. Otherwise, run the target which
----takes the current file as an input. Program arguments can be entered via a |vim.ui.input()| prompt which allows you
----to customise the appearance to your taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
-please.run = function()
-  logging.debug 'please.run called'
-
-  logging.log_errors(function()
-    local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
-
+    end)
+  elseif opts.failed then
+    run_and_save_action(root, {
+      name = 'test_failed',
+      args = { root },
+      description = 'Run previously failed tests',
+    })
+  else
     local labels
     if vim.bo.filetype == 'please' then
       local label = assert(parsing.get_target_at_cursor(root))
@@ -307,49 +270,72 @@ please.run = function()
     else
       labels = assert(query.whatinputs(root, filepath))
     end
-
-    select_if_many(labels, { prompt = 'Select target to run' }, function(label)
-      vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
-        local args = {}
-        if input then
-          args = vim.split(input, ' ')
-        end
-        run_and_save_action(root, {
-          name = 'run',
-          args = { root, label, args },
-          description = string.format('Run %s (%s)', label, table.concat(args, ' ')),
-        })
-      end)
-    end)
-  end)
-end
-
----If the current file is a BUILD file, yank the label of the target which is under the cursor. Otherwise, yank the
----label of the target which takes the current file as an input.
-please.yank = function()
-  logging.debug 'please.yank called'
-
-  logging.log_errors(function()
-    local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
-
-    local labels = {}
-    if vim.bo.filetype == 'please' then
-      local label = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
-    else
-      labels = assert(query.whatinputs(root, filepath))
-    end
-
-    select_if_many(labels, { prompt = 'Select label to yank' }, function(label)
+    select_if_many(labels, { prompt = 'Select target to test' }, function(label)
       run_and_save_action(root, {
-        name = 'yank',
-        args = { label },
-        description = 'Yank ' .. label,
+        name = 'test',
+        args = { root, label },
+        description = 'Test ' .. label,
+      })
+    end)
+  end
+end, 'Failed to test')
+
+---If the current file is a BUILD file, run the target which is under the cursor. Otherwise, run the target which
+---takes the current file as an input. Program arguments can be entered via a |vim.ui.input()| prompt which allows you
+---to customise the appearance to your taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
+please.run = logging.log_errors(function()
+  logging.debug 'please.run called'
+
+  local filepath = assert(get_filepath())
+  local root = assert(query.reporoot(filepath))
+
+  local labels
+  if vim.bo.filetype == 'please' then
+    local label = assert(parsing.get_target_at_cursor(root))
+    labels = { label }
+  else
+    labels = assert(query.whatinputs(root, filepath))
+  end
+
+  select_if_many(labels, { prompt = 'Select target to run' }, function(label)
+    vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
+      local args = {}
+      if input then
+        args = vim.split(input, ' ')
+      end
+      run_and_save_action(root, {
+        name = 'run',
+        args = { root, label, args },
+        description = string.format('Run %s (%s)', label, table.concat(args, ' ')),
       })
     end)
   end)
-end
+end, 'Failed to run')
+
+---If the current file is a BUILD file, yank the label of the target which is under the cursor. Otherwise, yank the
+---label of the target which takes the current file as an input.
+please.yank = logging.log_errors(function()
+  logging.debug 'please.yank called'
+
+  local filepath = assert(get_filepath())
+  local root = assert(query.reporoot(filepath))
+
+  local labels = {}
+  if vim.bo.filetype == 'please' then
+    local label = assert(parsing.get_target_at_cursor(root))
+    labels = { label }
+  else
+    labels = assert(query.whatinputs(root, filepath))
+  end
+
+  select_if_many(labels, { prompt = 'Select label to yank' }, function(label)
+    run_and_save_action(root, {
+      name = 'yank',
+      args = { label },
+      description = 'Yank ' .. label,
+    })
+  end)
+end, 'Failed to yank')
 
 ---If the current file is a BUILD file, debug the target which is under the cursor. Otherwise, debug the target which
 ---takes the current file as an input.
@@ -357,55 +343,51 @@ end
 ---Debug support is provided by https://github.com/mfussenegger/nvim-dap. This is supported for the following languages:
 ---- Go (Delve)
 ---- Python (debugpy)
-please.debug = function()
+please.debug = logging.log_errors(function()
   logging.debug 'please.debug called'
 
-  logging.log_errors(function()
-    local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+  local filepath = assert(get_filepath())
+  local root = assert(query.reporoot(filepath))
 
-    local labels, lang
-    if vim.bo.filetype == 'please' then
-      local label, rule = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
-      lang = rule:match '(%w+)_.+' -- assumes that rules will be formatted like $lang_xxx which feels pretty safe
-    else
-      labels = assert(query.whatinputs(root, filepath))
-      lang = vim.bo.filetype
-    end
+  local labels, lang
+  if vim.bo.filetype == 'please' then
+    local label, rule = assert(parsing.get_target_at_cursor(root))
+    labels = { label }
+    lang = rule:match '(%w+)_.+' -- assumes that rules will be formatted like $lang_xxx which feels pretty safe
+  else
+    labels = assert(query.whatinputs(root, filepath))
+    lang = vim.bo.filetype
+  end
 
-    select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
-      run_and_save_action(root, {
-        name = 'debug',
-        args = { root, label, lang },
-        description = 'Debug ' .. label,
-      })
-    end)
+  select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
+    run_and_save_action(root, {
+      name = 'debug',
+      args = { root, label, lang },
+      description = 'Debug ' .. label,
+    })
   end)
-end
+end, 'Failed to debug')
 
 ---List the previous actions which you have run, ordered from most to least recent. You can rerun any of any action by
 ---selecting it.
-please.action_history = function()
+please.action_history = logging.log_errors(function()
   logging.debug 'please.action_history called'
 
-  logging.log_errors(function()
-    local cwd = get_filepath() or vim.loop.cwd()
-    local root = assert(query.reporoot(cwd))
+  local cwd = get_filepath() or vim.loop.cwd()
+  local root = assert(query.reporoot(cwd))
 
-    local history = read_action_history()
-    if not history[root] then
-      logging.error('action history is empty for repo ' .. root)
-      return
-    end
+  local history = read_action_history()
+  if not history[root] then
+    logging.error('action history is empty for repo ' .. root)
+    return
+  end
 
-    local get_description = function(history_item)
-      return history_item.description
-    end
-    select(history[root], { prompt = 'Pick action to run again', format_item = get_description }, function(history_item)
-      run_and_save_action(root, history_item)
-    end)
+  local get_description = function(history_item)
+    return history_item.description
+  end
+  select(history[root], { prompt = 'Pick action to run again', format_item = get_description }, function(history_item)
+    run_and_save_action(root, history_item)
   end)
-end
+end, 'Failed to show action history')
 
 return please
