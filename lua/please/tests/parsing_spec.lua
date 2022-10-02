@@ -1,6 +1,6 @@
-local temptree = require 'please.tests.utils.temptree'
-local cursor = require 'please.cursor'
-local parsing = require 'please.parsing'
+local temptree = require('please.tests.utils.temptree')
+local cursor = require('please.cursor')
+local parsing = require('please.parsing')
 
 describe('locate_build_target', function()
   local test_cases = {
@@ -201,7 +201,7 @@ describe('get_test_at_cursor', function()
   end
 
   describe('for go', function()
-    run_tests {
+    run_tests({
       {
         name = 'should return test for func if cursor is inside test func definition',
         tree = {
@@ -257,11 +257,11 @@ describe('get_test_at_cursor', function()
         cursor = { 2, 1 },
         expected_err = 'cursor is not in a test function',
       },
-    }
+    })
   end)
 
   describe('for python', function()
-    run_tests {
+    run_tests({
       {
         name = 'should return test for method if cursor is inside unittest test method definition',
         tree = {
@@ -298,7 +298,7 @@ describe('get_test_at_cursor', function()
         cursor = { 3, 5 },
         expected_err = 'cursor is not in a test function',
       },
-    }
+    })
   end)
 
   describe('should return test for func if cursor is inside test func definition', function()
@@ -326,11 +326,11 @@ describe('get_test_at_cursor', function()
 
     for _, case in ipairs(test_cases) do
       it('- ' .. case.name, function()
-        run_test {
+        run_test({
           tree = tree,
           cursor = case.cursor,
           expected_test = { name = 'TestFunc', selector = 'TestFunc$' },
-        }
+        })
       end)
     end
   end)
@@ -367,16 +367,16 @@ describe('get_test_at_cursor', function()
 
     for _, case in ipairs(test_cases) do
       it('- ' .. case.name, function()
-        run_test {
+        run_test({
           tree = tree,
           cursor = case.cursor,
           expected_err = 'cursor is not in a test function',
-        }
+        })
       end)
     end
   end)
 
-  run_tests {
+  run_tests({
     {
       name = 'should return test if there are multiple test funcs in the file',
       tree = {
@@ -400,7 +400,7 @@ describe('get_test_at_cursor', function()
       cursor = { 1, 1 },
       expected_err = 'finding tests is not supported for ruby files',
     },
-  }
+  })
 end)
 
 describe('list_tests_in_file', function()
@@ -543,13 +543,13 @@ describe('get_target_at_cursor', function()
 
     for _, case in ipairs(test_cases) do
       it('- ' .. case.name, function()
-        run_test {
+        run_test({
           tree = tree,
           file = 'BUILD',
           cursor = case.cursor,
           expected_label = '//:foo',
           expected_rule = 'export_file',
-        }
+        })
       end)
     end
   end)
@@ -565,16 +565,16 @@ describe('get_target_at_cursor', function()
       },
     }
 
-    run_test {
+    run_test({
       tree = tree,
       file = 'pkg/BUILD',
       cursor = { 2, 1 },
       expected_label = '//pkg:foo',
-    }
+    })
   end)
 
   it('should return label and rule when there are multiple build targets in the BUILD file', function()
-    run_test {
+    run_test({
       tree = {
         BUILD = [[
           filegroup(
@@ -591,7 +591,7 @@ describe('get_target_at_cursor', function()
       cursor = { 7, 4 },
       expected_label = '//:foo2',
       expected_rule = 'export_file',
-    }
+    })
   end)
 
   describe('should return error when cursor is outside build target definition', function()
@@ -626,18 +626,18 @@ describe('get_target_at_cursor', function()
 
     for _, case in ipairs(test_cases) do
       it('- ' .. case.name, function()
-        run_test {
+        run_test({
           tree = tree,
           file = 'BUILD',
           cursor = case.cursor,
           expected_err = 'cursor is not in a build target definition',
-        }
+        })
       end)
     end
   end)
 
   it('should return label when rule uses single quotes', function()
-    run_test {
+    run_test({
       tree = {
         BUILD = [[
           export_file(
@@ -648,6 +648,6 @@ describe('get_target_at_cursor', function()
       file = 'BUILD',
       cursor = { 1, 1 },
       expected_label = '//:foo',
-    }
+    })
   end)
 end)

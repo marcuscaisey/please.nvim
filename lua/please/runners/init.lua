@@ -1,5 +1,5 @@
-local popup = require 'please.runners.popup'
-local tmux = require 'please.runners.tmux'
+local popup = require('please.runners.popup')
+local tmux = require('please.runners.tmux')
 
 return {
   popup = popup.run,

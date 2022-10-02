@@ -1,15 +1,15 @@
-local command = require 'please.command'
-local logging = require 'please.logging'
-local please = require 'please.please'
-local popup = require 'please.runners.popup'
-local debug = require 'please.debug'
+local command = require('please.command')
+local logging = require('please.logging')
+local please = require('please.please')
+local popup = require('please.runners.popup')
+local debug = require('please.debug')
 
 local M = {}
 
 -- configure all of the file names / extensions which should correspond to the please filetype
 local configure_filetype = function()
   vim.g.do_filetype_lua = 1 -- enable Lua filetype detection
-  vim.filetype.add {
+  vim.filetype.add({
     extension = {
       build_defs = 'please',
       build_def = 'please',
@@ -22,7 +22,7 @@ local configure_filetype = function()
     pattern = {
       ['%.plzconfig.*'] = 'dosini',
     },
-  }
+  })
 end
 
 -- create the Please user command
@@ -48,7 +48,7 @@ end
 
 -- make sure that the python parser is installed and configure it be used for please files
 local configure_treesitter = function()
-  require('nvim-treesitter.install').ensure_installed { 'python' }
+  require('nvim-treesitter.install').ensure_installed({ 'python' })
   require('nvim-treesitter.parsers').filetype_to_parsername.please = 'python'
 end
 
@@ -66,7 +66,7 @@ M.reload = function()
     end
   end
   require('please.plugin').load()
-  logging.info 'reloaded plugin'
+  logging.info('reloaded plugin')
 end
 
 return M

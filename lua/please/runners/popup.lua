@@ -1,7 +1,7 @@
-local Job = require 'plenary.job'
-local plenary_popup = require 'plenary.popup'
-local logging = require 'please.logging'
-local cursor = require 'please.cursor'
+local Job = require('plenary.job')
+local plenary_popup = require('plenary.popup')
+local logging = require('please.logging')
+local cursor = require('please.cursor')
 
 local popup = {}
 
@@ -142,13 +142,13 @@ popup.run = function(cmd, args, opts)
     close_win(bg_winid)
   end
 
-  local job = Job:new {
+  local job = Job:new({
     command = cmd,
     args = args,
     on_stdout = on_stdout,
     on_stderr = on_stderr,
     on_exit = on_exit,
-  }
+  })
 
   if opts.on_success then
     job:after_success(vim.schedule_wrap(function()
@@ -197,10 +197,10 @@ end
 ---Only popups who's command ran to completion can be restored, otherwise no popup will be opened.
 ---The popup can be exited with q or by focusing on another window.
 popup.restore = function()
-  logging.debug 'runners.restore called'
+  logging.debug('runners.restore called')
 
   if not cached_popup.valid then
-    logging.error 'no popup to restore'
+    logging.error('no popup to restore')
     return
   end
 

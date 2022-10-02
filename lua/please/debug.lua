@@ -1,10 +1,10 @@
-local Path = require 'plenary.path'
-local Job = require 'plenary.job'
-local dap = require 'dap'
-local repl = require 'dap.repl'
-local logging = require 'please.logging'
-local utils = require 'please.utils'
-local query = require 'please.query'
+local Path = require('plenary.path')
+local Job = require('plenary.job')
+local dap = require('dap')
+local repl = require('dap.repl')
+local logging = require('please.logging')
+local utils = require('please.utils')
+local query = require('please.query')
 
 local M = {}
 
@@ -23,11 +23,11 @@ end
 -- the existing implementation only retries twice with an interval of 500ms, this isn't enough time to spin up plz debug
 -- and connect to whatever debugger it's running (especially debugpy which is a Python script)
 local patch_dap_session_connect = function()
-  logging.debug 'patching nvim-dap Session.connect'
+  logging.debug('patching nvim-dap Session.connect')
 
-  local rpc = require 'dap.rpc'
-  local Session = require 'dap.session'
-  local log = require('dap.log').create_logger 'dap.log'
+  local rpc = require('dap.rpc')
+  local Session = require('dap.session')
+  local log = require('dap.log').create_logger('dap.log')
 
   local timeout = 5000
   local retry_interval = 100
@@ -119,7 +119,7 @@ local patch_dap_session_connect = function()
           end
           return
         end
-        log.debug 'Connected to debug adapter'
+        log.debug('Connected to debug adapter')
         local handle_body = vim.schedule_wrap(function(body)
           session:handle_body(body)
         end)
@@ -156,7 +156,7 @@ local patch_dap_session_connect = function()
 end
 
 M.setup = function()
-  logging.debug 'setting up plz debug adapter'
+  logging.debug('setting up plz debug adapter')
 
   dap.adapters.plz = function(callback, config)
     logging.debug('plz dap adapter called with callback=%s, config=%s', callback, vim.inspect(config))
@@ -197,16 +197,16 @@ M.setup = function()
       end
     end
 
-    local job = Job:new {
+    local job = Job:new({
       command = command,
       args = args,
       on_stdout = on_stdout,
       on_stderr = on_stderr,
       on_exit = on_exit,
-    }
+    })
     job:start()
 
-    callback { type = 'server', port = port }
+    callback({ type = 'server', port = port })
   end
 
   -- TODO: remove after upgrading debugpy version used by plz to >= 1.5.1 which sets only uncaught by default (currently
@@ -221,7 +221,7 @@ local join_paths = function(...)
 end
 
 local target_debug_directory = function(root, label)
-  local pkg = label:match '//(.+):.+'
+  local pkg = label:match('//(.+):.+')
   return join_paths(root, 'plz-out/debug', pkg)
 end
 
@@ -256,7 +256,7 @@ local launch_delve = function(root, label)
     })
   end
 
-  dap.run {
+  dap.run({
     type = 'plz',
     name = 'Launch plz debug with Delve',
     request = 'attach',
@@ -264,7 +264,7 @@ local launch_delve = function(root, label)
     substitutePath = substitutePath,
     root = root,
     label = label,
-  }
+  })
 end
 
 local launch_debugpy = function(root, label)
@@ -314,7 +314,7 @@ local launch_debugpy = function(root, label)
     }
   end
 
-  dap.run {
+  dap.run({
     type = 'plz',
     name = 'Launch plz debug with debugpy',
     request = 'attach',
@@ -324,7 +324,7 @@ local launch_debugpy = function(root, label)
     root = root,
     label = label,
     extra_args = { '-o=python.debugger:debugpy' },
-  }
+  })
 end
 
 M.launchers = {

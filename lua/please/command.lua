@@ -3,7 +3,7 @@
 -- however that module imports this one, creating a cycle. We therefore take in a list of commands and their options as
 -- parameters to avoid importing them.
 
-local logging = require 'please.logging'
+local logging = require('please.logging')
 
 local M = {}
 

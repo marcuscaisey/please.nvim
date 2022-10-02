@@ -1,5 +1,5 @@
-local stub = require 'luassert.stub'
-local runners = require 'please.runners'
+local stub = require('luassert.stub')
+local runners = require('please.runners')
 
 local M = {}
 
@@ -23,7 +23,7 @@ end
 
 function M.PlzPopup:assert_called_with(args)
   if not self._called then
-    error 'cannot assert on popup args before it has been called'
+    error('cannot assert on popup args before it has been called')
   end
   assert.are.equal('plz', self._cmd, 'incorrect command passed to popup')
   assert.are.same(
@@ -58,14 +58,14 @@ end
 
 function M.Select:assert_items(items)
   if not self._called then
-    error 'cannot assert on vim.ui.select items before it has been called'
+    error('cannot assert on vim.ui.select items before it has been called')
   end
   assert.are.same(items, self._formatted_items, 'incorrect items passed to vim.ui.select')
 end
 
 function M.Select:assert_prompt(prompt)
   if not self._called then
-    error 'cannot assert on vim.ui.select prompt before it has been called'
+    error('cannot assert on vim.ui.select prompt before it has been called')
   end
   assert.is_not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.select')
   assert.are.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
@@ -73,7 +73,7 @@ end
 
 function M.Select:choose_item(item)
   if not self._called then
-    error 'cannot choose vim.ui.select item before it has been called'
+    error('cannot choose vim.ui.select item before it has been called')
   end
   if not vim.tbl_contains(self._formatted_items, item) then
     error(
@@ -114,7 +114,7 @@ end
 
 function M.Input:assert_prompt(prompt)
   if not self._called then
-    error 'cannot assert on vim.ui.input prompt before it has been called'
+    error('cannot assert on vim.ui.input prompt before it has been called')
   end
   assert.is_not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.input')
   assert.are.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.input')
@@ -122,7 +122,7 @@ end
 
 function M.Input:enter_input(input)
   if not self._called then
-    error 'cannot enter vim.ui.input input before it has been called'
+    error('cannot enter vim.ui.input input before it has been called')
   end
   self._on_confirm(input)
 end

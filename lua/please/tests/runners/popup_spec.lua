@@ -1,5 +1,5 @@
-local popup = require 'please.runners.popup'
-local cursor = require 'please.cursor'
+local popup = require('please.runners.popup')
+local cursor = require('please.cursor')
 
 local start_winid = vim.api.nvim_get_current_win()
 

@@ -4,10 +4,10 @@ local debug_enabled = false
 
 M.toggle_debug = function()
   if debug_enabled then
-    M.info 'debug logs disabled'
+    M.info('debug logs disabled')
     debug_enabled = false
   else
-    M.info 'debug logs enabled'
+    M.info('debug logs enabled')
     debug_enabled = true
   end
 end
@@ -90,7 +90,7 @@ M.log_errors = function(f, err_msg)
       --   return nil, nil, 'error message'
       -- end
       -- won't raise an error filename / location)
-      local user_msg = err:match '.-:%d+: (.+)' or err
+      local user_msg = err:match('.-:%d+: (.+)') or err
       M.error(err_msg and string.format('%s: %s', err_msg, user_msg) or user_msg)
     end
   end

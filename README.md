@@ -58,14 +58,14 @@ call dein#add('marcuscaisey/please.nvim')
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
-use {
+use({
   'marcuscaisey/please.nvim',
   requires = {
     'nvim-lua/plenary.nvim',
     'nvim-treesitter/nvim-treesitter',
     'mfussenegger/nvim-dap',
   },
-}
+})
 ```
 
 #### Recommended additional plugins
@@ -82,11 +82,11 @@ that the Python parser is used for files with the `please` filetype. It doesn't,
 anything else to do with [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter), so
 it's recommended to at least enable syntax highlighting like so:
 ```lua
-require('nvim-treesitter.configs').setup {
+require('nvim-treesitter.configs').setup({
   highlight = {
     enable = true,
   },
-}
+})
 ```
 
 For more information on configuring [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter),
@@ -103,13 +103,13 @@ vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = t
 vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
 vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
 vim.keymap.set('n', '<leader>pct', function()
-  require('please').test { under_cursor = true}
+  require('please').test({ under_cursor = true})
 end, { silent = true })
 vim.keymap.set('n', '<leader>plt', function()
-  require('please').test { list = true}
+  require('please').test({ list = true})
 end, { silent = true })
 vim.keymap.set('n', '<leader>pft', function()
-  require('please').test { failed = true}
+  require('please').test({ failed = true})
 end, { silent = true })
 vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
 vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
@@ -128,5 +128,5 @@ nnoremap <leader>pft silent <cmd>Please test failed<cr>
 nnoremap <leader>pr silent <cmd>Please run<cr>
 nnoremap <leader>py silent <cmd>Please yank<cr>
 nnoremap <leader>pd silent <cmd>Please debug<cr>
-nnoremap <leader>pa silent <cmd>Please action_hitory<cr>
+nnoremap <leader>pa silent <cmd>Please action_history<cr>
 ```

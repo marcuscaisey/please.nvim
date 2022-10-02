@@ -1,10 +1,10 @@
-local Path = require 'plenary.path'
-local query = require 'please.query'
-local parsing = require 'please.parsing'
-local runners = require 'please.runners'
-local logging = require 'please.logging'
-local cursor = require 'please.cursor'
-local debug = require 'please.debug'
+local Path = require('plenary.path')
+local query = require('please.query')
+local parsing = require('please.parsing')
+local runners = require('please.runners')
+local logging = require('please.logging')
+local cursor = require('please.cursor')
+local debug = require('please.debug')
 
 ---@tag please-commands
 
@@ -52,11 +52,11 @@ local actions = {
       logging.debug('setting %s register to %s', register, txt)
       vim.fn.setreg(register, txt)
     end
-    if vim.fn.exists ':OSCYankReg' == 2 then
-      logging.debug 'calling :OSCYankReg "'
+    if vim.fn.exists(':OSCYankReg') == 2 then
+      logging.debug('calling :OSCYankReg "')
       vim.api.nvim_cmd({ cmd = 'OSCYankReg', args = { '"' } }, {})
     else
-      logging.debug ':OSCYankReg does not exist'
+      logging.debug(':OSCYankReg does not exist')
     end
     logging.info('yanked %s', txt)
   end,
@@ -71,7 +71,7 @@ local actions = {
   end,
 }
 
-local action_history_path = Path:new(vim.fn.stdpath 'data', 'please-history.json')
+local action_history_path = Path:new(vim.fn.stdpath('data'), 'please-history.json')
 
 local read_action_history = function()
   return action_history_path:exists() and vim.json.decode(action_history_path:read()) or {}
@@ -158,7 +158,7 @@ local validate_opts = function(opts, valid_opts)
 end
 
 local get_filepath = function()
-  local filepath = vim.fn.expand '%:p'
+  local filepath = vim.fn.expand('%:p')
   if filepath == '' then
     return nil, 'no file open'
   end
@@ -170,7 +170,7 @@ end
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
 ---targets except for those with names which are generated when the BUILD file is executed.
 please.jump_to_target = logging.log_errors(function()
-  logging.debug 'please.jump_to_target called'
+  logging.debug('please.jump_to_target called')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -189,7 +189,7 @@ end, 'Failed to jump to target')
 ---If the current file is a BUILD file, builds the target which is under the cursor. Otherwise, builds the target which
 ---takes the current file as an input.
 please.build = logging.log_errors(function()
-  logging.debug 'please.build called'
+  logging.debug('please.build called')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -284,7 +284,7 @@ end, 'Failed to test')
 ---takes the current file as an input. Program arguments can be entered via a |vim.ui.input()| prompt which allows you
 ---to customise the appearance to your taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
 please.run = logging.log_errors(function()
-  logging.debug 'please.run called'
+  logging.debug('please.run called')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -315,7 +315,7 @@ end, 'Failed to run')
 ---If the current file is a BUILD file, yank the label of the target which is under the cursor. Otherwise, yank the
 ---label of the target which takes the current file as an input.
 please.yank = logging.log_errors(function()
-  logging.debug 'please.yank called'
+  logging.debug('please.yank called')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -344,7 +344,7 @@ end, 'Failed to yank')
 ---- Go (Delve)
 ---- Python (debugpy)
 please.debug = logging.log_errors(function()
-  logging.debug 'please.debug called'
+  logging.debug('please.debug called')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -353,7 +353,7 @@ please.debug = logging.log_errors(function()
   if vim.bo.filetype == 'please' then
     local label, rule = assert(parsing.get_target_at_cursor(root))
     labels = { label }
-    lang = rule:match '(%w+)_.+' -- assumes that rules will be formatted like $lang_xxx which feels pretty safe
+    lang = rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx which feels pretty safe
   else
     labels = assert(query.whatinputs(root, filepath))
     lang = vim.bo.filetype
@@ -371,7 +371,7 @@ end, 'Failed to debug')
 ---List the previous actions which you have run, ordered from most to least recent. You can rerun any of any action by
 ---selecting it.
 please.action_history = logging.log_errors(function()
-  logging.debug 'please.action_history called'
+  logging.debug('please.action_history called')
 
   local cwd = get_filepath() or vim.loop.cwd()
   local root = assert(query.reporoot(cwd))

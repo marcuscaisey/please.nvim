@@ -1,12 +1,12 @@
-local strings = require 'plenary.strings'
-local Path = require 'plenary.path'
+local strings = require('plenary.strings')
+local Path = require('plenary.path')
 
 local M = {}
 
 local function create_file_tree(root, tree, contents)
   if type(tree) == 'string' then
     local path_tail = tree
-    if path_tail:match '/$' then
+    if path_tail:match('/$') then
       local dir_path = Path:new(root, path_tail)
       dir_path:mkdir()
       if contents then
@@ -18,7 +18,7 @@ local function create_file_tree(root, tree, contents)
       if contents then
         -- remove trailing empty lines
         -- this needs to be done before dedenting otherwise the blank line will count as leading whitespace
-        contents = contents:match '^(.+\n?)%s*$'
+        contents = contents:match('^(.+\n?)%s*$')
         -- remove common leading whitespace
         contents = strings.dedent(contents)
         file_path:write(strings.dedent(contents), 'w')
@@ -73,7 +73,7 @@ M.create = function(tree)
   local temp_dir = get_temp_dir()
   create_file_tree(temp_dir, tree)
   local teardown_func = function()
-    temp_dir:rm { recursive = true }
+    temp_dir:rm({ recursive = true })
   end
   -- resolve to remove any symlinks (on macOS /tmp is linked to /private/tmp)
   return vim.fn.resolve(temp_dir.filename), teardown_func

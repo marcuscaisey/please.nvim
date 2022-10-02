@@ -1,7 +1,7 @@
-local Path = require 'plenary.path'
-local Job = require 'plenary.job'
-local logging = require 'please.logging'
-local utils = require 'please.utils'
+local Path = require('plenary.path')
+local Job = require('plenary.job')
+local logging = require('please.logging')
+local utils = require('please.utils')
 
 local query = {}
 
@@ -19,11 +19,11 @@ end
 ---@return string[]: stdout lines
 ---@return string|nil: error if any
 local plz = function(args, cwd)
-  local job = Job:new {
+  local job = Job:new({
     command = 'plz',
     args = args,
     cwd = cwd,
-  }
+  })
   local stdout_lines, code = job:sync()
 
   if code ~= 0 then
@@ -70,13 +70,13 @@ query.whatinputs = function(root, filepath)
 
   filepath = Path:new(filepath):make_relative(root)
 
-  local output, err = plz { 'query', 'whatinputs', '--repo_root', root, filepath }
+  local output, err = plz({ 'query', 'whatinputs', '--repo_root', root, filepath })
   if err then
     return nil, err
   end
 
   -- whatinputs can exit with no error even if it errors so check the first line looks like a build label
-  if not output[1]:match '^//' then
+  if not output[1]:match('^//') then
     return nil, strip_and_join_stderr(output)
   end
 
@@ -84,7 +84,7 @@ query.whatinputs = function(root, filepath)
 end
 
 local target_value = function(root, label, field)
-  local output, err = plz { '--repo_root', root, 'query', 'print', label, '--field', field }
+  local output, err = plz({ '--repo_root', root, 'query', 'print', label, '--field', field })
   if err then
     return nil, err
   end

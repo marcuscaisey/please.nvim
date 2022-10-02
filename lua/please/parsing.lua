@@ -1,9 +1,9 @@
-local Path = require 'plenary.path'
-local treesitter = require 'vim.treesitter'
-local treesitter_query = require 'vim.treesitter.query'
-local ts_utils = require 'nvim-treesitter.ts_utils'
-local logging = require 'please.logging'
-local cursor = require 'please.cursor'
+local Path = require('plenary.path')
+local treesitter = require('vim.treesitter')
+local treesitter_query = require('vim.treesitter.query')
+local ts_utils = require('nvim-treesitter.ts_utils')
+local logging = require('please.logging')
+local cursor = require('please.cursor')
 
 local parsing = {}
 
@@ -66,7 +66,7 @@ parsing.locate_build_target = function(root, label)
 
   local root_obj = Path:new(root)
 
-  local pkg, target = label:match '^//([^:]*):([^/]+)$'
+  local pkg, target = label:match('^//([^:]*):([^/]+)$')
   local pkg_path = root_obj:joinpath(pkg)
   for _, build_file_name in ipairs(build_file_names) do
     local build_path = pkg_path:joinpath(build_file_name)
@@ -98,7 +98,7 @@ end
 local cursor_in_node_range = function(node)
   local cursor_pos = cursor.get()
   local row, col = unpack(cursor_pos)
-  local start_row, start_col, end_row, end_col = ts_utils.get_vim_range { node:range() }
+  local start_row, start_col, end_row, end_col = ts_utils.get_vim_range({ node:range() })
   return (row == start_row and col >= start_col)
     or (start_row < row and row < end_row)
     or (row == end_row and col <= end_col)
@@ -184,7 +184,7 @@ local find_test_configs = {
 ---@return Test
 ---@return string|nil: error if any, this should be checked before using the test name
 parsing.get_test_at_cursor = function()
-  logging.debug 'parsing.get_test_at_cursor called'
+  logging.debug('parsing.get_test_at_cursor called')
 
   local configs = find_test_configs[vim.bo.filetype]
   if not configs then
@@ -218,7 +218,7 @@ end
 ---@return Test[]
 ---@return string|nil: error if any, this should be checked before using the tests
 parsing.list_tests_in_file = function()
-  logging.debug 'parsing.list_test_in_file called'
+  logging.debug('parsing.list_test_in_file called')
 
   local configs = find_test_configs[vim.bo.filetype]
   if not configs then
@@ -240,7 +240,7 @@ parsing.list_tests_in_file = function()
   end
 
   if #tests == 0 then
-    return nil, string.format('%s contains no tests', vim.fn.expand '%:t')
+    return nil, string.format('%s contains no tests', vim.fn.expand('%:t'))
   end
 
   table.sort(tests, function(a, b)
@@ -281,12 +281,12 @@ parsing.get_target_at_cursor = function(root)
       local name = treesitter_query.get_node_text(captures.name, 0)
       -- name returned by treesitter is surrounded by quotes
       if name:sub(1, 1) == '"' then
-        name = name:match '^"(.+)"$'
+        name = name:match('^"(.+)"$')
       else
-        name = name:match "^'(.+)'$"
+        name = name:match("^'(.+)'$")
       end
       local rule = treesitter_query.get_node_text(captures.rule, 0)
-      local build_file = vim.fn.expand '%:p'
+      local build_file = vim.fn.expand('%:p')
       return build_label(root, build_file, name), rule, nil
     end
   end

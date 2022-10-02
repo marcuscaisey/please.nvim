@@ -1,4 +1,4 @@
-local logging = require 'please.logging'
+local logging = require('please.logging')
 
 local tmux = {}
 
@@ -11,9 +11,9 @@ local tmux = {}
 tmux.run = function(cmd, args, opts)
   logging.debug('runners.tmux called with cmd=%s, args=%s, opts=%s', cmd, vim.inspect(args), vim.inspect(opts))
 
-  local tmux_env = os.getenv 'TMUX'
+  local tmux_env = os.getenv('TMUX')
   if tmux_env == nil then
-    logging.error 'unable to get current tmux session'
+    logging.error('unable to get current tmux session')
     return
   end
 
