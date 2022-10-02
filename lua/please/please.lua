@@ -128,7 +128,7 @@ local select = function(items, opts, on_choice)
     if not item then
       return
     end
-    logging.log_errors(on_choice)(item)
+    on_choice(item)
   end)
 end
 
@@ -137,7 +137,7 @@ local select_if_many = function(items, opts, on_choice)
   if #items > 1 then
     select(items, opts, on_choice)
   else
-    logging.log_errors(on_choice)(items[1])
+    on_choice(items[1])
   end
 end
 
@@ -169,7 +169,7 @@ end
 ---
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
 ---targets except for those with names which are generated when the BUILD file is executed.
-please.jump_to_target = logging.log_errors(function()
+please.jump_to_target = logging.log_errors('Failed to jump to target')(function()
   logging.debug('please.jump_to_target called')
 
   local filepath = assert(get_filepath())
@@ -184,11 +184,11 @@ please.jump_to_target = logging.log_errors(function()
       description = 'Jump to ' .. label,
     })
   end)
-end, 'Failed to jump to target')
+end)
 
 ---If the current file is a BUILD file, builds the target which is under the cursor. Otherwise, builds the target which
 ---takes the current file as an input.
-please.build = logging.log_errors(function()
+please.build = logging.log_errors('Failed to build')(function()
   logging.debug('please.build called')
 
   local filepath = assert(get_filepath())
@@ -209,7 +209,7 @@ please.build = logging.log_errors(function()
       description = 'Build ' .. label,
     })
   end)
-end, 'Failed to build')
+end)
 
 ---If the current file is a BUILD file, test the target which is under the cursor. Otherwise, test the target which
 ---takes the current file as an input.
@@ -226,7 +226,7 @@ end, 'Failed to build')
 ---@field under_cursor boolean: run the test under the cursor
 ---@field list boolean: select which test to run
 ---@field failed boolean: run just the test cases which failed from the immediately previous run
-please.test = logging.log_errors(function(opts)
+please.test = logging.log_errors('Failed to test')(function(opts)
   logging.debug('please.test called with opts=%s', vim.inspect(opts))
 
   opts = opts or {}
@@ -278,12 +278,12 @@ please.test = logging.log_errors(function(opts)
       })
     end)
   end
-end, 'Failed to test')
+end)
 
 ---If the current file is a BUILD file, run the target which is under the cursor. Otherwise, run the target which
 ---takes the current file as an input. Program arguments can be entered via a |vim.ui.input()| prompt which allows you
 ---to customise the appearance to your taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
-please.run = logging.log_errors(function()
+please.run = logging.log_errors('Failed to run')(function()
   logging.debug('please.run called')
 
   local filepath = assert(get_filepath())
@@ -310,11 +310,11 @@ please.run = logging.log_errors(function()
       })
     end)
   end)
-end, 'Failed to run')
+end)
 
 ---If the current file is a BUILD file, yank the label of the target which is under the cursor. Otherwise, yank the
 ---label of the target which takes the current file as an input.
-please.yank = logging.log_errors(function()
+please.yank = logging.log_errors('Failed to yank')(function()
   logging.debug('please.yank called')
 
   local filepath = assert(get_filepath())
@@ -335,7 +335,7 @@ please.yank = logging.log_errors(function()
       description = 'Yank ' .. label,
     })
   end)
-end, 'Failed to yank')
+end)
 
 ---If the current file is a BUILD file, debug the target which is under the cursor. Otherwise, debug the target which
 ---takes the current file as an input.
@@ -343,7 +343,7 @@ end, 'Failed to yank')
 ---Debug support is provided by https://github.com/mfussenegger/nvim-dap. This is supported for the following languages:
 ---- Go (Delve)
 ---- Python (debugpy)
-please.debug = logging.log_errors(function()
+please.debug = logging.log_errors('Failed to debug')(function()
   logging.debug('please.debug called')
 
   local filepath = assert(get_filepath())
@@ -366,11 +366,11 @@ please.debug = logging.log_errors(function()
       description = 'Debug ' .. label,
     })
   end)
-end, 'Failed to debug')
+end)
 
 ---List the previous actions which you have run, ordered from most to least recent. You can rerun any of any action by
 ---selecting it.
-please.action_history = logging.log_errors(function()
+please.action_history = logging.log_errors('Failed to show action history')(function()
   logging.debug('please.action_history called')
 
   local cwd = get_filepath() or vim.loop.cwd()
@@ -388,6 +388,6 @@ please.action_history = logging.log_errors(function()
   select(history[root], { prompt = 'Pick action to run again', format_item = get_description }, function(history_item)
     run_and_save_action(root, history_item)
   end)
-end, 'Failed to show action history')
+end)
 
 return please

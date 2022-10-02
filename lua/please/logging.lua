@@ -42,21 +42,21 @@ M.error = function(msg, ...)
   log(msg, vim.log.levels.ERROR, ...)
 end
 
----Wraps a function and logs any errors raised inside it. Intended to be used in combination with assert to clean up
----repetitive error handling. If debug logs are enabled, then the file and line number of the error are also included in
----the log. A optional message can be provided which will prefix the logged error.
+---Returns a function wrapper which logs any errors raised by the wrapped function, prefixed with the provided message.
+---Intended to be used in combination with assert to clean up repetitive error handling.
+---If debug logs are enabled, then the file and line number of the error are also included in the log.
 ---
 ---*Before*
 ---```
 ---local print_baz = function(foo)
 ---  local bar, err = get_bar(foo)
 ---  if err then
----    print(err)
+---    logging.error('failed to print baz: %s', err)
 ---    return
 ---  end
 ---  local baz, err = get_baz(bar)
 ---  if err then
----    print(err)
+---    logging.error('failed to print baz: %s', err)
 ---    return
 ---  end
 ---  print(baz)
@@ -65,33 +65,34 @@ end
 ---
 ---*After*
 ---```
----local get_baz = logging.log_errors(function(foo)
+---local get_baz = logging.log_errors('failed to get baz')(function(foo)
 ---  local bar = assert(get_bar(foo))
 ---  local baz = assert(get_baz(bar))
 ---  print(baz)
----end, 'failed to get baz')
+---end)
 ---```
----@param f function
----@param err_msg string|nil
+---@param err_msg string
 ---@return function
-M.log_errors = function(f, err_msg)
-  return function(...)
-    local ok, err = pcall(f, ...)
-    if not ok then
-      if debug_enabled then
-        M.error(err_msg and string.format('%s: %s', err_msg, err) or err)
-        return
+M.log_errors = function(err_msg)
+  return function(f)
+    return function(...)
+      local ok, err = pcall(f, ...)
+      if not ok then
+        if debug_enabled then
+          M.error('%s: %s', err_msg, err)
+          return
+        end
+        -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
+        --
+        -- some errors won't contain this information so default back to the whole error in this case (assert called with
+        -- the result of a function which returns three values i.e.
+        -- function foo()
+        --   return nil, nil, 'error message'
+        -- end
+        -- won't raise an error filename / location)
+        local user_msg = err:match('.-:%d+: (.+)') or err
+        M.error('%s: %s', err_msg, user_msg)
       end
-      -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
-      --
-      -- some errors won't contain this information so default back to the whole error in this case (assert called with
-      -- the result of a function which returns three values i.e.
-      -- function foo()
-      --   return nil, nil, 'error message'
-      -- end
-      -- won't raise an error filename / location)
-      local user_msg = err:match('.-:%d+: (.+)') or err
-      M.error(err_msg and string.format('%s: %s', err_msg, user_msg) or user_msg)
     end
   end
 end
