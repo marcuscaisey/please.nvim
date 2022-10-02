@@ -1,6 +1,6 @@
 local M = {}
 
-local debug_enabled = true
+local debug_enabled = false
 
 M.toggle_debug = function()
   if debug_enabled then
