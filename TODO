@@ -2,7 +2,6 @@
 - use something else for docs generation (there's some other CLI we can use instead of the docker thing)
 - run tests and gendocs in github actions
 - document runners
-- command history
 - integrate tmux runner
 - add debug test under cursor command
 - add nvim-dap adapter so that you can debug with dap.continue instead of :Please debug
