@@ -49,7 +49,7 @@ local ansi = {
 popup.run = function(cmd, args, opts)
   opts = opts or {}
 
-  logging.debug('runners.popup called with cmd=%s, args=%s, opts=%s', cmd, vim.inspect(args), vim.inspect(opts))
+  logging.log_call('popup.run')
 
   -- reset before we start running the command, otherwise if it doesn't finish successfully and we restore, we will
   -- restore the output from the popup run previous to this one
@@ -197,7 +197,7 @@ end
 ---Only popups who's command ran to completion can be restored, otherwise no popup will be opened.
 ---The popup can be exited with q or by focusing on another window.
 popup.restore = function()
-  logging.debug('runners.restore called')
+  logging.log_call('runners.restore')
 
   if not cached_popup.valid then
     logging.error('no popup to restore')

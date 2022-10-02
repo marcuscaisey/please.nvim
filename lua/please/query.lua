@@ -37,7 +37,7 @@ end
 ---@return string: an absolute path
 ---@return string|nil: error if any, this should be checked before using the repo root
 query.reporoot = function(path)
-  logging.debug('query.reporoot called with path=%s', path)
+  logging.log_call('query.reporoot')
 
   local path_obj = Path:new(path)
 
@@ -66,7 +66,7 @@ end
 ---@return table: build target labels
 ---@return string|nil: error if any, this should be checked before using the labels
 query.whatinputs = function(root, filepath)
-  logging.debug('query.whatinputs called with root=%s, filepath=%s', root, filepath)
+  logging.log_call('query.whatinputs')
 
   filepath = Path:new(filepath):make_relative(root)
 
@@ -97,7 +97,7 @@ end
 ---@return boolean
 ---@return string|nil: error if any, this should be checked before using the result
 query.is_target_sandboxed = function(root, label)
-  logging.debug('query.is_target_sandboxed called with root=%s, label=%s', root, label)
+  logging.log_call('query.is_target_sandboxed')
 
   local test_value, err = target_value(root, label, 'test')
   if err then

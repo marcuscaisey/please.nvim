@@ -62,7 +62,7 @@ end
 ---@return number[]: the position that the build target definition starts as a (1, 1)-indexed (line, col) tuple
 ---@return string|nil: error if any, this should be checked before using the other return values
 parsing.locate_build_target = function(root, label)
-  logging.debug('parsing.locate_build_target called with root=%s, label=%s', root, label)
+  logging.log_call('parsing.locate_build_target')
 
   local root_obj = Path:new(root)
 
@@ -184,7 +184,7 @@ local find_test_configs = {
 ---@return Test
 ---@return string|nil: error if any, this should be checked before using the test name
 parsing.get_test_at_cursor = function()
-  logging.debug('parsing.get_test_at_cursor called')
+  logging.log_call('parsing.get_test_at_cursor')
 
   local configs = find_test_configs[vim.bo.filetype]
   if not configs then
@@ -218,7 +218,7 @@ end
 ---@return Test[]
 ---@return string|nil: error if any, this should be checked before using the tests
 parsing.list_tests_in_file = function()
-  logging.debug('parsing.list_test_in_file called')
+  logging.log_call('parsing.list_tests_in_file')
 
   local configs = find_test_configs[vim.bo.filetype]
   if not configs then
@@ -270,7 +270,7 @@ end
 ---@return string|nil: error if any, this should be checked before using the label and rule
 -- TODO: return a table instead of multiple values
 parsing.get_target_at_cursor = function(root)
-  logging.debug('parsing.get_target_at_cursor called with root=%s', root)
+  logging.log_call('parsing.get_target_at_cursor')
 
   local tree = treesitter.get_parser(0, 'python'):parse()[1]
   local query = treesitter_query.parse_query('python', make_build_target_query())

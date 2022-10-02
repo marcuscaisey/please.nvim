@@ -9,7 +9,7 @@ local tmux = {}
 ---@field tmux_pre string[]: prefix to the tmux command (e.g. for setting options).
 ---@field tmux_args string[]: Args to pass to tmux.
 tmux.run = function(cmd, args, opts)
-  logging.debug('runners.tmux called with cmd=%s, args=%s, opts=%s', cmd, vim.inspect(args), vim.inspect(opts))
+  logging.log_call('tmux.run')
 
   local tmux_env = os.getenv('TMUX')
   if tmux_env == nil then

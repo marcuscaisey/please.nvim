@@ -19,7 +19,6 @@ local please = {}
 
 local run_plz_cmd = function(root, args, opts)
   local cmd_args = { '--repo_root', root, '--interactive_output', '--colour', unpack(args) }
-  logging.debug('running plz with args: %s', vim.inspect(cmd_args))
   runners.popup('plz', cmd_args, opts)
 end
 
@@ -170,7 +169,7 @@ end
 ---The cursor will be moved to where the build target is created if it can be found which should be the case for all
 ---targets except for those with names which are generated when the BUILD file is executed.
 please.jump_to_target = logging.log_errors('Failed to jump to target')(function()
-  logging.debug('please.jump_to_target called')
+  logging.log_call('please.jump_to_target')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -189,7 +188,7 @@ end)
 ---If the current file is a BUILD file, builds the target which is under the cursor. Otherwise, builds the target which
 ---takes the current file as an input.
 please.build = logging.log_errors('Failed to build')(function()
-  logging.debug('please.build called')
+  logging.log_call('please.build')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -227,7 +226,7 @@ end)
 ---@field list boolean: select which test to run
 ---@field failed boolean: run just the test cases which failed from the immediately previous run
 please.test = logging.log_errors('Failed to test')(function(opts)
-  logging.debug('please.test called with opts=%s', vim.inspect(opts))
+  logging.log_call('please.test')
 
   opts = opts or {}
 
@@ -284,7 +283,7 @@ end)
 ---takes the current file as an input. Program arguments can be entered via a |vim.ui.input()| prompt which allows you
 ---to customise the appearance to your taste (see https://github.com/stevearc/dressing.nvim and |lua-ui|).
 please.run = logging.log_errors('Failed to run')(function()
-  logging.debug('please.run called')
+  logging.log_call('please.run')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -315,7 +314,7 @@ end)
 ---If the current file is a BUILD file, yank the label of the target which is under the cursor. Otherwise, yank the
 ---label of the target which takes the current file as an input.
 please.yank = logging.log_errors('Failed to yank')(function()
-  logging.debug('please.yank called')
+  logging.log_call('please.yank')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -344,7 +343,7 @@ end)
 ---- Go (Delve)
 ---- Python (debugpy)
 please.debug = logging.log_errors('Failed to debug')(function()
-  logging.debug('please.debug called')
+  logging.log_call('please.debug')
 
   local filepath = assert(get_filepath())
   local root = assert(query.reporoot(filepath))
@@ -371,7 +370,7 @@ end)
 ---List the previous actions which you have run, ordered from most to least recent. You can rerun any of any action by
 ---selecting it.
 please.action_history = logging.log_errors('Failed to show action history')(function()
-  logging.debug('please.action_history called')
+  logging.log_call('please.action_history')
 
   local cwd = get_filepath() or vim.loop.cwd()
   local root = assert(query.reporoot(cwd))

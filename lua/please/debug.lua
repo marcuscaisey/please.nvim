@@ -159,7 +159,7 @@ M.setup = function()
   logging.debug('setting up plz debug adapter')
 
   dap.adapters.plz = function(callback, config)
-    logging.debug('plz dap adapter called with callback=%s, config=%s', callback, vim.inspect(config))
+    logging.log_call('plz dap adapter')
 
     local port = get_free_port()
 
@@ -226,7 +226,7 @@ local target_debug_directory = function(root, label)
 end
 
 local launch_delve = function(root, label)
-  logging.debug('launch_delve called with root=%s, label=%s', root, label)
+  logging.log_call('launch_delve')
 
   local substitutePath = {
     {
@@ -268,7 +268,7 @@ local launch_delve = function(root, label)
 end
 
 local launch_debugpy = function(root, label)
-  logging.debug('launch_debugpy called with root=%s, label=%s', root, label)
+  logging.log_call('launch_debugpy')
 
   local relative_sandbox_location = '.cache/pex/pex-debug'
   local local_explode_location = join_paths(target_debug_directory(root, label), relative_sandbox_location)

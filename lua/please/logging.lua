@@ -1,6 +1,6 @@
 local M = {}
 
-local debug_enabled = false
+local debug_enabled = true
 
 M.toggle_debug = function()
   if debug_enabled then
@@ -94,6 +94,31 @@ M.log_errors = function(err_msg)
         M.error('%s: %s', err_msg, user_msg)
       end
     end
+  end
+end
+
+---Logs the args passed to a func at debug level.
+---@param func_name string the name of the called function (this can't be consistently introspected)
+M.log_call = function(func_name)
+  if not debug_enabled then
+    return
+  end
+
+  local args = {}
+  local i = 1
+  while true do
+    local name, value = debug.getlocal(2, i)
+    if not name then
+      break
+    end
+    table.insert(args, string.format('%s=%s', name, vim.inspect(value)))
+    i = i + 1
+  end
+
+  if #args > 0 then
+    M.debug('%s called with %s', func_name, table.concat(args, ', '))
+  else
+    M.debug('%s called', func_name)
   end
 end
 
