@@ -2,7 +2,7 @@ local docgen = require('docgen')
 
 local inputs = {}
 for line in io.lines('/gendocs/doc_files.txt') do
-  table.insert(inputs, '/please/' .. line)
+  table.insert(inputs, '/lua/' .. line)
 end
 
 local output = '/doc/please.txt'

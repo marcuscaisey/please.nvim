@@ -11,4 +11,4 @@
 - add --window-width arg to plz so that output doesn't get cut off in popup
 - setup plz in repo for testing / building docs etc?
 - add wrapping of errors by logging.log_errors
-- move please/please.lua up a directory level
+- look over all documentation and clean up / clarify where necessary

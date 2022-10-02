@@ -1,4 +1,4 @@
-local please = require('please.please')
+local please = require('please')
 local cursor = require('please.cursor')
 local temptree = require('please.tests.utils.temptree')
 local mock = require('please.tests.utils.mock')

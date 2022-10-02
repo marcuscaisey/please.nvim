@@ -32,6 +32,7 @@ test : test a build target
 run : run a build target
 yank : yank a build label
 debug : debug a build target
+action_history : list previously run actions
 
 
 See |please-commands| for more detailed descriptions of each command.
@@ -49,13 +50,13 @@ Lua:
   vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
   vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
   vim.keymap.set('n', '<leader>pct', function()
-    require('please').test { under_cursor = true}
+    require('please').test({ under_cursor = true})
   end, { silent = true })
   vim.keymap.set('n', '<leader>plt', function()
-    require('please').test { list = true}
+    require('please').test({ list = true})
   end, { silent = true })
   vim.keymap.set('n', '<leader>pft', function()
-    require('please').test { failed = true}
+    require('please').test({ failed = true})
   end, { silent = true })
   vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
   vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
