@@ -8,7 +8,6 @@
 - add nvim-dap adapter so that you can debug with dap.continue instead of :Please debug
 - allow breakpoints to be set in plz-out/gen/third_party etc
 - autoformatting
-- log return values in debug logs
 - improve snappiness / performance of commands
 - add --window-width arg to plz so that output doesn't get cut off in popup
 - setup plz in repo for testing / building docs etc?
