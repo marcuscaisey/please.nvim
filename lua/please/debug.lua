@@ -132,7 +132,7 @@ local patch_dap_session_connect = function()
           local s = dap().session()
           if s == session then
             vim.schedule(function()
-              utils.notify('Debug adapter disconnected', vim.log.levels.INFO)
+              logging.info('Debug adapter disconnected')
             end)
             dap().set_session(nil)
           end
