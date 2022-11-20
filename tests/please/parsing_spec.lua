@@ -1,4 +1,4 @@
-local temptree = require('please.tests.utils.temptree')
+local temptree = require('tests.utils.temptree')
 local cursor = require('please.cursor')
 local parsing = require('please.parsing')
 

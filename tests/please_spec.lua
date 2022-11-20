@@ -1,7 +1,7 @@
 local please = require('please')
 local cursor = require('please.cursor')
-local temptree = require('please.tests.utils.temptree')
-local mock = require('please.tests.utils.mock')
+local temptree = require('tests.utils.temptree')
+local mock = require('tests.utils.mock')
 
 describe('jump_to_target', function()
   local create_temp_tree = function()
