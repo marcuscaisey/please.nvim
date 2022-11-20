@@ -259,7 +259,7 @@ describe('run', function()
 
   it('should not call on_success if command fails', function()
     local cmd = 'bash'
-    local args = { '-c', 'command-does-not-exist' }
+    local args = { '-c', 'echo output && exit 1' }
     local on_success_called = false
     local opts = {
       on_success = function()
@@ -270,7 +270,7 @@ describe('run', function()
     popup.run(cmd, args, opts)
 
     local popup_winid = wait_for_new_win()
-    assert_win_lines({ 'bash: line 1: command-does-not-exist: command not found' }, popup_winid)
+    assert_win_lines({ 'output' }, popup_winid)
     assert.is_false(on_success_called, 'expected on_success to not be called')
   end)
 

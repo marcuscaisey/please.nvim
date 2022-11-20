@@ -3,3 +3,7 @@ version = 16.24.0
 
 [Parse]
 preloadbuilddefs = build_defs/neovim.build_defs
+
+[BuildConfig]
+nvim-tool = //third_party/neovim:toolchain|nvim
+plenary-plugin = //third_party/neovim:plenary
