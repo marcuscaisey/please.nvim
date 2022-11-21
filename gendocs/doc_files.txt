@@ -1,2 +1,0 @@
-please/docs_intro.lua
-please.lua

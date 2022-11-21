@@ -40,3 +40,9 @@ neovim_github_tree_sitter_parser(
     repo = "tree-sitter/tree-sitter-python",
     revision = "v0.20.0",
 )
+
+neovim_lemmy_help(
+    name = "lemmy_help",
+    version = "0.10.0",
+    hashes = ["757118e7112ecafdd4775b0174216da02b5d06c8c2b3d3a1c25376f0eae7e08e"],
+)

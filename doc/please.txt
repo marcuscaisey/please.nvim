@@ -1,10 +1,11 @@
 ================================================================================
-NVIM                                                               *please.nvim*
+INTRODUCTION                                                       *please.nvim*
 
 please.nvim is a plugin which allows you interact with your Please repository
 from the comfort of NeoVim.
 
-COMMANDS                                                 *please-commands-intro*
+================================================================================
+COMMANDS INTRODUCTION                                    *please-commands-intro*
 
 Commands can be called either through the Lua or the VimL API.
 
@@ -37,6 +38,7 @@ action_history : list previously run actions
 
 See |please-commands| for more detailed descriptions of each command.
 
+================================================================================
 MAPPINGS                                                       *please-mappings*
 
 please.nvim doesn't come with any mappings defined out of the box so that you
@@ -78,6 +80,7 @@ VimL:
   nnoremap <leader>pa silent <cmd>Please action_history<cr>
 <
 
+================================================================================
 DEBUG LOGS                                                   *please-debug-logs*
 
 Debug logs can be enabled with
@@ -89,10 +92,8 @@ This will enable some basic logging about which functions are being called with
 which arguments which should be enough to solve most problems. It will also
 enable showing file / line numbers of error logs.
 
-
-
 ================================================================================
-PLEASE-COMMANDS                                                *please-commands*
+COMMANDS                                                       *please-commands*
 
 Some commands may prompt you to choose between different options. For example,
 when building a file which is an input to multiple build targets, you'll be
@@ -100,7 +101,7 @@ prompted to choose which target to build. This prompt uses |vim.ui.select()|
 which allows you to customise the appearance to your taste (see
 https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
-please.jump_to_target()                              *please.jump_to_target()*
+please.jump_to_target()                                  *please.jump_to_target*
     Jumps to the location of the build target which takes the current file as
     an input.
 
@@ -109,73 +110,63 @@ please.jump_to_target()                              *please.jump_to_target()*
     which are generated when the BUILD file is executed.
 
 
-
-please.build()                                                *please.build()*
+please.build()                                                    *please.build*
     If the current file is a BUILD file, builds the target which is under the
     cursor. Otherwise, builds the target which takes the current file as an
     input.
 
 
-
-please.test({opts})                                            *please.test()*
+please.test({opts})                                                *please.test*
     If the current file is a BUILD file, test the target which is under the
     cursor. Otherwise, test the target which takes the current file as an
     input.
 
     Optionally (when in a source file), you can run only a specific test.
     Either by running the test which is under the cursor or by choosing which
-    test to run from a list of tests in the current file. This is supported for
-    the following languages:
+    test to run from a list of tests in the current file. This is supported
+    for the following languages:
     - Go
-     - regular test functions (not subtests)
-     - testify suite test methods
+      - regular test functions (not subtests)
+      - testify suite test methods
     - Python
-     - unittest test methods
-
+      - unittest test methods
 
     Parameters: ~
-        {opts} (table)
-
-    Fields: ~
-        {under_cursor} (boolean)  run the test under the cursor
-        {list}         (boolean)  select which test to run
-        {failed}       (boolean)  run just the test cases which failed from
-                                  the immediately previous run
+        {opts} (table|nil) options
+          * {under_cursor} (boolean): run the test under the cursor
+          * {list} (boolean): select which test to run
+          * {failed} (boolean): run just the test cases which failed from the
+            immediately previous run
 
 
-please.run()                                                    *please.run()*
+please.run()                                                        *please.run*
     If the current file is a BUILD file, run the target which is under the
-    cursor. Otherwise, run the target which takes the current file as an input.
-    Program arguments can be entered via a |vim.ui.input()| prompt which allows
-    you to customise the appearance to your taste (see
+    cursor. Otherwise, run the target which takes the current file as an
+    input. Program arguments can be entered via a |vim.ui.input()| prompt
+    which allows you to customise the appearance to your taste (see
     https://github.com/stevearc/dressing.nvim and |lua-ui|).
 
 
-
-please.yank()                                                  *please.yank()*
+please.yank()                                                      *please.yank*
     If the current file is a BUILD file, yank the label of the target which is
     under the cursor. Otherwise, yank the label of the target which takes the
     current file as an input.
 
 
-
-please.debug()                                                *please.debug()*
+please.debug()                                                    *please.debug*
     If the current file is a BUILD file, debug the target which is under the
     cursor. Otherwise, debug the target which takes the current file as an
     input.
 
-    Debug support is provided by https://github.com/mfussenegger/nvim-dap. This
-    is supported for the following languages:
+    Debug support is provided by https://github.com/mfussenegger/nvim-dap.
+    This is supported for the following languages:
     - Go (Delve)
     - Python (debugpy)
 
 
-
-please.action_history()                              *please.action_history()*
+please.action_history()                                  *please.action_history*
     List the previous actions which you have run, ordered from most to least
     recent. You can rerun any of any action by selecting it.
 
 
-
-
- vim:tw=78:ts=8:ft=help:norl:
+vim:tw=78:ts=8:noet:ft=help:norl:
