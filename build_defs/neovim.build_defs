@@ -1,3 +1,5 @@
+# TODO: download neovim, plenary, lemmy-help by default if not configured in .plzconfig
+
 def neovim_toolchain(name:str, version:str, hashes:list = [], visibility:list = ["PUBLIC"]):
     """
     Downloads Neovim from GitHub and exposes the nvim binary as the entry point :<name>|nvim.
@@ -33,14 +35,19 @@ def neovim_toolchain(name:str, version:str, hashes:list = [], visibility:list = 
         visibility = visibility,
     )
 
-def neovim_plugin(name:str, srcs:list = [], deps:list = [], visibility:list = ["PUBLIC"]):
+def neovim_plugin(name:str, srcs:list = [], deps:list = [], doc_srcs:list = [], doc_opts:list = [], visibility:list = ["PUBLIC"]):
     """
-    Defines a Neovim plugin target which collects the plugin's files for use by dependent neovim_lua_module and neovim_test targets.
+    Defines two Neovim plugin targets:
+        1. <name> which collects the plugin's files for use by dependent neovim_lua_module and neovim_test targets.
+        2. <name>_gen_doc, a runnable target which generates a documentation file from Lua srcs using lemmy-help and
+        copies it into the doc directory.
 
     Args:
         name: Name of the build target.
         srcs: Sources of the plugin. Optional.
         deps: Dependencies of the plugin. These should typically be neovim_lua_module targets. Optional.
+        doc_srcs: Lua sources to generate the doc file from. Optional.
+        doc_opts: Options to pass to lemmy-help when generating the doc file. Optional.
         visibility: Visibility specification. Defaults to public.
     """
     # The plugin directories like autoload, lua, plugin etc have to live in the root, so it doesn't make sense to allow
@@ -48,12 +55,37 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], visibility:list = ["
     if package_name() != "":
         fail("neovim_plugin target must be defined in the root")
 
-    return filegroup(
+    plugin_srcs = filegroup(
         name = name,
         srcs = srcs,
         exported_deps = deps,
         visibility = visibility,
     )
+
+    if doc_srcs:
+        lemmy_help = check_config(
+            key = "LEMMY_HELP_TOOL",
+            section = "BuildConfig",
+            rule = "neovim_plugin",
+            example = "//third_party/neovim:toolchain|nvim",
+        )
+
+        joined_opts = " ".join(doc_opts)
+        doc_file = genrule(
+            name = tag(name, "doc"),
+            srcs = doc_srcs,
+            outs = [f"{name}.txt"],
+            tools = [lemmy_help],
+            cmd = f"$TOOL {joined_opts} $SRCS > $OUT",
+        )
+
+        sh_cmd(
+            name = f"{name}_gen_doc",
+            deps = [doc_file],
+            cmd = f"mkdir -p doc && cp $(out_location {doc_file}) doc",
+        )
+
+    return plugin_srcs
 
 def neovim_lua_module(name:str, srcs:list, deps:list = [], visibility:list = ["PUBLIC"]):
     """
@@ -276,37 +308,4 @@ def neovim_lemmy_help(name:str, version:str, hashes:list = [], visibility:list =
         binary = True,
         hashes = hashes,
         visibility = visibility,
-    )
-
-def neovim_generate_docs(name:str, srcs:list, output:str, opts:list = []):
-    """
-    Defines a runnable target which generates a documentation file from Lua srcs using lemmy-help and copies it into the
-    given output path.
-
-    Args:
-        name: Name of the target.
-        srcs: Lua sources.
-        ouptut: Path to output the documentation file, relative to the repo root.
-        opts: Options to pass to lemmy-help.
-    """
-    lemmy_help = check_config(
-        key = "LEMMY_HELP_TOOL",
-        section = "BuildConfig",
-        rule = "neovim_generate_docs",
-        example = "//third_party/neovim:toolchain|nvim",
-    )
-
-    joined_opts = " ".join(opts)
-    doc_file = genrule(
-        name = tag(name, "doc_file"),
-        srcs = srcs,
-        outs = [f"{name}_doc_file.txt"],
-        tools = [lemmy_help],
-        cmd = f"$TOOL {joined_opts} $SRCS > $OUT",
-    )
-
-    return sh_cmd(
-        name = name,
-        deps = [doc_file],
-        cmd = f"mkdir -p $(dirname {output}) && cp $(out_location {doc_file}) {output}",
     )

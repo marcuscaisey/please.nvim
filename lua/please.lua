@@ -1,105 +1,86 @@
----@mod please.nvim INTRODUCTION
 ---@brief [[
----please.nvim is a plugin which allows you interact with your Please repository
----from the comfort of NeoVim.
+---*please.nvim*
+---A plugin to make you more productive in Neovim when using Please.
 ---@brief ]]
 
----@mod please-commands-intro COMMANDS INTRODUCTION
+---@toc please-contents
+
+---@mod please-intro INTRODUCTION
 ---@brief [[
----Commands can be called either through the Lua or the VimL API.
+---please.nvim is a plugin which allows you interact with your Please repository
+---from the comfort of Neovim. The aim is to remove the need to switch from your
+---editor to the shell when performing routine actions.
 ---
----Lua API~
----Commands are exported by the `please` module, which can then be called like
----`require("please").$command_name()`
+---Features~
+---  * Build, run, test, and debug a target
+---  * Yank a target's label
+---  * Jump from a source file to its build target definition
+---  * Display history of previous actions and run any of them again
+---  * `please` configured as the `filetype` for the following files:
+---    * `BUILD`
+---    * `*.plz`
+---    * `*.build_def`
+---    * `*.build_defs`
+---    * `*.build`
+---  * `ini` configured as the `filetype` for `.plzconfig` files
+---  * `nvim-treesitter` configured to use the Python parser for `please` files
+---@brief ]]
+
+---@mod please-usage USAGE
+---@brief [[
+---Lua and VimL APIs~
+---please.nvim commands can be called either through the Lua or the VimL API.
+---  * Commands are written in Lua and as such the Lua API should be preferred.
+---    It can't be guaranteed that all features available through the Lua API
+---    will also available through the VimL API.
+---  * The VimL API is mostly provided to make it easy to call commands from the
+---    command line.
 ---
----For example, jump_to_target can be executed with
---->
----  require("please").jump_to_target()
----<
+---To use the Lua API, you need to import the required module which will usually
+---be `please`. For instance, `jump_to_target` is executed with
+---`require('please').jump_to_target()`
 ---
----VimL API~
----Commands are called like `:Please $command_name`
+---All available VimL API commands are autocompletable as arguments to the
+---`:Please` command. For instance, `jump_to_target` is executed with
+---`:Please jump_to_target`
 ---
----For example, jump_to_target can be executed with
---->
----  :Please jump_to_target
----<
+---UI Customisation~
+---Some commands may prompt you to either choose from a list of options or input
+---some text. For example, when building a file which is an input to multiple
+---build targets, you'll be prompted to choose which target to build.
 ---
----Available Commands~
----jump_to_target : jump to the build target of the current file
----build : build a build target
----test : test a build target
----run : run a build target
----yank : yank a build label
----debug : debug a build target
----action_history : list previously run actions
----
----
----See |please-commands| for more detailed descriptions of each command.
+---Input and selection prompts are provided by |vim.ui.input()| and
+---|vim.ui.select()| respectively. Doing so allows you to customise the
+---appearance of them to your taste. See |lua-ui| and the fantastic
+---https://github.com/stevearc/dressing.nvim for more information.
 ---@brief ]]
 
 ---@mod please-mappings MAPPINGS
 ---@brief [[
 ---please.nvim doesn't come with any mappings defined out of the box so that you
----can customise how you use it. Below are some examples for each command to get
----you started.
----
----Example Mappings~
----Lua:
+---can customise how you use it. Below are a set of mappings for each available
+---command to get you started.
 --->
----  vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
----  vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
----  vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
+---  vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
+---  vim.keymap.set('n', '<leader>pb', require('please').build)
+---  vim.keymap.set('n', '<leader>pt', require('please').test)
 ---  vim.keymap.set('n', '<leader>pct', function()
 ---    require('please').test({ under_cursor = true})
----  end, { silent = true })
+---  end)
 ---  vim.keymap.set('n', '<leader>plt', function()
 ---    require('please').test({ list = true})
----  end, { silent = true })
+---  end)
 ---  vim.keymap.set('n', '<leader>pft', function()
 ---    require('please').test({ failed = true})
----  end, { silent = true })
----  vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
----  vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
----  vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
----  vim.keymap.set('n', '<leader>pa', require("please").action_history, { silent = true })
----<
----
----VimL:
---->
----  nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
----  nnoremap <leader>pb silent <cmd>Please build<cr>
----  nnoremap <leader>pt silent <cmd>Please test<cr>
----  nnoremap <leader>pct silent <cmd>Please test under_cursor<cr>
----  nnoremap <leader>plt silent <cmd>Please test list<cr>
----  nnoremap <leader>pft silent <cmd>Please test failed<cr>
----  nnoremap <leader>pr silent <cmd>Please run<cr>
----  nnoremap <leader>py silent <cmd>Please yank<cr>
----  nnoremap <leader>pd silent <cmd>Please debug<cr>
----  nnoremap <leader>pa silent <cmd>Please action_history<cr>
+---  end)
+---  vim.keymap.set('n', '<leader>pr', require('please').run)
+---  vim.keymap.set('n', '<leader>py', require('please').yank)
+---  vim.keymap.set('n', '<leader>pd', require('please').debug)
+---  vim.keymap.set('n', '<leader>pa', require('please').action_history)
 ---<
 ---@brief ]]
 
----@mod please-debug-logs DEBUG LOGS
----@brief [[
----Debug logs can be enabled with
---->
----  :Please toggle_debug_logs
----<
----
----This will enable some basic logging about which functions are being called with
----which arguments which should be enough to solve most problems. It will also
----enable showing file / line numbers of error logs.
----@brief ]]
-
----@mod please-commands COMMANDS
----@brief [[
----Some commands may prompt you to choose between different options. For example,
----when building a file which is an input to multiple build targets, you'll be
----prompted to choose which target to build. This prompt uses |vim.ui.select()|
----which allows you to customise the appearance to your taste (see
----https://github.com/stevearc/dressing.nvim and |lua-ui|).
----@brief ]]
+---@mod please PLEASE COMMANDS
 
 local Path = require('plenary.path')
 local query = require('please.query')
@@ -264,7 +245,7 @@ end
 ---
 ---The cursor will be moved to where the build target is created if it can be
 ---found which should be the case for all targets except for those with names
----which are generated when the BUILD file is executed.
+---which are generated when the `BUILD` file is executed.
 please.jump_to_target = function()
   logging.log_call('please.jump_to_target')
 
@@ -284,7 +265,7 @@ please.jump_to_target = function()
   end)
 end
 
----If the current file is a BUILD file, builds the target which is under the
+---If the current file is a `BUILD` file, builds the target which is under the
 ---cursor. Otherwise, builds the target which takes the current file as an
 ---input.
 please.build = function()
@@ -312,7 +293,7 @@ please.build = function()
   end)
 end
 
----If the current file is a BUILD file, test the target which is under the
+---If the current file is a `BUILD` file, test the target which is under the
 ---cursor. Otherwise, test the target which takes the current file as an
 ---input.
 ---
@@ -325,7 +306,7 @@ end
 ---  - testify suite test methods
 ---- Python
 ---  - unittest test methods
----@param opts table|nil options
+---@param opts table|nil available options
 ---  * {under_cursor} (boolean): run the test under the cursor
 ---  * {list} (boolean): select which test to run
 ---  * {failed} (boolean): run just the test cases which failed from the
@@ -386,11 +367,9 @@ please.test = function(opts)
   end)
 end
 
----If the current file is a BUILD file, run the target which is under the
+---If the current file is a `BUILD` file, run the target which is under the
 ---cursor. Otherwise, run the target which takes the current file as an
----input. Program arguments can be entered via a |vim.ui.input()| prompt
----which allows you to customise the appearance to your taste (see
----https://github.com/stevearc/dressing.nvim and |lua-ui|).
+---input.
 please.run = function()
   logging.log_call('please.run')
 
@@ -422,7 +401,7 @@ please.run = function()
   end)
 end
 
----If the current file is a BUILD file, yank the label of the target which is
+---If the current file is a `BUILD` file, yank the label of the target which is
 ---under the cursor. Otherwise, yank the label of the target which takes the
 ---current file as an input.
 please.yank = function()
@@ -450,7 +429,7 @@ please.yank = function()
   end)
 end
 
----If the current file is a BUILD file, debug the target which is under the
+---If the current file is a `BUILD` file, debug the target which is under the
 ---cursor. Otherwise, debug the target which takes the current file as an
 ---input.
 ---
@@ -485,8 +464,8 @@ please.debug = function()
   end)
 end
 
----List the previous actions which you have run, ordered from most to least
----recent. You can rerun any of any action by selecting it.
+---Display a history of previous actions. Selecting one of them will run it
+---again.
 please.action_history = function()
   logging.log_call('please.action_history')
 

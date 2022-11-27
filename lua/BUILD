@@ -11,12 +11,3 @@ neovim_lua_module(
         "//third_party/neovim:plenary",
     ],
 )
-
-neovim_generate_docs(
-    name = "generate_docs",
-    srcs = ["please.lua"],
-    opts = [
-        "--layout mini",
-    ],
-    output = "doc/please.txt",
-)

@@ -1,13 +1,18 @@
-local M = {}
+local logging = {}
 
 local debug_enabled = false
 
-M.toggle_debug = function()
+---@mod please.logging LOGGING COMMANDS
+
+---Toggles debug logs containing which functions are being called with which
+---arguments. This should provide enough information to debug most issues.
+---To toggle debug logs from the command line, use `:Please toggle_debug_logs`
+logging.toggle_debug = function()
   if debug_enabled then
-    M.info('debug logs disabled')
+    logging.info('debug logs disabled')
     debug_enabled = false
   else
-    M.info('debug logs enabled')
+    logging.info('debug logs enabled')
     debug_enabled = true
   end
 end
@@ -24,24 +29,29 @@ local log = function(msg, level, ...)
   end
 end
 
-M.debug = function(msg, ...)
+---@private
+logging.debug = function(msg, ...)
   if debug_enabled then
     log(msg, vim.log.levels.DEBUG, ...)
   end
 end
 
-M.info = function(msg, ...)
+---@private
+logging.info = function(msg, ...)
   log(msg, vim.log.levels.INFO, ...)
 end
 
-M.warn = function(msg, ...)
+---@private
+logging.warn = function(msg, ...)
   log(msg, vim.log.levels.WARN, ...)
 end
 
-M.error = function(msg, ...)
+---@private
+logging.error = function(msg, ...)
   log(msg, vim.log.levels.ERROR, ...)
 end
 
+---@private
 ---Runs the given function and logs any errors raised, prefixed with the provided message.
 ---Intended to be used in combination with assert to clean up repetitive error handling.
 ---If debug logs are enabled, then the file and line number of the error are also included in the log.
@@ -75,11 +85,11 @@ end
 ---```
 ---@param err_msg string
 ---@param f function
-M.log_errors = function(err_msg, f)
+logging.log_errors = function(err_msg, f)
   local ok, err = pcall(f)
   if not ok then
     if debug_enabled then
-      M.error('%s: %s', err_msg, err)
+      logging.error('%s: %s', err_msg, err)
       return
     end
     -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
@@ -91,13 +101,14 @@ M.log_errors = function(err_msg, f)
     -- end
     -- won't raise an error filename / location)
     local user_msg = err:match('.-:%d+: (.+)') or err
-    M.error('%s: %s', err_msg, user_msg)
+    logging.error('%s: %s', err_msg, user_msg)
   end
 end
 
+---@private
 ---Logs the args passed to a func at debug level.
 ---@param func_name string the name of the called function (this can't be consistently introspected)
-M.log_call = function(func_name)
+logging.log_call = function(func_name)
   if not debug_enabled then
     return
   end
@@ -114,10 +125,10 @@ M.log_call = function(func_name)
   end
 
   if #args > 0 then
-    M.debug('%s called with %s', func_name, table.concat(args, ', '))
+    logging.debug('%s called with %s', func_name, table.concat(args, ', '))
   else
-    M.debug('%s called', func_name)
+    logging.debug('%s called', func_name)
   end
 end
 
-return M
+return logging

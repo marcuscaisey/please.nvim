@@ -4,4 +4,12 @@ neovim_plugin(
         "//lua",
         "//plugin",
     ],
+    doc_srcs = [
+        "//lua:lua",
+        "//lua/please:logging",
+    ],
+    doc_opts = [
+        "--layout mini",
+        "--prefix-func",
+    ],
 )
