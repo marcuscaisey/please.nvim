@@ -77,6 +77,7 @@
 ---  vim.keymap.set('n', '<leader>py', require('please').yank)
 ---  vim.keymap.set('n', '<leader>pd', require('please').debug)
 ---  vim.keymap.set('n', '<leader>pa', require('please').action_history)
+---  vim.keymap.set('n', '<leader>pp', require('please.runners.popup').restore)
 ---<
 ---@brief ]]
 

@@ -1,3 +1,5 @@
+---@mod please.runners.popup POPUP COMMANDS
+
 local Job = require('plenary.job')
 local plenary_popup = require('plenary.popup')
 local logging = require('please.logging')
@@ -39,6 +41,7 @@ local ansi = {
   erase_in_display = '\x1b[J',
 }
 
+---@private
 ---Runs a command with the given args in a terminal in a popup.
 ---The output of the command is automatically scrolled through.
 ---The popup can be exited with q or by focusing on another window.
@@ -193,9 +196,9 @@ popup.run = function(cmd, args, opts)
   job:start()
 end
 
----Shows the output from a previous popup in a new popup, restoring the previous cursor position as well.
----Only popups who's command ran to completion can be restored, otherwise no popup will be opened.
----The popup can be exited with q or by focusing on another window.
+---Shows the output from a previous popup in a new popup, restoring the
+---previous cursor position as well. Only popups who's command ran to
+---completion can be restored, otherwise no popup will be opened.
 popup.restore = function()
   logging.log_call('runners.restore')
 

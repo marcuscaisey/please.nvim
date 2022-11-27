@@ -1,6 +1,5 @@
 - add LSP setup
 - run tests and gendocs in github actions
-- document runners
 - integrate tmux runner
 - add debug test under cursor command
 - add nvim-dap adapter so that you can debug with dap.continue instead of :Please debug
@@ -8,4 +7,3 @@
 - autoformatting
 - improve snappiness / performance of commands
 - add --window-width arg to plz so that output doesn't get cut off in popup
-- look over all documentation and clean up / clarify where necessary
