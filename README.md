@@ -1,44 +1,38 @@
 # please.nvim
-`please.nvim` is a plugin which allows you interact with your Please repository from the comfort of
-NeoVim. The aim is to achieve feature parity (and beyond) with [please-vscode](https://github.com/thought-machine/please-vscode)
+please.nvim is a plugin which allows you interact with your Please repository from the comfort of Neovim. The aim is to remove the need to switch from your editor to the shell when performing routine actions.
 
 ## Features
-Currently implemented features of `please.nvim` are:
-- jumping to the build target of the current file (`Please jump_to_target`)
-- building (`Please build`)
-- testing (`Please test`)
-- running the test under the cursor (`Please test under_cursor`)
-- choosing a test to run from a list of tests in the current file (`Please test list`)
-- running the failed test cases from the last run (`Please test failed`)
-- running (`Please run`)
-- yanking build labels (`Please yank`)
-- debugging using [nvim-dap](https://github.com/mfussenegger/nvim-dap) (`Please debug`)
-- a history of Please actions with the ability to rerun them (`Please action_history`)
-- `please` filetype configured for the following files:
-    - `BUILD`
-    - `*.plz`
-    - `*.build_def`
-    - `*.build_defs`
-    - `*.build`
-- `ini` filetype configured for `.plzconfig` files
-- [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) configured to use the
-  Python parser so that you get the benefits of treesitter in `please` files (see
-  [`nvim-treesitter` configuration](#nvim-treesitter-configuration) for more info)
-
-## Demo
-Shown below:
-1. Testing the target `:run_test` from `run_test.go` with `<space>pt` (`Please test`)
-2. Jumping to the defintion of the target `:run_test` from `run_test.go` with `<space>pj` (`Please jump_to_target`)
-3. Testing the target `:run_test` again, this time from the `BUILD` file (`Please test` again)
-
-![please.nvim demo](https://user-images.githubusercontent.com/34950778/169720695-fe5b80d1-7c53-4b3d-ad56-b23c80e48bde.gif)
+  * Build, run, test, and debug a target
+  * Yank a target's label
+  * Jump from a source file to its build target definition
+  * Display history of previous actions and run any of them again
+  * `please` configured as the `filetype` for the following files:
+    * `BUILD`
+    * `*.plz`
+    * `*.build_def`
+    * `*.build_defs`
+    * `*.build`
+    * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
+    * `nvim-treesitter` configured to use the Python parser for `please` files to enable better syntax highlighting and use of all treesitter features in build files
 
 ## Documentation
-Detailed documentation can be found in the help file by running `:help please.nvim`.
+Documentation can be found in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
 
 ## Getting started
 ### Installation
-> :information_source: Neovim >= 0.7 is required to use `please.nvim`
+> :information_source: Neovim >= 0.8 is required to use please.nvim
+
+Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+```lua
+use({
+  'marcuscaisey/please.nvim',
+  requires = {
+    'nvim-lua/plenary.nvim',
+    'nvim-treesitter/nvim-treesitter',
+    'mfussenegger/nvim-dap',
+  },
+})
+```
 
 Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```viml
@@ -56,25 +50,14 @@ call dein#add('mfussenegger/nvim-dap')
 call dein#add('marcuscaisey/please.nvim')
 ```
 
-Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
-```lua
-use({
-  'marcuscaisey/please.nvim',
-  requires = {
-    'nvim-lua/plenary.nvim',
-    'nvim-treesitter/nvim-treesitter',
-    'mfussenegger/nvim-dap',
-  },
-})
-```
 
 #### Recommended additional plugins
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - excellent fuzzy finder
-- [dressing.nvim](https://github.com/stevearc/dressing.nvim) - pairs with `telescope.nvim` to
+- [dressing.nvim](https://github.com/stevearc/dressing.nvim) - pairs with telescope.nvim to
   provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`)
 - [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - embeds variable
   values as virtual text
-- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for `nvim-dap`
+- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for nvim-dap
 
 ### `nvim-treesitter` configuration
 `please.nvim` configures [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) so
@@ -93,40 +76,26 @@ For more information on configuring [`nvim-treesitter`](https://github.com/nvim-
 [see here](https://github.com/nvim-treesitter/nvim-treesitter#available-modules).
 
 ### Mappings
-`please.nvim` doesn't come with any mappings defined out of the box so that you
-can customise how you use it. Below are some examples for each command to get
-you started.
+please.nvim doesn't come with any mappings defined out of the box so that you
+can customise how you use it. Below are a set of mappings for each available
+command to get you started.
 
-Lua:
 ```lua
-vim.keymap.set('n', '<leader>pj', require("please").jump_to_target, { silent = true })
-vim.keymap.set('n', '<leader>pb', require("please").build, { silent = true })
-vim.keymap.set('n', '<leader>pt', require("please").test, { silent = true })
+vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
+vim.keymap.set('n', '<leader>pb', require('please').build)
+vim.keymap.set('n', '<leader>pt', require('please').test)
 vim.keymap.set('n', '<leader>pct', function()
-  require('please').test({ under_cursor = true})
-end, { silent = true })
+require('please').test({ under_cursor = true})
+end)
 vim.keymap.set('n', '<leader>plt', function()
-  require('please').test({ list = true})
-end, { silent = true })
+require('please').test({ list = true})
+end)
 vim.keymap.set('n', '<leader>pft', function()
-  require('please').test({ failed = true})
-end, { silent = true })
-vim.keymap.set('n', '<leader>pr', require("please").run, { silent = true })
-vim.keymap.set('n', '<leader>py', require("please").yank, { silent = true })
-vim.keymap.set('n', '<leader>pd', require("please").debug, { silent = true })
-vim.keymap.set('n', '<leader>pa', require("please").action_history, { silent = true })
-```
-
-VimL:
-```vim
-nnoremap <leader>pj silent <cmd>Please jump_to_target<cr>
-nnoremap <leader>pb silent <cmd>Please build<cr>
-nnoremap <leader>pt silent <cmd>Please test<cr>
-nnoremap <leader>pct silent <cmd>Please test under_cursor<cr>
-nnoremap <leader>plt silent <cmd>Please test list<cr>
-nnoremap <leader>pft silent <cmd>Please test failed<cr>
-nnoremap <leader>pr silent <cmd>Please run<cr>
-nnoremap <leader>py silent <cmd>Please yank<cr>
-nnoremap <leader>pd silent <cmd>Please debug<cr>
-nnoremap <leader>pa silent <cmd>Please action_history<cr>
+require('please').test({ failed = true})
+end)
+vim.keymap.set('n', '<leader>pr', require('please').run)
+vim.keymap.set('n', '<leader>py', require('please').yank)
+vim.keymap.set('n', '<leader>pd', require('please').debug)
+vim.keymap.set('n', '<leader>pa', require('please').action_history)
+vim.keymap.set('n', '<leader>pp', require('please.runners.popup').restore)
 ```
