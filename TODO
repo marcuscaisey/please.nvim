@@ -7,3 +7,4 @@
 - autoformatting
 - improve snappiness / performance of commands
 - add --window-width arg to plz so that output doesn't get cut off in popup
+- download plz into the repo and use in build targets?
