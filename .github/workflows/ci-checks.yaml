@@ -1,0 +1,41 @@
+name: CI Checks
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v3
+      - name: Install Please
+        run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
+      - name: Run tests
+        run: plz test --exclude //experimental/...
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v3
+      - name: Install Please
+        run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
+      - name: Check if help file needs regenerating
+        run: plz run //:please_help_gen_check
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v3
+      - name: Lint with Stylua
+        uses: JohnnyMorganz/stylua-action@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: 0.14.1
+          args: --check --color always .
