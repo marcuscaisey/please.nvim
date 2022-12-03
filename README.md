@@ -15,6 +15,9 @@ please.nvim is a plugin which allows you interact with your Please repository fr
     * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
     * `nvim-treesitter` configured to use the Python parser for `please` files to enable better syntax highlighting and use of all treesitter features in build files
 
+### Documentation
+Detailed documentation can be in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
+
 ## Getting started
 ### Installation
 > :information_source: Neovim >= 0.8 is required to use please.nvim
@@ -54,9 +57,6 @@ call dein#add('marcuscaisey/please.nvim')
 - [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - embeds variable
   values as virtual text
 - [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for nvim-dap
-
-### Documentation
-Detailed documentation can be in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
 
 ### `nvim-treesitter` configuration
 `please.nvim` configures [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) so
