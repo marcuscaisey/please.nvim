@@ -16,7 +16,7 @@ please.nvim is a plugin which allows you interact with your Please repository fr
     * `nvim-treesitter` configured to use the Python parser for `please` files to enable better syntax highlighting and use of all treesitter features in build files
 
 ## Documentation
-Documentation can be found in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
+Documentation for all available commands can be found in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
 
 ## Getting started
 ### Installation
