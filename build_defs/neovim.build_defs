@@ -242,15 +242,32 @@ def neovim_github_tree_sitter_parser(name:str, lang:str, repo:str, revision:str,
     subrepo_build_file = text_file(
         name = tag(name, "subrepo_build_file"),
         content = """
+COMPILER_FLAGS = [
+    "-Wno-deprecated",
+    "-Wno-unused-but-set-variable",
+]
+
+c_library(
+    name = "c",
+    srcs = glob("src/*.c"),
+    hdrs = glob("src/tree_sitter/*.h"),
+    compiler_flags = COMPILER_FLAGS,
+    includes = ["src"],
+    visibility = ["PUBLIC"],
+)
+
+cc_library(
+    name = "cc",
+    srcs = glob("src/*.cc"),
+    hdrs = glob("src/tree_sitter/*.h"),
+    compiler_flags = COMPILER_FLAGS,
+    includes = ["src"],
+    visibility = ["PUBLIC"],
+)
+
 cc_shared_object(
     name = "parser",
-    srcs = glob("src/*.c") + glob("src/*.cc"),
-    hdrs = glob("src/tree_sitter/*.h"),
-    compiler_flags = [
-        "-Wno-deprecated",
-        "-Wno-unused-but-set-variable",
-    ],
-    includes = ["src"],
+    deps = [":c", ":cc"],
     visibility = ["PUBLIC"],
 )
         """,
