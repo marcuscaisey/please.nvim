@@ -15,6 +15,14 @@ please.nvim is a plugin which allows you interact with your Please repository fr
     * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
     * `nvim-treesitter` configured to use the Python parser for `please` files to enable better syntax highlighting and use of all treesitter features in build files
 
+## Demo
+https://user-images.githubusercontent.com/34950778/205456279-665ddfe8-de77-4f36-a337-85768bb06a37.mov
+
+Shown above:
+1. Testing the target `//gopkg:test` from `gopkg/gopkg_test.go` with `<space>pt` (`require('please').test()`)
+2. Jumping to the defintion of the target `//gopkg:test` from `gopkg/gopkg_test.go` with `<space>pj` (`require('please').jump_to_target()`)
+3. Testing the target `//gopkg:test` again, this time from the `BUILD` file (`require('please').test()` again)
+
 ## Documentation
 Detailed documentation can be in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
 
