@@ -3,7 +3,7 @@ package gopkg_test
 import (
 	"testing"
 
-	"gopkg"
+	"experimental/gopkg"
 )
 
 // basic function

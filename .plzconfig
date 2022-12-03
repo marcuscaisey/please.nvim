@@ -8,3 +8,15 @@ preloadbuilddefs = build_defs/neovim.build_defs
 nvim-tool = //third_party/neovim:toolchain|nvim
 plenary-plugin = //third_party/neovim:plenary
 lemmy-help-tool = //third_party/neovim:lemmy_help
+
+[go]
+gotool = //third_party/go:toolchain|go
+delvetool = //third_party/go:dlv
+
+[python]
+disablevendorflags = true
+moduledir = third_party/python
+
+[sandbox]
+build = true
+test = true
