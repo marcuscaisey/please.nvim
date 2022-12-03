@@ -173,7 +173,7 @@ def neovim_test(name:str, test_file:str, deps:list = []):
         # unhelpful if the script is not in the root because it means that the test file's dependencies would not be
         # where it expects them to be.
         cmd = [
-            '''echo '#!/bin/sh' >> "$TMPDIR"/_preamble.txt''',
+            '''echo '#!/bin/bash' >> "$TMPDIR"/_preamble.txt''',
             'echo "set -euo pipefail" >> "$TMPDIR"/_preamble.txt',
             # Unzip the dependencies from the script.
             'echo "unzip -qo \\\$0" >> "$TMPDIR"/_preamble.txt',
