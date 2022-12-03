@@ -22,17 +22,27 @@ def neovim_toolchain(name:str, version:str, hashes:list = [], visibility:list = 
     if CONFIG.HOSTOS not in host_os_to_url:
         fail(f'neovim_toolchain rule is not supported on host OS: "{CONFIG.HOSTOS}"')
 
-    return remote_file(
-        name = name,
+    download = remote_file(
+        name = tag(name, "download"),
         url = host_os_to_url[CONFIG.HOSTOS],
-        extract = True,
-        out = name,
+        hashes = hashes,
+    )
+
+    return genrule(
+        name = name,
+        srcs = [download],
+        cmd = [
+            "mkdir _out",
+            "tar -xf $SRCS -C _out",
+            "mv _out/$(ls _out) $OUT",
+        ],
+        outs = [name],
         entry_points = {
             "nvim": f"{name}/bin/nvim"
         },
         binary = True,
-        hashes = hashes,
         visibility = visibility,
+        building_description = "Installing...",
     )
 
 def neovim_plugin(name:str, srcs:list = [], deps:list = [], doc_srcs:list = [], doc_opts:list = [], visibility:list = ["PUBLIC"]):
