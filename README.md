@@ -15,9 +15,6 @@ please.nvim is a plugin which allows you interact with your Please repository fr
     * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
     * `nvim-treesitter` configured to use the Python parser for `please` files to enable better syntax highlighting and use of all treesitter features in build files
 
-## Documentation
-Documentation for all available commands can be found in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
-
 ## Getting started
 ### Installation
 > :information_source: Neovim >= 0.8 is required to use please.nvim
@@ -50,7 +47,6 @@ call dein#add('mfussenegger/nvim-dap')
 call dein#add('marcuscaisey/please.nvim')
 ```
 
-
 #### Recommended additional plugins
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - excellent fuzzy finder
 - [dressing.nvim](https://github.com/stevearc/dressing.nvim) - pairs with telescope.nvim to
@@ -58,6 +54,9 @@ call dein#add('marcuscaisey/please.nvim')
 - [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - embeds variable
   values as virtual text
 - [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for nvim-dap
+
+### Documentation
+Detailed documentation can be in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
 
 ### `nvim-treesitter` configuration
 `please.nvim` configures [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) so
@@ -74,28 +73,3 @@ require('nvim-treesitter.configs').setup({
 
 For more information on configuring [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter),
 [see here](https://github.com/nvim-treesitter/nvim-treesitter#available-modules).
-
-### Mappings
-please.nvim doesn't come with any mappings defined out of the box so that you
-can customise how you use it. Below are a set of mappings for each available
-command to get you started.
-
-```lua
-vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
-vim.keymap.set('n', '<leader>pb', require('please').build)
-vim.keymap.set('n', '<leader>pt', require('please').test)
-vim.keymap.set('n', '<leader>pct', function()
-require('please').test({ under_cursor = true})
-end)
-vim.keymap.set('n', '<leader>plt', function()
-require('please').test({ list = true})
-end)
-vim.keymap.set('n', '<leader>pft', function()
-require('please').test({ failed = true})
-end)
-vim.keymap.set('n', '<leader>pr', require('please').run)
-vim.keymap.set('n', '<leader>py', require('please').yank)
-vim.keymap.set('n', '<leader>pd', require('please').debug)
-vim.keymap.set('n', '<leader>pa', require('please').action_history)
-vim.keymap.set('n', '<leader>pp', require('please.runners.popup').restore)
-```
