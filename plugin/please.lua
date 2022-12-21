@@ -1,5 +1,5 @@
-if not vim.fn.has('nvim-0.7.0') then
-  vim.api.nvim_err_writeln('please.nvim requires at least Neovim 0.7')
+if not vim.fn.has('nvim-0.8.0') then
+  vim.api.nvim_err_writeln('please.nvim requires at least Neovim 0.8')
   return
 end
 
