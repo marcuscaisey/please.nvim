@@ -11,7 +11,7 @@
 ---from the comfort of Neovim. The aim is to remove the need to switch from your
 ---editor to the shell when performing routine actions.
 ---
----Features~
+---Features ~
 ---  * Build, run, test, and debug a target
 ---  * Yank a target's label
 ---  * Jump from a source file to its build target definition
@@ -31,7 +31,7 @@
 
 ---@mod please-usage USAGE
 ---@brief [[
----Lua and VimL APIs~
+---Lua and VimL APIs ~
 ---please.nvim commands can be called either through the Lua or the VimL API.
 ---  * Commands are written in Lua and as such the Lua API should be preferred.
 ---    It can't be guaranteed that all features available through the Lua API
@@ -47,7 +47,7 @@
 ---`:Please` command. For instance, `jump_to_target` is executed with
 ---`:Please jump_to_target`
 ---
----UI Customisation~
+---UI Customisation ~
 ---Some commands may prompt you to either choose from a list of options or input
 ---some text. For example, when building a file which is an input to multiple
 ---build targets, you'll be prompted to choose which target to build.
