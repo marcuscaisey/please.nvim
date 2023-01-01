@@ -404,89 +404,141 @@ describe('get_test_at_cursor', function()
 end)
 
 describe('list_tests_in_file', function()
-  local test_cases = {
-    {
-      name = 'should return all tests from a Go file',
-      tree = {
-        ['foo.go'] = [[
-          func TestOne(t *testing.T) {
-              t.Fatal("oh no")
-          }
+  local run_test = function(case)
+    local root, teardown_tree = temptree.create(case.tree)
 
-          func Func() {}
+    vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(case.tree)[1])
 
-          func (s *fooSuite) TestTwo() {
-              s.Fatal("oh no")
-          }
-        ]],
-      },
-      expected_tests = {
-        { name = 'TestOne', selector = 'TestOne$' },
-        { name = 'TestTwo', selector = '/TestTwo$' },
-      },
-    },
-    {
-      name = 'should return all tests from a Python file',
-      tree = {
-        ['foo.py'] = [[
-          class TestFoo(unittest.TestCase):
-              def test_one(self):
-                  self.assertEqual(1, 2)
+    local tests, err = parsing.list_tests_in_file()
 
-              def helper_method(self):
-                  return 3
+    if case.expected_tests then
+      assert.are.same(case.expected_tests, tests, 'incorrect tests')
+    end
 
-          class TestBar(unittest.TestCase):
-              def test_two(self):
-                  self.assertEqual(4, 5)
-        ]],
+    if case.expected_err then
+      assert.is_not_nil(err, 'expected error')
+      assert.are.equal(case.expected_err, err, 'incorrect error')
+      assert.is_nil(tests, 'expected no tests')
+    else
+      assert.is_nil(err, 'expected no error')
+    end
+
+    teardown_tree()
+  end
+
+  local run_tests = function(cases)
+    for _, case in ipairs(cases) do
+      it(case.name, function()
+        run_test(case)
+      end)
+    end
+  end
+
+  describe('for go', function()
+    run_tests({
+      {
+        name = 'should return test functions',
+        tree = {
+          ['foo.go'] = [[
+            func TestFunction1(t *testing.T) {
+                t.Fatal("oh no")
+            }
+
+            func TestFunction2(t *testing.T) {
+                t.Fatal("oh no")
+            }
+          ]],
+        },
+        expected_tests = {
+          { name = 'TestFunction1', selector = 'TestFunction1$' },
+          { name = 'TestFunction2', selector = 'TestFunction2$' },
+        },
       },
-      expected_tests = {
-        { name = 'TestFoo.test_one', selector = 'TestFoo.test_one' },
-        { name = 'TestBar.test_two', selector = 'TestBar.test_two' },
+      {
+        name = 'should return testify suite methods',
+        tree = {
+          ['foo.go'] = [[
+            func (s *fooSuite) TestSuiteMethod1() {
+                s.FailNow("oh no")
+            }
+
+            func (s *fooSuite) TestSuiteMethod2() {
+                s.FailNow("oh no")
+            }
+          ]],
+        },
+        expected_tests = {
+          { name = 'TestSuiteMethod1', selector = '/TestSuiteMethod1$' },
+          { name = 'TestSuiteMethod2', selector = '/TestSuiteMethod2$' },
+        },
       },
-    },
-    {
-      name = 'should return error if language of file is not supported',
+      {
+        name = 'should return different types of tests',
+        tree = {
+          ['foo.go'] = [[
+            func TestFunction(t *testing.T) {
+                t.Fatal("oh no")
+            }
+
+            func (s *fooSuite) TestSuiteMethod() {
+                s.FailNow("oh no")
+            }
+          ]],
+        },
+        expected_tests = {
+          { name = 'TestFunction', selector = 'TestFunction$' },
+          { name = 'TestSuiteMethod', selector = '/TestSuiteMethod$' },
+        },
+      },
+    })
+  end)
+
+  describe('for python', function()
+    run_tests({
+      {
+        name = 'should return unittest test methods',
+        tree = {
+          ['foo.py'] = [[
+            class TestClass1(unittest.TestCase):
+                def test_one(self):
+                    self.fail("oh no")
+
+            class TestClass2(unittest.TestCase):
+                def test_one(self):
+                    self.fail("oh no")
+
+                def test_two(self):
+                    self.fail("oh no")
+          ]],
+        },
+        expected_tests = {
+          { name = 'TestClass1.test_one', selector = 'TestClass1.test_one' },
+          { name = 'TestClass2.test_one', selector = 'TestClass2.test_one' },
+          { name = 'TestClass2.test_two', selector = 'TestClass2.test_two' },
+        },
+      },
+    })
+  end)
+
+  it('should return error if language of file is not supported', function()
+    run_test({
       tree = {
         ['hello.rb'] = 'puts "Hello, World!"',
       },
       expected_err = 'listing tests is not supported for ruby files',
-    },
-    {
-      name = 'should return error if file contains no tests',
+    })
+  end)
+
+  it('should return error if file contains no tests', function()
+    run_test({
       tree = {
         ['foo.go'] = [[
           func Func() {}
         ]],
       },
       expected_err = 'foo.go contains no tests',
-    },
-  }
-
-  for _, tc in ipairs(test_cases) do
-    it(tc.name, function()
-      local root, teardown_tree = temptree.create(tc.tree)
-
-      vim.cmd('edit ' .. root .. '/' .. vim.tbl_keys(tc.tree)[1])
-
-      local tests, err = parsing.list_tests_in_file()
-
-      if tc.expected_tests then
-        assert.are.same(tc.expected_tests, tests, 'incorrect tests')
-      end
-
-      if tc.expected_err then
-        assert.is_not_nil(err, 'expected error')
-        assert.are.equal(tc.expected_err, err, 'incorrect error')
-        assert.is_nil(tests, 'expected no tests')
-      else
-        assert.is_nil(err, 'expected no error')
-      end
-
-      teardown_tree()
-    end)
-  end
+    })
+  end)
 end)
 
 describe('get_target_at_cursor', function()
