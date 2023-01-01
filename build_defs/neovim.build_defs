@@ -83,7 +83,7 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], help_srcs:list = [],
         )
 
         joined_opts = " ".join(help_opts)
-        help_file = genrule(
+        help_file_rule = genrule(
             name = tag(name, "help"),
             srcs = help_srcs,
             outs = [f"{name}.txt"],
@@ -91,16 +91,21 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], help_srcs:list = [],
             cmd = f"$TOOL {joined_opts} $SRCS > $OUT",
         )
 
+        help_file_path = f"doc/{name}.txt"
         help_gen = sh_cmd(
             name = f"{name}_help_gen",
-            deps = [help_file],
-            cmd = f"mkdir -p doc && cp $(out_location {help_file}) doc/{name}.txt",
+            deps = [help_file_rule],
+            cmd = f"mkdir -p doc && cp $(out_location {help_file_rule}) {help_file_path}",
         )
 
         sh_cmd(
             name = f"{name}_help_gen_check",
-            deps = [help_file],
-            cmd = f'diff --unified --color=always doc/{name}.txt $(out_location {help_file}) || echo "\n\033[31;1mHelp file needs to be regenerated. Run plz run //{help_gen}" && exit 1',
+            deps = [help_file_rule],
+            cmd = " ".join([
+                f'diff --unified --color=always {help_file_path} $(out_location {help_file_rule})',
+                f'&& echo "\033[32;1m{help_file_path} is up to date." && exit 0',
+                f'|| echo "\n\033[31;1m{help_file_path} needs to be regenerated with \\"plz run //{help_gen}\\"" && exit 1',
+            ]),
         )
 
     return plugin_srcs
