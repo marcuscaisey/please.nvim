@@ -45,19 +45,21 @@ def neovim_toolchain(name:str, version:str, hashes:list = [], visibility:list = 
         building_description = "Installing...",
     )
 
-def neovim_plugin(name:str, srcs:list = [], deps:list = [], doc_srcs:list = [], doc_opts:list = [], visibility:list = ["PUBLIC"]):
+def neovim_plugin(name:str, srcs:list = [], deps:list = [], help_srcs:list = [], help_opts:list = [], visibility:list = ["PUBLIC"]):
     """
     Defines two Neovim plugin targets:
         1. <name> which collects the plugin's files for use by dependent neovim_lua_module and neovim_test targets.
-        2. <name>_gen_doc, a runnable target which generates a documentation file from Lua srcs using lemmy-help and
-        copies it into the doc directory.
+        2. <name>_help_gen, a runnable target which generates a help file from Lua srcs using lemmy-help and copies it
+        into the doc directory.
+        2. <name>_help_gen_check, a runnable target which checks whether the help file needs to be regenerated. This is
+        intended to be run in CI.
 
     Args:
         name: Name of the build target.
         srcs: Sources of the plugin. Optional.
         deps: Dependencies of the plugin. These should typically be neovim_lua_module targets. Optional.
-        doc_srcs: Lua sources to generate the doc file from. Optional.
-        doc_opts: Options to pass to lemmy-help when generating the doc file. Optional.
+        help_srcs: Lua sources to generate the help file from. Optional.
+        help_opts: Options to pass to lemmy-help when generating the help file. Optional.
         visibility: Visibility specification. Defaults to public.
     """
     # The plugin directories like autoload, lua, plugin etc have to live in the root, so it doesn't make sense to allow
@@ -72,7 +74,7 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], doc_srcs:list = [], 
         visibility = visibility,
     )
 
-    if doc_srcs:
+    if help_srcs:
         lemmy_help = check_config(
             key = "LEMMY_HELP_TOOL",
             section = "BuildConfig",
@@ -80,19 +82,25 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], doc_srcs:list = [], 
             example = "//third_party/neovim:toolchain|nvim",
         )
 
-        joined_opts = " ".join(doc_opts)
-        doc_file = genrule(
-            name = tag(name, "doc"),
-            srcs = doc_srcs,
+        joined_opts = " ".join(help_opts)
+        help_file = genrule(
+            name = tag(name, "help"),
+            srcs = help_srcs,
             outs = [f"{name}.txt"],
             tools = [lemmy_help],
             cmd = f"$TOOL {joined_opts} $SRCS > $OUT",
         )
 
+        help_gen = sh_cmd(
+            name = f"{name}_help_gen",
+            deps = [help_file],
+            cmd = f"mkdir -p doc && cp $(out_location {help_file}) doc/{name}.txt",
+        )
+
         sh_cmd(
-            name = f"{name}_gen_doc",
-            deps = [doc_file],
-            cmd = f"mkdir -p doc && cp $(out_location {doc_file}) doc",
+            name = f"{name}_help_gen_check",
+            deps = [help_file],
+            cmd = f'diff --unified --color=always doc/{name}.txt $(out_location {help_file}) || echo "\n\033[31;1mHelp file needs to be regenerated. Run plz run //{help_gen}" && exit 1',
         )
 
     return plugin_srcs
