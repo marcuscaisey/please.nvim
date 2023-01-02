@@ -19,4 +19,7 @@ moduledir = third_party/python
 
 [sandbox]
 build = true
-test = true
+; FIXME: Uncomment this when we inject a versioned plz into the tests. At the
+; moment, plz tries to update itself when running them which requires talking
+; to the internet.
+; test = true
