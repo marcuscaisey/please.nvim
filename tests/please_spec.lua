@@ -576,9 +576,9 @@ describe('run', function()
       please.action_history()
       -- THEN we're prompted to pick an action to run again
       mock_select:assert_prompt('Pick action to run again')
-      mock_select:assert_items({ 'Run //:foo1_and_foo2 (--foo foo --bar bar)' })
+      mock_select:assert_items({ 'Run //:foo1_and_foo2 --foo foo --bar bar' })
       -- WHEN we select the run action
-      mock_select:choose_item('Run //:foo1_and_foo2 (--foo foo --bar bar)')
+      mock_select:choose_item('Run //:foo1_and_foo2 --foo foo --bar bar')
       -- THEN the target is run again with the same arguments
       mock_plz_popup:assert_called_with({ 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' })
 
@@ -647,14 +647,33 @@ describe('run', function()
       please.action_history()
       -- THEN we're prompted to pick an action to run again
       mock_select:assert_prompt('Pick action to run again')
-      mock_select:assert_items({ 'Run //:foo1 (--foo foo --bar bar)' })
+      mock_select:assert_items({ 'Run //:foo1 --foo foo --bar bar' })
       -- WHEN we select the run action
-      mock_select:choose_item('Run //:foo1 (--foo foo --bar bar)')
+      mock_select:choose_item('Run //:foo1 --foo foo --bar bar')
       -- THEN the target is run again with the same arguments
       mock_plz_popup:assert_called_with({ 'run', '//:foo1', '--', '--foo', 'foo', '--bar', 'bar' })
 
       teardown_tree()
     end)
+  end)
+
+  it('should not include program args in action history entry when none are passed as input', function()
+    local root, teardown_tree = create_temp_tree()
+    local mock_input = mock.Input:new()
+    local mock_select = mock.Select:new()
+
+    -- GIVEN we've run a build target and passed no arguments
+    vim.cmd('edit ' .. root .. '/BUILD')
+    cursor.set({ 2, 5 }) -- in definition of :foo1
+    please.run()
+    mock_input:enter_input('')
+    -- WHEN we call action_history
+    please.action_history()
+    -- THEN the action history entry should not include the empty program args
+    mock_select:assert_prompt('Pick action to run again')
+    mock_select:assert_items({ 'Run //:foo1' })
+
+    teardown_tree()
   end)
 end)
 

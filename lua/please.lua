@@ -392,13 +392,18 @@ please.run = function()
     select_if_many(labels, { prompt = 'Select target to run' }, function(label)
       vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
         local args = {}
-        if input then
+        -- vim.ui.input passes empty input as an empty string instead of nil, I think this is a bug so just check for both to be safe.
+        if input and input ~= '' then
           args = vim.split(input, ' ')
+        end
+        local description = 'Run ' .. label
+        if #args > 0 then
+          description = description .. ' ' .. input
         end
         run_and_save_action(root, {
           name = 'run',
           args = { root, label, args },
-          description = string.format('Run %s (%s)', label, table.concat(args, ' ')),
+          description = description,
         })
       end)
     end)
