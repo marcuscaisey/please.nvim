@@ -1,13 +1,13 @@
 pip_library(
     name = "requests",
     version = "2.28.1",
+    visibility = ["PUBLIC"],
     deps = [
+        ":certifi",
         ":charset_normalizer",
         ":idna",
         ":urllib3",
-        ":certifi",
     ],
-    visibility = ["PUBLIC"],
 )
 
 pip_library(

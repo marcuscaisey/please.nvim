@@ -1,6 +1,9 @@
 go_library(
     name = "gopkg",
-    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
     visibility = ["//gopkg/..."],
     deps = ["//third_party/go:exp"],
 )

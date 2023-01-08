@@ -14,5 +14,5 @@ python_binary(
     main = "ping.py",
     deps = [
         "//third_party/python:requests",
-    ]
+    ],
 )

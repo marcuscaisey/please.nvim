@@ -16,4 +16,3 @@ neovim_test(
         "//tests/utils:temptree",
     ],
 )
-

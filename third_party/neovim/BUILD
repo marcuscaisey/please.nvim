@@ -1,8 +1,8 @@
 neovim_toolchain(
     name = "toolchain",
     hashes = [
-        "abe0b0c1ca46b7d05e689d4791055a6dbbf2394cb53a6a8d8274813e6762c1f1", # darwin
-        "1af27471f76f1b4f7ad6563c863a4a78117f0515e3390ee4d911132970517fa7", # linux
+        "abe0b0c1ca46b7d05e689d4791055a6dbbf2394cb53a6a8d8274813e6762c1f1",  # darwin
+        "1af27471f76f1b4f7ad6563c863a4a78117f0515e3390ee4d911132970517fa7",  # linux
     ],
     version = "0.8.0",
 )
@@ -46,9 +46,9 @@ neovim_github_tree_sitter_parser(
 
 neovim_lemmy_help(
     name = "lemmy_help",
-    version = "0.10.0",
     hashes = [
-        "757118e7112ecafdd4775b0174216da02b5d06c8c2b3d3a1c25376f0eae7e08e", # darwin
-        "1c9bf90204cb16bdbd20f1051c1a0e639023bd9c10bebd718f068877fd5ef6bc", # linux
+        "757118e7112ecafdd4775b0174216da02b5d06c8c2b3d3a1c25376f0eae7e08e",  # darwin
+        "1c9bf90204cb16bdbd20f1051c1a0e639023bd9c10bebd718f068877fd5ef6bc",  # linux
     ],
+    version = "0.10.0",
 )
