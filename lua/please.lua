@@ -195,11 +195,12 @@ local select = function(items, opts, on_choice)
   end
   local padding = 7
   local min_width = 80
+  local min_height = 15
   opts.prompt = opts.prompt or 'Select one of:'
   opts.telescope = {
     layout_config = {
       width = math.max(min_width, math.max(max_item_length, #opts.prompt) + padding),
-      height = 15,
+      height = math.max(#items, min_height) + 5,
     },
   }
   vim.ui.select(items, opts, function(item)
