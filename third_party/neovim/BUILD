@@ -30,10 +30,10 @@ neovim_github_plugin(
 
 neovim_github_tree_sitter_parser(
     name = "go_tree_sitter_parser",
-    hashes = ["ad526c3a5015ee9c666936d48dcc587472330eec185b213abf2783b97a69378f"],
+    hashes = ["57358458f91826c9465e741b39352e0a0cf44d5032a32f492dddd300d92738d8"],
     lang = "go",
     repo = "tree-sitter/tree-sitter-go",
-    revision = "v0.19.1",
+    revision = "64457ea6b73ef5422ed1687178d4545c3e91334a",
 )
 
 neovim_github_tree_sitter_parser(

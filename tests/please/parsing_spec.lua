@@ -169,6 +169,7 @@ describe('locate_build_target', function()
   end
 end)
 
+-- TODO: rework these tests so that they check every possible cursor position inside the test
 describe('get_test_at_cursor', function()
   local run_test = function(case)
     local root, teardown_tree = temptree.create(case.tree)
@@ -211,7 +212,7 @@ describe('get_test_at_cursor', function()
             }]],
         },
         cursor = { 2, 4 },
-        expected_test = { name = 'TestFunc', selector = 'TestFunc$' },
+        expected_test = { name = 'TestFunc', selector = '^TestFunc$' },
       },
       {
         name = 'should return error if func name does not start with Test',
@@ -244,7 +245,7 @@ describe('get_test_at_cursor', function()
             }]],
         },
         cursor = { 2, 4 },
-        expected_test = { name = 'TestMethod', selector = '/TestMethod$' },
+        expected_test = { name = 'TestMethod', selector = '/^TestMethod$' },
       },
       {
         name = 'should return error if testify suite method name does not start with Test',
@@ -329,7 +330,7 @@ describe('get_test_at_cursor', function()
         run_test({
           tree = tree,
           cursor = case.cursor,
-          expected_test = { name = 'TestFunc', selector = 'TestFunc$' },
+          expected_test = { name = 'TestFunc', selector = '^TestFunc$' },
         })
       end)
     end
@@ -390,7 +391,7 @@ describe('get_test_at_cursor', function()
             }]],
       },
       cursor = { 6, 4 },
-      expected_test = { name = 'TestFuncTwo', selector = 'TestFuncTwo$' },
+      expected_test = { name = 'TestFuncTwo', selector = '^TestFuncTwo$' },
     },
     {
       name = 'should return error if language of file is not supported',
@@ -450,26 +451,208 @@ describe('list_tests_in_file', function()
           ]],
         },
         expected_tests = {
-          { name = 'TestFunction1', selector = 'TestFunction1$' },
-          { name = 'TestFunction2', selector = 'TestFunction2$' },
+          { name = 'TestFunction1', selector = '^TestFunction1$' },
+          { name = 'TestFunction2', selector = '^TestFunction2$' },
+        },
+      },
+      {
+        name = 'should return test function subtests',
+        tree = {
+          ['foo.go'] = [[
+            func TestFunctionWithSubTests(t *testing.T) {
+                testCases := []struct{
+                    name  string
+                    input int
+                    want  int
+                }{
+                    {
+                        name:  "TestNameInCamelCase",
+                        input: 1,
+                        want:  2,
+                    },
+                    {
+                        name:  "test name in snake case",
+                        input: 2,
+                        want:  3,
+                    },
+                }
+
+                for _, tc := range testCases {
+                    t.Run(tc.name, func(t *testing.T) {
+                        t.Fatal("oh no")
+                    })
+                }
+            }
+
+            func TestFunctionWithVarSubTests(t *testing.T) {
+                var testCases = []struct{
+                    name  string
+                    input int
+                    want  int
+                }{
+                    {
+                        name:  "TestNameInCamelCase",
+                        input: 1,
+                        want:  2,
+                    },
+                    {
+                        name:  "test name in snake case",
+                        input: 2,
+                        want:  3,
+                    },
+                }
+
+                for _, tc := range testCases {
+                    t.Run(tc.name, func(t *testing.T) {
+                        t.Fatal("oh no")
+                    })
+                }
+            }
+
+            func TestFunctionWithEmptySubTestCases(t *testing.T) {
+                testCases := []struct{
+                    name  string
+                    input int
+                    want  int
+                }{}
+
+                for _, tc := range testCases {
+                    t.Run(tc.name, func(t *testing.T) {
+                        t.Fatal("oh no")
+                    })
+                }
+            }
+          ]],
+        },
+        expected_tests = {
+          { name = 'TestFunctionWithSubTests', selector = '^TestFunctionWithSubTests$' },
+          {
+            name = 'TestFunctionWithSubTests/TestNameInCamelCase',
+            selector = '^TestFunctionWithSubTests$/^TestNameInCamelCase$',
+          },
+          {
+            name = 'TestFunctionWithSubTests/test_name_in_snake_case',
+            selector = '^TestFunctionWithSubTests$/^test_name_in_snake_case$',
+          },
+          { name = 'TestFunctionWithVarSubTests', selector = '^TestFunctionWithVarSubTests$' },
+          {
+            name = 'TestFunctionWithVarSubTests/TestNameInCamelCase',
+            selector = '^TestFunctionWithVarSubTests$/^TestNameInCamelCase$',
+          },
+          {
+            name = 'TestFunctionWithVarSubTests/test_name_in_snake_case',
+            selector = '^TestFunctionWithVarSubTests$/^test_name_in_snake_case$',
+          },
+          { name = 'TestFunctionWithEmptySubTestCases', selector = '^TestFunctionWithEmptySubTestCases$' },
         },
       },
       {
         name = 'should return testify suite methods',
         tree = {
           ['foo.go'] = [[
-            func (s *fooSuite) TestSuiteMethod1() {
+            func (s *testSuite) TestSuiteMethod1() {
                 s.FailNow("oh no")
             }
 
-            func (s *fooSuite) TestSuiteMethod2() {
+            func (s *testSuite) TestSuiteMethod2() {
                 s.FailNow("oh no")
             }
           ]],
         },
         expected_tests = {
-          { name = 'TestSuiteMethod1', selector = '/TestSuiteMethod1$' },
-          { name = 'TestSuiteMethod2', selector = '/TestSuiteMethod2$' },
+          { name = 'TestSuiteMethod1', selector = '/^TestSuiteMethod1$' },
+          { name = 'TestSuiteMethod2', selector = '/^TestSuiteMethod2$' },
+        },
+      },
+      {
+        name = 'should return testify suite method subtests',
+        tree = {
+          ['foo.go'] = [[
+            func (s *testSuite) TestSuiteMethodWithSubTests() {
+                testCases := []struct {
+                    name  string
+                    input int
+                    want  int
+                }{
+                    {
+                        name:  "TestNameInCamelCase",
+                        input: 1,
+                        want:  2,
+                    },
+                    {
+                        name:  "test name in snake case",
+                        input: 2,
+                        want:  3,
+                    },
+                }
+
+                for _, tc := range testCases {
+                    s.Run(tc.name, func() {
+                        s.FailNow("oh no")
+                    })
+                }
+            }
+
+            func (s *testSuite) TestSuiteMethodWithVarSubTests() {
+                var testCases = []struct {
+                    name  string
+                    input int
+                    want  int
+                }{
+                  {
+                      name:  "TestNameInCamelCase",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "test name in snake case",
+                      input: 2,
+                      want:  3,
+                  },
+                }
+
+                for _, tc := range testCases {
+                    s.Run(tc.name, func() {
+                        s.FailNow("oh no")
+                    })
+                }
+            }
+
+            func (s *testSuite) TestSuiteMethodWithEmptySubTestCases() {
+                testCases := []struct {
+                    name  string
+                    input int
+                    want  int
+                }{}
+
+                for _, tc := range testCases {
+                    s.Run(tc.name, func() {
+                        s.FailNow("oh no")
+                    })
+                }
+            }
+          ]],
+        },
+        expected_tests = {
+          { name = 'TestSuiteMethodWithSubTests', selector = '/^TestSuiteMethodWithSubTests$' },
+          {
+            name = 'TestSuiteMethodWithSubTests/TestNameInCamelCase',
+            selector = '/^TestSuiteMethodWithSubTests$/^TestNameInCamelCase$',
+          },
+          {
+            name = 'TestSuiteMethodWithSubTests/test_name_in_snake_case',
+            selector = '/^TestSuiteMethodWithSubTests$/^test_name_in_snake_case$',
+          },
+          { name = 'TestSuiteMethodWithVarSubTests', selector = '/^TestSuiteMethodWithVarSubTests$' },
+          {
+            name = 'TestSuiteMethodWithVarSubTests/TestNameInCamelCase',
+            selector = '/^TestSuiteMethodWithVarSubTests$/^TestNameInCamelCase$',
+          },
+          {
+            name = 'TestSuiteMethodWithVarSubTests/test_name_in_snake_case',
+            selector = '/^TestSuiteMethodWithVarSubTests$/^test_name_in_snake_case$',
+          },
+          { name = 'TestSuiteMethodWithEmptySubTestCases', selector = '/^TestSuiteMethodWithEmptySubTestCases$' },
         },
       },
       {
@@ -480,14 +663,82 @@ describe('list_tests_in_file', function()
                 t.Fatal("oh no")
             }
 
+            func TestFunctionWithSubtests(t *testing.T) {
+                testCases := []struct{
+                    name  string
+                    input int
+                    want  int
+                }{
+                    {
+                        name:  "TestNameInCamelCase",
+                        input: 1,
+                        want:  2,
+                    },
+                    {
+                        name:  "test name in snake case",
+                        input: 2,
+                        want:  3,
+                    },
+                }
+
+                for _, tc := range testCases {
+                    t.Run(tc.name, func(t *testing.T) {
+                        t.Fatal("oh no")
+                    })
+                }
+            }
+
             func (s *fooSuite) TestSuiteMethod() {
                 s.FailNow("oh no")
+            }
+
+            func (s *testSuite) TestSuiteMethodWithSubTests() {
+                testCases := []struct {
+                    name  string
+                    input int
+                    want  int
+                }{
+                    {
+                        name:  "TestNameInCamelCase",
+                        input: 1,
+                        want:  2,
+                    },
+                    {
+                        name:  "test name in snake case",
+                        input: 2,
+                        want:  3,
+                    },
+                }
+
+                for _, tc := range testCases {
+                    s.Run(tc.name, func() {
+                        s.FailNow("oh no")
+                    })
+                }
             }
           ]],
         },
         expected_tests = {
-          { name = 'TestFunction', selector = 'TestFunction$' },
-          { name = 'TestSuiteMethod', selector = '/TestSuiteMethod$' },
+          { name = 'TestFunction', selector = '^TestFunction$' },
+          { name = 'TestFunctionWithSubtests', selector = '^TestFunctionWithSubtests$' },
+          {
+            name = 'TestFunctionWithSubtests/TestNameInCamelCase',
+            selector = '^TestFunctionWithSubtests$/^TestNameInCamelCase$',
+          },
+          {
+            name = 'TestFunctionWithSubtests/test_name_in_snake_case',
+            selector = '^TestFunctionWithSubtests$/^test_name_in_snake_case$',
+          },
+          { name = 'TestSuiteMethod', selector = '/^TestSuiteMethod$' },
+          { name = 'TestSuiteMethodWithSubTests', selector = '/^TestSuiteMethodWithSubTests$' },
+          {
+            name = 'TestSuiteMethodWithSubTests/TestNameInCamelCase',
+            selector = '/^TestSuiteMethodWithSubTests$/^TestNameInCamelCase$',
+          },
+          {
+            name = 'TestSuiteMethodWithSubTests/test_name_in_snake_case',
+            selector = '/^TestSuiteMethodWithSubTests$/^test_name_in_snake_case$',
+          },
         },
       },
     })

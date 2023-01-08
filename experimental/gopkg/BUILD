@@ -12,5 +12,5 @@ go_test(
     name = "test",
     srcs = glob(["*_test.go"]),
     external = True,
-    deps = [":gopkg"],
+    deps = ["//third_party/go:testify"],
 )

@@ -28,7 +28,7 @@ go_module(
         ":lru",
         ":starlark",
         ":trie",
-        ":yaml",
+        ":yaml_v2",
     ],
 )
 
@@ -110,7 +110,7 @@ go_module(
     deps = [
         ":md2man",
         ":pflag",
-        ":yaml",
+        ":yaml_v2",
     ],
 )
 
@@ -175,7 +175,7 @@ go_module(
 )
 
 go_module(
-    name = "yaml",
+    name = "yaml_v2",
     module = "gopkg.in/yaml.v2",
     version = "v2.4.0",
 )
@@ -189,4 +189,52 @@ go_module(
     module = "golang.org/x/exp",
     version = "v0.0.0-20220722155223-a9213eeb770e",
     visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "testify",
+    install = [
+        "assert",
+        "require",
+        "suite",
+    ],
+    module = "github.com/stretchr/testify",
+    version = "v1.8.1",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":difflib",
+        ":objx",
+        ":spew",
+        ":yaml_v3",
+    ],
+)
+
+go_module(
+    name = "spew",
+    install = [
+        "spew",
+    ],
+    module = "github.com/davecgh/go-spew",
+    version = "v1.1.1",
+)
+
+go_module(
+    name = "difflib",
+    install = [
+        "difflib",
+    ],
+    module = "github.com/pmezard/go-difflib",
+    version = "v1.0.0",
+)
+
+go_module(
+    name = "objx",
+    module = "github.com/stretchr/objx",
+    version = "v0.5.0",
+)
+
+go_module(
+    name = "yaml_v3",
+    module = "gopkg.in/yaml.v3",
+    version = "v3.0.1",
 )

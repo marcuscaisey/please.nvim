@@ -104,6 +104,7 @@ local cursor_in_node_range = function(node)
     or (row == end_row and col <= end_col)
 end
 
+-- TODO: extract these out into $runtimepath/lua/queries?
 local find_test_configs = {
   go = {
     test_func = {
@@ -124,7 +125,94 @@ local find_test_configs = {
       end,
       get_test_selector = function(captures)
         local name = treesitter_query.get_node_text(captures.name, 0)
-        return name .. '$'
+        return '^' .. name .. '$'
+      end,
+    },
+    test_func_sub_test = {
+      query = [[
+        (function_declaration
+          name: (
+            (identifier) @test_func_name
+            (#match? @test_func_name "^Test.+"))
+          parameters: (parameter_list
+            (parameter_declaration
+              name: (identifier) @_t_param
+              type: (
+                (pointer_type) @_t_param_type
+                (#eq? @_t_param_type "*testing.T"))))
+          body: (block [
+            (var_declaration
+              (var_spec
+                name: (identifier) @_test_cases_var
+                value: (expression_list
+                  (composite_literal
+                    type: (slice_type
+                      element: (struct_type
+                        (field_declaration_list
+                          . (field_declaration
+                            name: (field_identifier) @_test_case_struct_name_field
+                            type: (type_identifier) @_test_case_struct_name_type)
+                          (#eq? @_test_case_struct_name_type "string"))))
+                    body: (literal_value
+                      (literal_element
+                        (literal_value
+                          (keyed_element
+                            (literal_element
+                              (identifier) @_test_case_name_field)
+                            (literal_element
+                              (interpreted_string_literal) @test_case_name))
+                          (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test )))))
+            (short_var_declaration
+              left: (expression_list
+                (identifier) @_test_cases_var)
+              right: (expression_list
+                (composite_literal
+                  type: (slice_type
+                    element: (struct_type
+                      (field_declaration_list
+                        . (field_declaration
+                          name: (field_identifier) @_test_case_struct_name_field
+                          type: (type_identifier) @_test_case_struct_name_type)
+                        (#eq? @_test_case_struct_name_type "string"))))
+                  body: (literal_value
+                    (literal_element
+                      (literal_value
+                        (keyed_element
+                          (literal_element
+                            (identifier) @_test_case_name_field)
+                          (literal_element
+                            (interpreted_string_literal) @test_case_name))
+                        (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test ))))
+            ]
+            (for_statement
+              (range_clause
+                left: (expression_list
+                  (identifier) @_test_cases_loop_var . )
+                right: (identifier) @_test_cases_loop_range_var)
+              (#eq? @_test_cases_loop_range_var @_test_cases_var)
+              body: (block
+                (call_expression
+                  function: (selector_expression
+                    operand: (identifier) @_t_run_operand
+                    field: (field_identifier) @_t_run)
+                  (#eq? @_t_run_operand @_t_param)
+                  (#eq? @_t_run "Run")
+                  arguments: (argument_list
+                    (selector_expression
+                      operand: (identifier) @_run_method_name_arg_operand
+                      field: (field_identifier) @_run_method_name_arg_field)
+                    (#eq? @_run_method_name_arg_operand @_test_cases_loop_var)
+                    (#eq? @_run_method_name_arg_field @_test_case_struct_name_field)))))))
+      ]],
+      get_test_name = function(captures)
+        local test_case_name = treesitter_query.get_node_text(captures.test_case_name, 0):match('"(.+)"')
+        local test_func_name = treesitter_query.get_node_text(captures.test_func_name, 0)
+        return test_func_name .. '/' .. test_case_name:gsub(' ', '_')
+      end,
+      get_test_selector = function(captures)
+        local test_case_name = treesitter_query.get_node_text(captures.test_case_name, 0):match('"(.+)"')
+        local test_func_name = treesitter_query.get_node_text(captures.test_func_name, 0)
+        return '^' .. test_func_name .. '$/^' .. test_case_name:gsub(' ', '_') .. '$'
       end,
     },
     testify_suite_method = {
@@ -139,7 +227,91 @@ local find_test_configs = {
       end,
       get_test_selector = function(captures)
         local name = treesitter_query.get_node_text(captures.name, 0)
-        return '/' .. name .. '$'
+        return '/^' .. name .. '$'
+      end,
+    },
+    testify_suite_method_sub_test = {
+      query = [[
+        (method_declaration
+          receiver: (parameter_list
+            (parameter_declaration
+              name: (identifier) @_receiver))
+          name: (
+            (field_identifier) @test_method_name
+            (#match? @test_method_name "^Test.+"))
+          body: (block [
+            (var_declaration
+              (var_spec
+                name: (identifier) @_test_cases_var
+                value: (expression_list
+                  (composite_literal
+                    type: (slice_type
+                      element: (struct_type
+                        (field_declaration_list
+                          . (field_declaration
+                            name: (field_identifier) @_test_case_struct_name_field
+                            type: (type_identifier) @_test_case_struct_name_type)
+                          (#eq? @_test_case_struct_name_type "string"))))
+                    body: (literal_value
+                      (literal_element
+                        (literal_value
+                          (keyed_element
+                            (literal_element
+                              (identifier) @_test_case_name_field)
+                            (literal_element
+                              (interpreted_string_literal) @test_case_name))
+                          (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test )))))
+            (short_var_declaration
+              left: (expression_list
+                (identifier) @_test_cases_var)
+              right: (expression_list
+                (composite_literal
+                  type: (slice_type
+                    element: (struct_type
+                      (field_declaration_list
+                        . (field_declaration
+                          name: (field_identifier) @_test_case_struct_name_field
+                          type: (type_identifier) @_test_case_struct_name_type)
+                        (#eq? @_test_case_struct_name_type "string"))))
+                  body: (literal_value
+                    (literal_element
+                      (literal_value
+                        (keyed_element
+                          (literal_element
+                            (identifier) @_test_case_name_field)
+                          (literal_element
+                            (interpreted_string_literal) @test_case_name))
+                        (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test ))))
+            ]
+            (for_statement
+              (range_clause
+                left: (expression_list
+                  (identifier) @_test_cases_loop_var . )
+                right: (identifier) @_test_cases_loop_range_var)
+              (#eq? @_test_cases_loop_range_var @_test_cases_var)
+              body: (block
+                (call_expression
+                  function: (selector_expression
+                    operand: (identifier) @_receiver_run_operand
+                    field: (field_identifier) @_receiver_run)
+                  (#eq? @_receiver_run_operand @_receiver)
+                  (#eq? @_receiver_run "Run")
+                  arguments: (argument_list
+                    (selector_expression
+                      operand: (identifier) @_run_method_name_arg_operand
+                      field: (field_identifier) @_run_method_name_arg_field)
+                    (#eq? @_run_method_name_arg_operand @_test_cases_loop_var)
+                    (#eq? @_run_method_name_arg_field @_test_case_struct_name_field)))))))
+      ]],
+      get_test_name = function(captures)
+        local test_case_name = treesitter_query.get_node_text(captures.test_case_name, 0):match('"(.+)"')
+        local test_method_name = treesitter_query.get_node_text(captures.test_method_name, 0)
+        return test_method_name .. '/' .. test_case_name:gsub(' ', '_')
+      end,
+      get_test_selector = function(captures)
+        local test_case_name = treesitter_query.get_node_text(captures.test_case_name, 0):match('"(.+)"')
+        local test_method_name = treesitter_query.get_node_text(captures.test_method_name, 0)
+        return '/^' .. test_method_name .. '$/^' .. test_case_name:gsub(' ', '_') .. '$'
       end,
     },
   },
@@ -177,8 +349,9 @@ local find_test_configs = {
 ---Returns the selector for the test under the cursor.
 ---Current supported languages are:
 ---- Go
----  - regular go test functions (not subtests)
----  - testify suite test methods
+---  - regular test functions (not subtests)
+---  - testify suite test methods (not subtests)
+---  - table tests
 ---- Python
 ---  - unittest test methods
 ---@return Test
@@ -212,7 +385,8 @@ end
 ---Current supported languages are:
 ---- Go
 ---  - regular test functions (not subtests)
----  - testify suite test methods
+---  - testify suite test methods (not subtests)
+---  - table tests
 ---- Python
 ---  - unittest test methods
 ---@return Test[]

@@ -307,8 +307,9 @@ end
 ---test to run from a list of tests in the current file. This is supported
 ---for the following languages:
 ---- Go
----  - regular test functions (not subtests)
+---  - regular test functions
 ---  - testify suite test methods
+---  - table tests
 ---- Python
 ---  - unittest test methods
 ---@param opts table|nil available options

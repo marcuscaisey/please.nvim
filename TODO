@@ -9,3 +9,4 @@
 - download plz into the repo and use in build targets?
 - check if we use any new treesitter APIs in parsing.lua
 - fix lint errors everywhere
+- go table test get_test_at_cursor test cases
