@@ -323,7 +323,7 @@ describe('test', function()
         -- WHEN we call test with under_cursor=true
         please.test({ under_cursor = true })
         -- THEN the test under the cursor is tested
-        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', 'TestFails$' })
+        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
 
         teardown_tree()
       end)
@@ -345,7 +345,7 @@ describe('test', function()
         -- WHEN we select the test action
         mock_select:choose_item('Test //foo:foo1_and_foo2_test (TestFails)')
         -- THEN the test is run again
-        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', 'TestFails$' })
+        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
 
         teardown_tree()
       end)
@@ -366,7 +366,7 @@ describe('test', function()
         -- WHEN we select one of the targets
         mock_select:choose_item('//foo:foo1_and_foo2_test')
         -- THEN the test is run
-        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', 'TestFails$' })
+        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
 
         teardown_tree()
       end)
@@ -388,7 +388,7 @@ describe('test', function()
         -- WHEN we select one of the tests
         mock_select:choose_item('TestFails')
         -- THEN the test is run
-        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', 'TestFails$' })
+        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
 
         teardown_tree()
       end)
@@ -410,7 +410,7 @@ describe('test', function()
         -- WHEN we select the test action
         mock_select:choose_item('Test //foo:foo1_and_foo2_test (TestFails)')
         -- THEN the test is run again
-        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', 'TestFails$' })
+        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
 
         teardown_tree()
       end)
@@ -435,7 +435,7 @@ describe('test', function()
         -- WHEN we select one of the targets
         mock_select:choose_item('//foo:foo1_and_foo2_test')
         -- THEN the test is run
-        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', 'TestFails$' })
+        mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
 
         teardown_tree()
       end)
