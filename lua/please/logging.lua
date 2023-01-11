@@ -5,8 +5,8 @@ local debug_enabled = false
 ---@mod please.logging LOGGING COMMANDS
 
 ---Toggles debug logs containing which functions are being called with which
----arguments. This should provide enough information to debug most issues.
----To toggle debug logs from the command line, use `:Please toggle_debug_logs`
+---arguments. This should provide enough information to debug most issues. To
+---toggle debug logs from the command line, use `:Please toggle_debug_logs`
 logging.toggle_debug = function()
   if debug_enabled then
     logging.info('debug logs disabled')

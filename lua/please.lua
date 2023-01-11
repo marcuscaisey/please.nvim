@@ -22,11 +22,11 @@
 ---    * `*.build_def`
 ---    * `*.build_defs`
 ---    * `*.build`
----    * `ini` configured as the `filetype` for `.plzconfig` files to enable better
----      syntax highlighting
----    * `nvim-treesitter` configured to use the Python parser for `please` files
----      to enable better syntax highlighting and use of all treesitter features in
----      build files
+---  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
+---    syntax highlighting
+---  * `nvim-treesitter` configured to use the Python parser for `please` files
+---    to enable better syntax highlighting and use of all treesitter features in
+---    build files
 ---@brief ]]
 
 ---@mod please-usage USAGE
@@ -270,9 +270,9 @@ please.jump_to_target = function()
   end)
 end
 
----If the current file is a `BUILD` file, builds the target which is under the
----cursor. Otherwise, builds the target which takes the current file as an
----input.
+---If the current file is a `BUILD` file, builds the target which is under
+---the cursor. Otherwise, builds the target which takes the current file as
+---an input.
 please.build = function()
   logging.log_call('please.build')
 

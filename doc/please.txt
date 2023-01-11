@@ -1,17 +1,17 @@
 *please.nvim*
 A plugin to make you more productive in Neovim when using Please.
 
-================================================================================
+==============================================================================
 Table of Contents                                              *please-contents*
 
-INTRODUCTION······················································|please-intro|
-USAGE·····························································|please-usage|
-MAPPINGS·······················································|please-mappings|
-PLEASE COMMANDS·························································|please|
-POPUP COMMANDS············································|please.runners.popup|
-LOGGING COMMANDS················································|please.logging|
+INTRODUCTION ···················································· |please-intro|
+USAGE ··························································· |please-usage|
+MAPPINGS ····················································· |please-mappings|
+PLEASE COMMANDS ······················································· |please|
+POPUP COMMANDS ·········································· |please.runners.popup|
+LOGGING COMMANDS ·············································· |please.logging|
 
-================================================================================
+==============================================================================
 INTRODUCTION                                                      *please-intro*
 
 please.nvim is a plugin which allows you interact with your Please repository
@@ -29,13 +29,13 @@ Features ~
     * `*.build_def`
     * `*.build_defs`
     * `*.build`
-    * `ini` configured as the `filetype` for `.plzconfig` files to enable better
-      syntax highlighting
-    * `nvim-treesitter` configured to use the Python parser for `please` files
-      to enable better syntax highlighting and use of all treesitter features in
-      build files
+  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
+    syntax highlighting
+  * `nvim-treesitter` configured to use the Python parser for `please` files
+    to enable better syntax highlighting and use of all treesitter features in
+    build files
 
-================================================================================
+==============================================================================
 USAGE                                                             *please-usage*
 
 Lua and VimL APIs ~
@@ -64,7 +64,7 @@ Input and selection prompts are provided by |vim.ui.input()| and
 appearance of them to your taste. See |lua-ui| and the fantastic
 https://github.com/stevearc/dressing.nvim for more information.
 
-================================================================================
+==============================================================================
 MAPPINGS                                                       *please-mappings*
 
 please.nvim doesn't come with any mappings defined out of the box so that you
@@ -90,7 +90,7 @@ command to get you started.
   vim.keymap.set('n', '<leader>pp', require('please.runners.popup').restore)
 <
 
-================================================================================
+==============================================================================
 PLEASE COMMANDS                                                         *please*
 
 please.jump_to_target()                                  *please.jump_to_target*
@@ -103,9 +103,9 @@ please.jump_to_target()                                  *please.jump_to_target*
 
 
 please.build()                                                    *please.build*
-    If the current file is a `BUILD` file, builds the target which is under the
-    cursor. Otherwise, builds the target which takes the current file as an
-    input.
+    If the current file is a `BUILD` file, builds the target which is under
+    the cursor. Otherwise, builds the target which takes the current file as
+    an input.
 
 
 please.test({opts})                                                *please.test*
@@ -160,7 +160,7 @@ please.action_history()                                  *please.action_history*
     again.
 
 
-================================================================================
+==============================================================================
 POPUP COMMANDS                                            *please.runners.popup*
 
 popup.restore()                                   *please.runners.popup.restore*
@@ -169,13 +169,13 @@ popup.restore()                                   *please.runners.popup.restore*
     completion can be restored, otherwise no popup will be opened.
 
 
-================================================================================
+==============================================================================
 LOGGING COMMANDS                                                *please.logging*
 
 logging.toggle_debug()                             *please.logging.toggle_debug*
     Toggles debug logs containing which functions are being called with which
-    arguments. This should provide enough information to debug most issues.
-    To toggle debug logs from the command line, use `:Please toggle_debug_logs`
+    arguments. This should provide enough information to debug most issues. To
+    toggle debug logs from the command line, use `:Please toggle_debug_logs`
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

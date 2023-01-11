@@ -48,7 +48,7 @@ neovim_lemmy_help(
     name = "lemmy_help",
     hashes = [
         "757118e7112ecafdd4775b0174216da02b5d06c8c2b3d3a1c25376f0eae7e08e",  # darwin
-        "1c9bf90204cb16bdbd20f1051c1a0e639023bd9c10bebd718f068877fd5ef6bc",  # linux
+        "198bfac997957fa9a6b035f6bf9d6bae227bb3f301d216f0ccbc78643d8cda09",  # linux
     ],
-    version = "0.10.0",
+    version = "0.11.0",
 )
