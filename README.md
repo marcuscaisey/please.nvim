@@ -12,8 +12,8 @@ please.nvim is a plugin which allows you interact with your Please repository fr
     * `*.build_def`
     * `*.build_defs`
     * `*.build`
-    * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
-    * `nvim-treesitter` configured to use the Python parser for `please` files to enable better syntax highlighting and use of all treesitter features in build files
+  * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
+  * `nvim-treesitter` configured to use the Python parser for `please` files to enable better syntax highlighting and use of all treesitter features in build files
 
 ## Demo
 https://user-images.githubusercontent.com/34950778/205456279-665ddfe8-de77-4f36-a337-85768bb06a37.mov
