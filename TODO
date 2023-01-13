@@ -10,3 +10,4 @@
 - check if we use any new treesitter APIs in parsing.lua
 - fix lint errors everywhere
 - go table test get_test_at_cursor test cases
+- remove parentheses from test under_cursor history entries
