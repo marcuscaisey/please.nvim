@@ -11,3 +11,4 @@
 - fix lint errors everywhere
 - go table test get_test_at_cursor test cases
 - remove parentheses from test under_cursor history entries
+- add more demo videos of interesting features
