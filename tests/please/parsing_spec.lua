@@ -459,7 +459,7 @@ describe('list_tests_in_file', function()
         name = 'should return test function subtests',
         tree = {
           ['foo.go'] = [[
-            func TestFunctionWithSubTests(t *testing.T) {
+            func TestFunctionWithTableTests(t *testing.T) {
                 testCases := []struct{
                     name  string
                     input int
@@ -484,7 +484,7 @@ describe('list_tests_in_file', function()
                 }
             }
 
-            func TestFunctionWithVarSubTests(t *testing.T) {
+            func TestFunctionWithVarTableTests(t *testing.T) {
                 var testCases = []struct{
                     name  string
                     input int
@@ -509,7 +509,7 @@ describe('list_tests_in_file', function()
                 }
             }
 
-            func TestFunctionWithEmptySubTestCases(t *testing.T) {
+            func TestFunctionWithEmptyTableTestCases(t *testing.T) {
                 testCases := []struct{
                     name  string
                     input int
@@ -525,25 +525,25 @@ describe('list_tests_in_file', function()
           ]],
         },
         expected_tests = {
-          { name = 'TestFunctionWithSubTests', selector = '^TestFunctionWithSubTests$' },
+          { name = 'TestFunctionWithTableTests', selector = '^TestFunctionWithTableTests$' },
           {
-            name = 'TestFunctionWithSubTests/TestNameInCamelCase',
-            selector = '^TestFunctionWithSubTests$/^TestNameInCamelCase$',
+            name = 'TestFunctionWithTableTests/TestNameInCamelCase',
+            selector = '^TestFunctionWithTableTests$/^TestNameInCamelCase$',
           },
           {
-            name = 'TestFunctionWithSubTests/test_name_in_snake_case',
-            selector = '^TestFunctionWithSubTests$/^test_name_in_snake_case$',
+            name = 'TestFunctionWithTableTests/test_name_in_snake_case',
+            selector = '^TestFunctionWithTableTests$/^test_name_in_snake_case$',
           },
-          { name = 'TestFunctionWithVarSubTests', selector = '^TestFunctionWithVarSubTests$' },
+          { name = 'TestFunctionWithVarTableTests', selector = '^TestFunctionWithVarTableTests$' },
           {
-            name = 'TestFunctionWithVarSubTests/TestNameInCamelCase',
-            selector = '^TestFunctionWithVarSubTests$/^TestNameInCamelCase$',
+            name = 'TestFunctionWithVarTableTests/TestNameInCamelCase',
+            selector = '^TestFunctionWithVarTableTests$/^TestNameInCamelCase$',
           },
           {
-            name = 'TestFunctionWithVarSubTests/test_name_in_snake_case',
-            selector = '^TestFunctionWithVarSubTests$/^test_name_in_snake_case$',
+            name = 'TestFunctionWithVarTableTests/test_name_in_snake_case',
+            selector = '^TestFunctionWithVarTableTests$/^test_name_in_snake_case$',
           },
-          { name = 'TestFunctionWithEmptySubTestCases', selector = '^TestFunctionWithEmptySubTestCases$' },
+          { name = 'TestFunctionWithEmptyTableTestCases', selector = '^TestFunctionWithEmptyTableTestCases$' },
         },
       },
       {
@@ -568,7 +568,7 @@ describe('list_tests_in_file', function()
         name = 'should return testify suite method subtests',
         tree = {
           ['foo.go'] = [[
-            func (s *testSuite) TestSuiteMethodWithSubTests() {
+            func (s *testSuite) TestSuiteMethodWithTableTests() {
                 testCases := []struct {
                     name  string
                     input int
@@ -593,7 +593,7 @@ describe('list_tests_in_file', function()
                 }
             }
 
-            func (s *testSuite) TestSuiteMethodWithVarSubTests() {
+            func (s *testSuite) TestSuiteMethodWithVarTableTests() {
                 var testCases = []struct {
                     name  string
                     input int
@@ -618,7 +618,7 @@ describe('list_tests_in_file', function()
                 }
             }
 
-            func (s *testSuite) TestSuiteMethodWithEmptySubTestCases() {
+            func (s *testSuite) TestSuiteMethodWithEmptyTableTestCases() {
                 testCases := []struct {
                     name  string
                     input int
@@ -634,25 +634,25 @@ describe('list_tests_in_file', function()
           ]],
         },
         expected_tests = {
-          { name = 'TestSuiteMethodWithSubTests', selector = '/^TestSuiteMethodWithSubTests$' },
+          { name = 'TestSuiteMethodWithTableTests', selector = '/^TestSuiteMethodWithTableTests$' },
           {
-            name = 'TestSuiteMethodWithSubTests/TestNameInCamelCase',
-            selector = '/^TestSuiteMethodWithSubTests$/^TestNameInCamelCase$',
+            name = 'TestSuiteMethodWithTableTests/TestNameInCamelCase',
+            selector = '/^TestSuiteMethodWithTableTests$/^TestNameInCamelCase$',
           },
           {
-            name = 'TestSuiteMethodWithSubTests/test_name_in_snake_case',
-            selector = '/^TestSuiteMethodWithSubTests$/^test_name_in_snake_case$',
+            name = 'TestSuiteMethodWithTableTests/test_name_in_snake_case',
+            selector = '/^TestSuiteMethodWithTableTests$/^test_name_in_snake_case$',
           },
-          { name = 'TestSuiteMethodWithVarSubTests', selector = '/^TestSuiteMethodWithVarSubTests$' },
+          { name = 'TestSuiteMethodWithVarTableTests', selector = '/^TestSuiteMethodWithVarTableTests$' },
           {
-            name = 'TestSuiteMethodWithVarSubTests/TestNameInCamelCase',
-            selector = '/^TestSuiteMethodWithVarSubTests$/^TestNameInCamelCase$',
+            name = 'TestSuiteMethodWithVarTableTests/TestNameInCamelCase',
+            selector = '/^TestSuiteMethodWithVarTableTests$/^TestNameInCamelCase$',
           },
           {
-            name = 'TestSuiteMethodWithVarSubTests/test_name_in_snake_case',
-            selector = '/^TestSuiteMethodWithVarSubTests$/^test_name_in_snake_case$',
+            name = 'TestSuiteMethodWithVarTableTests/test_name_in_snake_case',
+            selector = '/^TestSuiteMethodWithVarTableTests$/^test_name_in_snake_case$',
           },
-          { name = 'TestSuiteMethodWithEmptySubTestCases', selector = '/^TestSuiteMethodWithEmptySubTestCases$' },
+          { name = 'TestSuiteMethodWithEmptyTableTestCases', selector = '/^TestSuiteMethodWithEmptyTableTestCases$' },
         },
       },
       {
@@ -692,7 +692,7 @@ describe('list_tests_in_file', function()
                 s.FailNow("oh no")
             }
 
-            func (s *testSuite) TestSuiteMethodWithSubTests() {
+            func (s *testSuite) TestSuiteMethodWithTableTests() {
                 testCases := []struct {
                     name  string
                     input int
@@ -730,14 +730,14 @@ describe('list_tests_in_file', function()
             selector = '^TestFunctionWithSubtests$/^test_name_in_snake_case$',
           },
           { name = 'TestSuiteMethod', selector = '/^TestSuiteMethod$' },
-          { name = 'TestSuiteMethodWithSubTests', selector = '/^TestSuiteMethodWithSubTests$' },
+          { name = 'TestSuiteMethodWithTableTests', selector = '/^TestSuiteMethodWithTableTests$' },
           {
-            name = 'TestSuiteMethodWithSubTests/TestNameInCamelCase',
-            selector = '/^TestSuiteMethodWithSubTests$/^TestNameInCamelCase$',
+            name = 'TestSuiteMethodWithTableTests/TestNameInCamelCase',
+            selector = '/^TestSuiteMethodWithTableTests$/^TestNameInCamelCase$',
           },
           {
-            name = 'TestSuiteMethodWithSubTests/test_name_in_snake_case',
-            selector = '/^TestSuiteMethodWithSubTests$/^test_name_in_snake_case$',
+            name = 'TestSuiteMethodWithTableTests/test_name_in_snake_case',
+            selector = '/^TestSuiteMethodWithTableTests$/^test_name_in_snake_case$',
           },
         },
       },

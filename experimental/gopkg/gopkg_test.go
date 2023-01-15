@@ -14,7 +14,7 @@ func TestFunction2(t *testing.T) {
 	t.Fatal("oh no")
 }
 
-func TestFunctionWithSubTests(t *testing.T) {
+func TestFunctionWithTableTests(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input int
@@ -39,7 +39,7 @@ func TestFunctionWithSubTests(t *testing.T) {
 	}
 }
 
-func TestFunctionWithVarSubTests(t *testing.T) {
+func TestFunctionWithVarTableTests(t *testing.T) {
 	var testCases = []struct {
 		name  string
 		input int
@@ -64,7 +64,7 @@ func TestFunctionWithVarSubTests(t *testing.T) {
 	}
 }
 
-func TestFunctionWithEmptySubTestCases(t *testing.T) {
+func TestFunctionWithEmptyTableTestCases(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input int
@@ -94,7 +94,7 @@ func (s *testSuite) TestSuiteMethod2() {
 	s.FailNow("oh no")
 }
 
-func (s *testSuite) TestSuiteMethodWithSubTests() {
+func (s *testSuite) TestSuiteMethodWithTableTests() {
 	testCases := []struct {
 		name  string
 		input int
@@ -119,7 +119,7 @@ func (s *testSuite) TestSuiteMethodWithSubTests() {
 	}
 }
 
-func (s *testSuite) TestSuiteMethodWithVarSubTests() {
+func (s *testSuite) TestSuiteMethodWithVarTableTests() {
 	var testCases = []struct {
 		name  string
 		input int
@@ -144,7 +144,7 @@ func (s *testSuite) TestSuiteMethodWithVarSubTests() {
 	}
 }
 
-func (s *testSuite) TestSuiteMethodWithEmptySubTestCases() {
+func (s *testSuite) TestSuiteMethodWithEmptyTableTestCases() {
 	testCases := []struct {
 		name  string
 		input int
