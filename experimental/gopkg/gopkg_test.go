@@ -14,6 +14,16 @@ func TestFunction2(t *testing.T) {
 	t.Fatal("oh no")
 }
 
+func TestFunctionWithSubtests(t *testing.T) {
+	t.Run("TestNameInCamelCase", func(t *testing.T) {
+		t.Fatal("oh no")
+	})
+
+	t.Run("test name in snake case", func(t *testing.T) {
+		t.Fatal("oh no")
+	})
+}
+
 func TestFunctionWithTableTests(t *testing.T) {
 	testCases := []struct {
 		name  string
@@ -76,6 +86,52 @@ func TestFunctionWithEmptyTableTestCases(t *testing.T) {
 			t.Fatal("oh no")
 		})
 	}
+}
+
+func TestFunctionWithSubtestsNestedInsideTableTests(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input int
+		want  int
+	}{
+		{
+			name:  "TestName",
+			input: 1,
+			want:  2,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Run("SubtestName", func(t *testing.T) {
+				t.Run("another one", func(t *testing.T) {
+					t.Fatal("oh no")
+				})
+			})
+		})
+	}
+}
+
+func TestFunctionWithTableTestNestedInsideSubtest(t *testing.T) {
+	t.Run("SubtestName", func(t *testing.T) {
+		testCases := []struct {
+			name  string
+			input int
+			want  int
+		}{
+			{
+				name:  "TableTestName",
+				input: 1,
+				want:  2,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Fatal("oh no")
+			})
+		}
+	})
 }
 
 type testSuite struct {
