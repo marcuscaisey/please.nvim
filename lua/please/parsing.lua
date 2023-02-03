@@ -323,10 +323,15 @@ local find_test_configs = {
           name: (
             (identifier) @class_name)
           body: (block
-            ((function_definition
-              name: (
-                (identifier) @name
-                (#match? @name "^test_.+")))) @test))
+            [
+              (function_definition
+                name: (identifier) @name
+                (#match? @name "^test_.+")) @test
+              (decorated_definition
+                definition: (function_definition
+                  name: (identifier) @name
+                  (#match? @name "^test_.+"))) @test
+            ]))
       ]],
       get_test_name = function(captures)
         local class_name = treesitter_query.get_node_text(captures.class_name, 0)

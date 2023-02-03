@@ -276,6 +276,32 @@ describe('get_test_at_cursor', function()
         expected_test = { name = 'Foo.test_method', selector = 'Foo.test_method' },
       },
       {
+        name = 'should return test for method if cursor is inside decorated unittest test method definition',
+        tree = {
+          ['foo_test.py'] = [[
+            class Foo(unittest.TestCase):
+                @decorator
+                def test_method(self):
+                    self.assertEqual(1, 2)
+                ]],
+        },
+        cursor = { 3, 5 },
+        expected_test = { name = 'Foo.test_method', selector = 'Foo.test_method' },
+      },
+      {
+        name = 'should return test for method if cursor is inside decorated unittest test method definition with decorator params',
+        tree = {
+          ['foo_test.py'] = [[
+            class Foo(unittest.TestCase):
+                @decorator_with_params(2)
+                def test_method(self):
+                    self.assertEqual(1, 2)
+                ]],
+        },
+        cursor = { 3, 5 },
+        expected_test = { name = 'Foo.test_method', selector = 'Foo.test_method' },
+      },
+      {
         name = 'should return error if unittest method name does not start with test_',
         tree = {
           ['foo_test.py'] = [[
