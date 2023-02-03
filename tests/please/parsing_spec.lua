@@ -267,32 +267,20 @@ describe('get_test_at_cursor', function()
         name = 'should return test for method if cursor is inside unittest test method definition',
         tree = {
           ['foo_test.py'] = [[
-            class TestFoo(unittest.TestCase):
+            class Foo(unittest.TestCase):
                 def test_method(self):
                     self.assertEqual(1, 2)
                 ]],
         },
         cursor = { 3, 5 },
-        expected_test = { name = 'TestFoo.test_method', selector = 'TestFoo.test_method' },
+        expected_test = { name = 'Foo.test_method', selector = 'Foo.test_method' },
       },
       {
         name = 'should return error if unittest method name does not start with test_',
         tree = {
           ['foo_test.py'] = [[
-            class TestFoo(unittest.TestCase):
+            class Foo(unittest.TestCase):
                 def method(self):
-                    self.assertEqual(1, 2)
-                ]],
-        },
-        cursor = { 3, 5 },
-        expected_err = 'cursor is not in a test function',
-      },
-      {
-        name = 'should return error if class name does not start with Test',
-        tree = {
-          ['foo_test.py'] = [[
-            class Foo:
-                def test_method(self):
                     self.assertEqual(1, 2)
                 ]],
         },
@@ -750,11 +738,11 @@ describe('list_tests_in_file', function()
         name = 'should return unittest test methods',
         tree = {
           ['foo.py'] = [[
-            class TestClass1(unittest.TestCase):
+            class Class1(unittest.TestCase):
                 def test_one(self):
                     self.fail("oh no")
 
-            class TestClass2(unittest.TestCase):
+            class Class2(unittest.TestCase):
                 def test_one(self):
                     self.fail("oh no")
 
@@ -763,9 +751,9 @@ describe('list_tests_in_file', function()
           ]],
         },
         expected_tests = {
-          { name = 'TestClass1.test_one', selector = 'TestClass1.test_one' },
-          { name = 'TestClass2.test_one', selector = 'TestClass2.test_one' },
-          { name = 'TestClass2.test_two', selector = 'TestClass2.test_two' },
+          { name = 'Class1.test_one', selector = 'Class1.test_one' },
+          { name = 'Class2.test_one', selector = 'Class2.test_one' },
+          { name = 'Class2.test_two', selector = 'Class2.test_two' },
         },
       },
     })

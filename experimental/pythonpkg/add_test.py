@@ -3,7 +3,7 @@ import unittest
 from experimental.pythonpkg import add
 
 
-class TestAdd(unittest.TestCase):
+class Add(unittest.TestCase):
     def test_equal_numbers(self):
         self.assertEqual(4, add.add(2, 2))
 

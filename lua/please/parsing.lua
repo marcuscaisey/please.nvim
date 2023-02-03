@@ -318,10 +318,10 @@ local find_test_configs = {
   python = {
     unittest_method = {
       query = [[
+        ;; query
         (class_definition
           name: (
-            (identifier) @class_name
-            (#match? @class_name "^Test.+"))
+            (identifier) @class_name)
           body: (block
             ((function_definition
               name: (
