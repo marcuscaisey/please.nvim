@@ -228,11 +228,10 @@ popup.restore = function()
 
   -- we have to wait for the character which the cursor was previously on to be populated in the terminal buffer before
   -- we can move the cursor back to it
-  local cached_row, cached_col = unpack(cached_popup.cursor)
   vim.wait(500, function()
     -- [cached_row-1, cached_row) gets us the cached_row'th line (cached_row is 1-based, nvim_buf_get_lines is 0-based)
-    local term_buf_line = vim.api.nvim_buf_get_lines(term_bufnr, cached_row - 1, cached_row, false)[1]
-    return term_buf_line and #term_buf_line >= cached_col
+    local term_buf_line = vim.api.nvim_buf_get_lines(term_bufnr, cached_popup.cursor.row - 1, cached_popup.cursor.row, false)[1]
+    return term_buf_line and #term_buf_line >= cached_popup.cursor.col
   end)
   cursor.set(cached_popup.cursor)
 

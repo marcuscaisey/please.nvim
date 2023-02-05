@@ -307,7 +307,7 @@ local wait_for_cursor = function(expected_cursor_pos, opts)
   local actual_cursor_pos
   vim.wait(opts.timeout or 500, function()
     actual_cursor_pos = cursor.get()
-    return tables_equal(expected_cursor_pos, actual_cursor_pos)
+    return actual_cursor_pos.row == expected_cursor_pos.row and actual_cursor_pos.col == expected_cursor_pos.col
   end)
   assert.are.same(expected_cursor_pos, actual_cursor_pos, 'incorrect cursor position')
 end
@@ -384,7 +384,7 @@ describe('restore', function()
   end)
 
   it('should restore the cursor position from closed popup', function()
-    local expected_cursor_pos = { 5, 3 }
+    local expected_cursor_pos = { row = 5, col = 3 }
 
     run_in_popup('bash', { '-c', 'for i in $(seq 1 10); do echo line $i; done' })
     cursor.set(expected_cursor_pos)
@@ -398,8 +398,8 @@ describe('restore', function()
   end)
 
   it('should restore the cursor position from a previously closed restored popup', function()
-    local first_cursor_pos = { 5, 3 }
-    local second_cursor_pos = { 7, 2 }
+    local first_cursor_pos = { row = 5, col = 3 }
+    local second_cursor_pos = { row = 7, col = 2 }
 
     run_in_popup('bash', { '-c', 'for i in $(seq 1 10); do echo line $i; done' })
     cursor.set(first_cursor_pos)

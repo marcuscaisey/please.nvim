@@ -263,7 +263,7 @@ please.jump_to_target = function()
       logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
       run_and_save_action(root, {
         name = 'jump_to_target',
-        args = { target_filepath, position },
+        args = { target_filepath, { row = position[1], col = position[2] } },
         description = 'Jump to ' .. label,
       })
     end)

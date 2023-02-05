@@ -36,7 +36,7 @@ describe('jump_to_target', function()
     -- THEN the BUILD file containing the build target for the file is opened
     assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
-    assert.are.same({ 6, 1 }, cursor.get(), 'incorrect cursor position')
+    assert.are.same({ row = 6, col = 1 }, cursor.get(), 'incorrect cursor position')
 
     teardown_tree()
   end)
@@ -60,7 +60,7 @@ describe('jump_to_target', function()
     -- THEN the BUILD file is opened again
     assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target again
-    assert.are.same({ 6, 1 }, cursor.get(), 'incorrect cursor position')
+    assert.are.same({ row = 6, col = 1 }, cursor.get(), 'incorrect cursor position')
 
     teardown_tree()
   end)
@@ -81,7 +81,7 @@ describe('jump_to_target', function()
     -- THEN the BUILD file containing the chosen build target is opened
     assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
-    assert.are.same({ 6, 1 }, cursor.get(), 'incorrect cursor position')
+    assert.are.same({ row = 6, col = 1 }, cursor.get(), 'incorrect cursor position')
 
     teardown_tree()
   end)
@@ -174,7 +174,7 @@ describe('build', function()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
       vim.cmd('edit ' .. root .. '/BUILD')
-      cursor.set({ 6, 5 }) -- inside definition of :foo1_and_foo2
+      cursor.set({ row = 6, col = 5 }) -- inside definition of :foo1_and_foo2
       -- WHEN we call build
       please.build()
       -- THEN the target under the cursor is built
@@ -190,7 +190,7 @@ describe('build', function()
 
       -- GIVEN we've built a target
       vim.cmd('edit ' .. root .. '/BUILD')
-      cursor.set({ 6, 5 }) -- inside definition of :foo1_and_foo2
+      cursor.set({ row = 6, col = 5 }) -- inside definition of :foo1_and_foo2
       please.build()
       -- WHEN we call action_history
       please.action_history()
@@ -319,7 +319,7 @@ describe('test', function()
 
         -- GIVEN we're editing a test file and the cursor is inside a test function
         vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
-        cursor.set({ 9, 5 }) -- inside body of TestFails
+        cursor.set({ row = 9, col = 5 }) -- inside body of TestFails
         -- WHEN we call test with under_cursor=true
         please.test({ under_cursor = true })
         -- THEN the test under the cursor is tested
@@ -335,7 +335,7 @@ describe('test', function()
 
         -- GIVEN we've tested the function under the cursor
         vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
-        cursor.set({ 9, 5 }) -- inside body of TestFails
+        cursor.set({ row = 9, col = 5 }) -- inside body of TestFails
         please.test({ under_cursor = true })
         -- WHEN we call action_history
         please.action_history()
@@ -357,7 +357,7 @@ describe('test', function()
 
         -- GIVEN we're editing a test file referenced by multiple build targets and the cursor is inside a test function
         vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
-        cursor.set({ 9, 5 }) -- inside body of TestFails
+        cursor.set({ row = 9, col = 5 }) -- inside body of TestFails
         -- WHEN we call test with under_cursor=true
         please.test({ under_cursor = true })
         -- THEN we're prompted to choose which target to test
@@ -449,7 +449,7 @@ describe('test', function()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
       vim.cmd('edit ' .. root .. '/foo/BUILD')
-      cursor.set({ 2, 5 }) -- inside definition of :foo1_test
+      cursor.set({ row = 2, col = 5 }) -- inside definition of :foo1_test
       -- WHEN we call test
       please.test()
       -- THEN the target is tested
@@ -465,7 +465,7 @@ describe('test', function()
 
       -- GIVEN we've tested a build target
       vim.cmd('edit ' .. root .. '/foo/BUILD')
-      cursor.set({ 2, 5 }) -- inside definition of :foo1_test
+      cursor.set({ row = 2, col = 5 }) -- inside definition of :foo1_test
       please.test()
       -- WHEN we call action_history
       please.action_history()
@@ -619,7 +619,7 @@ describe('run', function()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
       vim.cmd('edit ' .. root .. '/BUILD')
-      cursor.set({ 2, 5 }) -- in definition of :foo1
+      cursor.set({ row = 2, col = 5 }) -- in definition of :foo1
       -- WHEN we call run
       please.run()
       -- THEN we're prompted to enter arguments for the program
@@ -640,7 +640,7 @@ describe('run', function()
 
       -- GIVEN we've run a build target
       vim.cmd('edit ' .. root .. '/BUILD')
-      cursor.set({ 2, 5 }) -- in definition of :foo1
+      cursor.set({ row = 2, col = 5 }) -- in definition of :foo1
       please.run()
       mock_input:enter_input('--foo foo --bar bar')
       -- WHEN we call action_history
@@ -664,7 +664,7 @@ describe('run', function()
 
     -- GIVEN we've run a build target and passed no arguments
     vim.cmd('edit ' .. root .. '/BUILD')
-    cursor.set({ 2, 5 }) -- in definition of :foo1
+    cursor.set({ row = 2, col = 5 }) -- in definition of :foo1
     please.run()
     mock_input:enter_input('')
     -- WHEN we call action_history
@@ -766,7 +766,7 @@ describe('yank', function()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
       vim.cmd('edit ' .. root .. '/BUILD')
-      cursor.set({ 2, 5 }) -- inside definition of :foo1
+      cursor.set({ row = 2, col = 5 }) -- inside definition of :foo1
       -- WHEN we call yank
       please.yank()
       -- THEN the target's label is yanked into the " and * register
@@ -784,7 +784,7 @@ describe('yank', function()
 
       -- GIVEN we've yanked a build target's label
       vim.cmd('edit ' .. root .. '/BUILD')
-      cursor.set({ 2, 5 }) -- inside definition of :foo1
+      cursor.set({ row = 2, col = 5 }) -- inside definition of :foo1
       please.yank()
       -- fill the yank registers to make sure that we actually yank again below
       vim.fn.setreg('"', 'foo')

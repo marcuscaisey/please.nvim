@@ -3,18 +3,21 @@
 -- (1, 0)-indexed cursor positions.
 local M = {}
 
----Get the (1, 1)-indexed cursor position.
----@return number[] (row, col) tuple
+---@class please.cursor.Position
+---@field row integer: 1-based row number
+---@field col integer: 1-based column number
+
+---Get the cursor position.
+---@return please.cursor.Position
 M.get = function()
   local nvim_row, nvim_col = unpack(vim.api.nvim_win_get_cursor(0))
-  return { nvim_row, nvim_col + 1 }
+  return { row = nvim_row, col = nvim_col + 1 }
 end
 
----Set the (1, 1)-indexed cursor position.
----@param position number[] (row, col) tuple
-M.set = function(position)
-  local row, col = unpack(position)
-  vim.api.nvim_win_set_cursor(0, { row, col - 1 })
+---Set the cursor position.
+---@param pos please.cursor.Position
+M.set = function(pos)
+  vim.api.nvim_win_set_cursor(0, { pos.row, pos.col - 1 })
 end
 
 return M

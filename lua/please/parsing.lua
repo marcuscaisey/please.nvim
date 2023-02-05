@@ -97,7 +97,7 @@ end
 -- checks if the cursor is in a given treesitter node's range (inclusive ends)
 local cursor_in_node_range = function(node)
   local cursor_pos = cursor.get()
-  local row, col = unpack(cursor_pos)
+  local row, col = cursor_pos.row, cursor_pos.col
   local start_row, start_col, end_row, end_col = ts_utils.get_vim_range({ node:range() })
   return (row == start_row and col >= start_col)
     or (start_row < row and row < end_row)

@@ -211,7 +211,7 @@ describe('get_test_at_cursor', function()
                 t.Fatal("oh no")
             }]],
         },
-        cursor = { 2, 4 },
+        cursor = { row = 2, col = 4 },
         expected_test = { name = 'TestFunc', selector = '^TestFunc$' },
       },
       {
@@ -222,7 +222,7 @@ describe('get_test_at_cursor', function()
                 t.Fatal("oh no")
             }]],
         },
-        cursor = { 2, 1 },
+        cursor = { row = 2, col = 1 },
         expected_err = 'cursor is not in a test function',
       },
       {
@@ -233,7 +233,7 @@ describe('get_test_at_cursor', function()
                 fmt.Println("oh no")
             }]],
         },
-        cursor = { 2, 1 },
+        cursor = { row = 2, col = 1 },
         expected_err = 'cursor is not in a test function',
       },
       {
@@ -244,7 +244,7 @@ describe('get_test_at_cursor', function()
                 s.Fail("oh no")
             }]],
         },
-        cursor = { 2, 4 },
+        cursor = { row = 2, col = 4 },
         expected_test = { name = 'TestMethod', selector = '/^TestMethod$' },
       },
       {
@@ -255,7 +255,7 @@ describe('get_test_at_cursor', function()
                 s.Fail("oh no")
             }]],
         },
-        cursor = { 2, 1 },
+        cursor = { row = 2, col = 1 },
         expected_err = 'cursor is not in a test function',
       },
     })
@@ -272,7 +272,7 @@ describe('get_test_at_cursor', function()
                     self.assertEqual(1, 2)
                 ]],
         },
-        cursor = { 3, 5 },
+        cursor = { row = 3, col = 5 },
         expected_test = { name = 'Foo.test_method', selector = 'Foo.test_method' },
       },
       {
@@ -285,7 +285,7 @@ describe('get_test_at_cursor', function()
                     self.assertEqual(1, 2)
                 ]],
         },
-        cursor = { 3, 5 },
+        cursor = { row = 3, col = 5 },
         expected_test = { name = 'Foo.test_method', selector = 'Foo.test_method' },
       },
       {
@@ -298,7 +298,7 @@ describe('get_test_at_cursor', function()
                     self.assertEqual(1, 2)
                 ]],
         },
-        cursor = { 3, 5 },
+        cursor = { row = 3, col = 5 },
         expected_test = { name = 'Foo.test_method', selector = 'Foo.test_method' },
       },
       {
@@ -310,7 +310,7 @@ describe('get_test_at_cursor', function()
                     self.assertEqual(1, 2)
                 ]],
         },
-        cursor = { 3, 5 },
+        cursor = { row = 3, col = 5 },
         expected_err = 'cursor is not in a test function',
       },
     })
@@ -327,15 +327,15 @@ describe('get_test_at_cursor', function()
     local test_cases = {
       {
         name = 'first char',
-        cursor = { 1, 1 },
+        cursor = { row = 1, col = 1 },
       },
       {
         name = 'body',
-        cursor = { 2, 1 },
+        cursor = { row = 2, col = 1 },
       },
       {
         name = 'last char',
-        cursor = { 3, 1 },
+        cursor = { row = 3, col = 1 },
       },
     }
 
@@ -364,19 +364,19 @@ describe('get_test_at_cursor', function()
     local test_cases = {
       {
         name = 'before first row',
-        cursor = { 1, 1 },
+        cursor = { row = 1, col = 1 },
       },
       {
         name = 'before first char',
-        cursor = { 2, 1 },
+        cursor = { row = 2, col = 1 },
       },
       {
         name = 'after last row',
-        cursor = { 1, 1 },
+        cursor = { row = 1, col = 1 },
       },
       {
         name = 'before first row',
-        cursor = { 1, 1 },
+        cursor = { row = 1, col = 1 },
       },
     }
 
@@ -404,7 +404,7 @@ describe('get_test_at_cursor', function()
                 t.Fatal("oh no")
             }]],
       },
-      cursor = { 6, 4 },
+      cursor = { row = 6, col = 4 },
       expected_test = { name = 'TestFuncTwo', selector = '^TestFuncTwo$' },
     },
     {
@@ -412,7 +412,7 @@ describe('get_test_at_cursor', function()
       tree = {
         ['hello.rb'] = 'puts "Hello, World!"',
       },
-      cursor = { 1, 1 },
+      cursor = { row = 1, col = 1 },
       expected_err = 'finding tests is not supported for ruby files',
     },
   })
@@ -846,15 +846,15 @@ describe('get_target_at_cursor', function()
     local test_cases = {
       {
         name = 'first char',
-        cursor = { 1, 1 },
+        cursor = { row = 1, col = 1 },
       },
       {
         name = 'middle row',
-        cursor = { 2, 1 },
+        cursor = { row = 2, col = 1 },
       },
       {
         name = 'last char',
-        cursor = { 4, 1 },
+        cursor = { row = 4, col = 1 },
       },
     }
 
@@ -885,7 +885,7 @@ describe('get_target_at_cursor', function()
     run_test({
       tree = tree,
       file = 'pkg/BUILD',
-      cursor = { 2, 1 },
+      cursor = { row = 2, col = 1 },
       expected_label = '//pkg:foo',
     })
   end)
@@ -905,7 +905,7 @@ describe('get_target_at_cursor', function()
           )]],
       },
       file = 'BUILD',
-      cursor = { 7, 4 },
+      cursor = { row = 7, col = 4 },
       expected_label = '//:foo2',
       expected_rule = 'export_file',
     })
@@ -925,19 +925,19 @@ describe('get_target_at_cursor', function()
     local test_cases = {
       {
         name = 'before first row',
-        cursor = { 1, 1 },
+        cursor = { row = 1, col = 1 },
       },
       {
         name = 'before first char',
-        cursor = { 2, 1 },
+        cursor = { row = 2, col = 1 },
       },
       {
         name = 'after last char',
-        cursor = { 5, 2 },
+        cursor = { row = 5, col = 2 },
       },
       {
         name = 'after last row',
-        cursor = { 6, 1 },
+        cursor = { row = 6, col = 1 },
       },
     }
 
@@ -963,7 +963,7 @@ describe('get_target_at_cursor', function()
           )]],
       },
       file = 'BUILD',
-      cursor = { 1, 1 },
+      cursor = { row = 1, col = 1 },
       expected_label = '//:foo',
     })
   end)
