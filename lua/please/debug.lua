@@ -69,7 +69,13 @@ M.setup = function()
     })
     job:start()
 
-    callback({ type = 'server', port = port })
+    callback({
+      type = 'server',
+      port = port,
+      options = {
+        max_retries = 50, -- plz debug sometimes takes a while to spin up
+      },
+    })
   end
 
   -- TODO: remove after upgrading debugpy version used by plz to >= 1.5.1 which sets only uncaught by default (currently
