@@ -69,16 +69,13 @@ M.setup = function()
     })
     job:start()
 
-    local callback_opts = {
+    callback({
       type = 'server',
       port = port,
       options = {
         max_retries = 50, -- plz debug sometimes takes a while to spin up
       },
-    }
-    logging.debug('calling DAP adapter callback with opts: %s', vim.inspect(callback_opts))
-
-    callback(callback_opts)
+    })
   end
 
   -- TODO: remove after upgrading debugpy version used by plz to >= 1.5.1 which sets only uncaught by default (currently
