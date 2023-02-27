@@ -25,6 +25,7 @@ gentest(
 neovim_test(
     name = "test_spec",
     test_file = "testdata/test_spec.lua",
+    labels = ["manual"],
 )
 
 sh_cmd(

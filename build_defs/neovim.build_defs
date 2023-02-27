@@ -129,7 +129,7 @@ def neovim_lua_module(name:str, srcs:list, deps:list = [], visibility:list = ["P
         visibility = visibility,
     )
 
-def neovim_test(name:str, test_file:str, deps:list = []):
+def neovim_test(name:str, test_file:str, deps:list = [], labels:list = []):
     """
     Defines a Neovim test target which runs a test file inside Neovim using plenary
     (https://github.com/nvim-lua/plenary.nvim).
@@ -151,6 +151,7 @@ def neovim_test(name:str, test_file:str, deps:list = []):
         test_file: Test file to run.
         deps: Dependencies of the test. These should be neovim_lua_module, neovim_plugin, or neovim_github_plugin
               targets. Optional.
+        labels: Labels to apply to this test. Optional.
     """
     nvim = check_config(
         key = "NVIM_TOOL",
@@ -210,6 +211,7 @@ def neovim_test(name:str, test_file:str, deps:list = []):
     return gentest(
         name = name,
         test_cmd = "$TOOLS_RUNNER | $TOOLS_PLENARY_TO_JUNIT > $RESULTS_FILE",
+        labels = labels,
         test_tools = {
             "runner": runner,
             "plenary_to_junit": "//tools/plenary-to-junit",
