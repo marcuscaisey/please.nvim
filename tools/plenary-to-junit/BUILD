@@ -19,6 +19,7 @@ gentest(
         "runner": ":_test_spec#runner",
         "plenary_to_junit": ":plenary-to-junit",
     },
+    no_test_output = True,
 )
 
 neovim_test(
