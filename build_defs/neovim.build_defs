@@ -199,7 +199,7 @@ def neovim_test(name:str, test_file:str, deps:list = []):
             # directory (which were unzipped from the script). The tr and sed are just joining the paths with commas.
             '''runtimepaths="$(find . -name '*.runtimepath' | xargs cat | tr '\\n' ',' | sed 's/,$//g')"''',
             # Run the test file, passing in the runtimepaths which the previous command returned.
-            'echo "$TOOLS_NVIM --clean --headless --cmd \\"set runtimepath+=.,$runtimepaths\\" -c \\"PlenaryBustedFile $SRC\\"" >> "$TMPDIR"/_preamble.txt',
+            'echo "$TOOLS_NVIM --headless --cmd \\"set runtimepath+=.,$runtimepaths\\" -c \\"PlenaryBustedFile $SRC\\"" >> "$TMPDIR"/_preamble.txt',
             # Exit so that we don't try to execute the ZIP file at the end of the script.
             'echo "exit 0" >> "$TMPDIR"/_preamble.txt',
             # Create a ZIP file which is prefixed by the script which we've just created.
