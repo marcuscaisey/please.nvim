@@ -165,10 +165,13 @@ def neovim_test(name:str, test_file:str, deps:list = []):
         example = "//third_party/neovim:plenary",
     )
 
-    return gentest(
-        name = name,
+    # We build the runner as its own target so that we can use it to test the Junit XML report generator in
+    # //tools/plenary-to-junit.
+    runner = genrule(
+        name = tag(name, "runner"),
         srcs = [test_file],
         deps = deps + [plenary],
+        binary = True,
         needs_transitive_deps = True,
         tools = {
             "jarcat": CONFIG.JARCAT_TOOL,
@@ -202,8 +205,15 @@ def neovim_test(name:str, test_file:str, deps:list = []):
             # Create a ZIP file which is prefixed by the script which we've just created.
             '"$TOOLS_JARCAT" z -d -n -i . -o "$OUT" --preamble_file "$TMPDIR"/_preamble.txt --strip_prefix ./',
         ],
-        test_cmd = "$TEST",
-        no_test_output = True,
+    )
+
+    return gentest(
+        name = name,
+        test_cmd = "$TOOLS_RUNNER | $TOOLS_PLENARY_TO_JUNIT > $RESULTS_FILE",
+        test_tools = {
+            "runner": runner,
+            "plenary_to_junit": "//tools/plenary-to-junit",
+        },
     )
 
 def neovim_github_plugin(name:str, repo:str, revision:str, hashes:list = [], visibility:list = ["PUBLIC"]):

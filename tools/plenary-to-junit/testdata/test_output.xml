@@ -1,0 +1,34 @@
+<testsuite name="tools/plenary-to-junit/testdata/test_spec.lua" tests="7" skipped="1" failures="4">
+  <testcase name="describe 1 passes"></testcase>
+  <testcase name="describe 1 raises error">
+    <failure message="tools/plenary-to-junit/testdata/test_spec.lua:5: error message"><![CDATA[stack traceback:
+	tools/plenary-to-junit/testdata/test_spec.lua:5: in function <tools/plenary-to-junit/testdata/test_spec.lua:4>]]></failure>
+  </testcase>
+  <testcase name="describe 1 asserts with no message">
+    <failure message="tools/plenary-to-junit/testdata/test_spec.lua:9: Expected objects to be equal."><![CDATA[Passed in:
+(number) 2
+Expected:
+(number) 1
+
+stack traceback:
+	tools/plenary-to-junit/testdata/test_spec.lua:9: in function <tools/plenary-to-junit/testdata/test_spec.lua:8>]]></failure>
+  </testcase>
+  <testcase name="describe 1 asserts with message">
+    <failure message="tools/plenary-to-junit/testdata/test_spec.lua:13: failure message"><![CDATA[Expected objects to be equal.
+Passed in:
+(number) 2
+Expected:
+(number) 1
+
+stack traceback:
+	tools/plenary-to-junit/testdata/test_spec.lua:13: in function <tools/plenary-to-junit/testdata/test_spec.lua:12>]]></failure>
+  </testcase>
+  <testcase name="describe 1 skips">
+    <skipped></skipped>
+  </testcase>
+  <testcase name="describe 2 passes"></testcase>
+  <testcase name="describe 2 fails">
+    <failure message="tools/plenary-to-junit/testdata/test_spec.lua:25: error message"><![CDATA[stack traceback:
+	tools/plenary-to-junit/testdata/test_spec.lua:25: in function <tools/plenary-to-junit/testdata/test_spec.lua:24>]]></failure>
+  </testcase>
+</testsuite>
