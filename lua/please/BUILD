@@ -42,6 +42,16 @@ neovim_lua_module(
 )
 
 neovim_lua_module(
+    name = "parsingv2",
+    srcs = [
+        "parsingv2.lua",
+    ],
+    deps = [
+        ":cursor",
+    ],
+)
+
+neovim_lua_module(
     name = "plugin",
     srcs = ["plugin.lua"],
     deps = [

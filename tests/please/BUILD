@@ -9,6 +9,16 @@ neovim_test(
 )
 
 neovim_test(
+    name = "parsingv2_spec",
+    test_file = "parsingv2_spec.lua",
+    deps = [
+        "//lua/please:parsingv2",
+        "//tests/utils:temptree",
+        "//lua/please:cursor",
+    ],
+)
+
+neovim_test(
     name = "query_spec",
     test_file = "query_spec.lua",
     deps = [
