@@ -149,13 +149,17 @@ local actions = {
   end,
 }
 
-local action_history_path = Path:new(vim.fn.stdpath('data'), 'please-history.json')
+local data_path = Path:new(vim.fn.stdpath('data'))
+local action_history_path = data_path / 'please-history.json'
 
 local read_action_history = function()
   return action_history_path:exists() and vim.json.decode(action_history_path:read()) or {}
 end
 
 local write_action_history = function(history)
+  if not data_path:exists() then
+    data_path:mkdir({ parents = true })
+  end
   action_history_path:write(vim.json.encode(history), 'w')
 end
 
