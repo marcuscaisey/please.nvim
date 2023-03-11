@@ -1,0 +1,6 @@
+<testsuite name="tools.plenary-to-junit.testdata.error_after_tests_spec" tests="2" failures="0" skipped="0" errors="1">
+  <testcase name="describe 1 gets output"></testcase>
+  <testcase name="error_after_tests_spec">
+    <error><![CDATA[tools/plenary-to-junit/testdata/error_after_tests_spec.lua:5: error message]]></error>
+  </testcase>
+</testsuite>

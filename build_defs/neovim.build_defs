@@ -206,11 +206,15 @@ def neovim_test(name:str, test_file:str, deps:list = [], labels:list = []):
             # Create a ZIP file which is prefixed by the script which we've just created.
             '"$TOOLS_JARCAT" z -d -n -i . -o "$OUT" --preamble_file "$TMPDIR"/_preamble.txt --strip_prefix ./',
         ],
+        visibility = ["PUBLIC"],
     )
 
     return gentest(
         name = name,
-        test_cmd = "$TOOLS_RUNNER | $TOOLS_PLENARY_TO_JUNIT > $RESULTS_FILE",
+        # We disable pipefail so that we can set the exit code of the command in plenary-to-junit. This allows us to get
+        # errors but no failures. around the bug where Please spits out "Test returned nonzero but reported no errors"
+        # when a test returns
+        test_cmd = "set +o pipefail && $TOOLS_RUNNER | $TOOLS_PLENARY_TO_JUNIT > $RESULTS_FILE",
         labels = labels,
         test_tools = {
             "runner": runner,
