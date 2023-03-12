@@ -230,7 +230,8 @@ popup.restore = function()
   -- we can move the cursor back to it
   vim.wait(500, function()
     -- [cached_row-1, cached_row) gets us the cached_row'th line (cached_row is 1-based, nvim_buf_get_lines is 0-based)
-    local term_buf_line = vim.api.nvim_buf_get_lines(term_bufnr, cached_popup.cursor.row - 1, cached_popup.cursor.row, false)[1]
+    local term_buf_line =
+      vim.api.nvim_buf_get_lines(term_bufnr, cached_popup.cursor.row - 1, cached_popup.cursor.row, false)[1]
     return term_buf_line and #term_buf_line >= cached_popup.cursor.col
   end)
   cursor.set(cached_popup.cursor)
