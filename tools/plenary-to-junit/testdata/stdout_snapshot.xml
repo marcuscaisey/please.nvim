@@ -1,0 +1,40 @@
+<testsuite name="tools.plenary-to-junit.testdata.stdout_spec" tests="5" failures="2" skipped="1" errors="1">
+  <testcase name="describe passes">
+    <system-out><![CDATA[passes stdout]]></system-out>
+  </testcase>
+  <testcase name="describe fails 1">
+    <failure message="tools/plenary-to-junit/testdata/stdout_spec.lua:8: error message"><![CDATA[stack traceback:
+	tools/plenary-to-junit/testdata/stdout_spec.lua:8: in function <tools/plenary-to-junit/testdata/stdout_spec.lua:6>]]></failure>
+    <system-out><![CDATA[fails 1 stdout]]></system-out>
+  </testcase>
+  <testcase name="describe fails 2">
+    <failure message="tools/plenary-to-junit/testdata/stdout_spec.lua:14: error message"><![CDATA[stack traceback:
+	tools/plenary-to-junit/testdata/stdout_spec.lua:14: in function <tools/plenary-to-junit/testdata/stdout_spec.lua:12>]]></failure>
+    <system-out><![CDATA[fails 2 output]]></system-out>
+  </testcase>
+  <testcase name="describe skips">
+    <skipped></skipped>
+  </testcase>
+  <testcase name="stdout_spec">
+    <error message="Unexpected error reported. This usually occurs when an error is raised outside of an &#34;it&#34; block."><![CDATA[{ {
+    descriptions = { "describe" },
+    msg = "tools/plenary-to-junit/testdata/stdout_spec.lua:22: error message\n\nstack traceback:\n\ttools/plenary-to-junit/testdata/stdout_spec.lua:22: in function <tools/plenary-to-junit/testdata/stdout_spec.lua:1>\n"
+  } }	{
+  errs = { {
+      descriptions = { "describe" },
+      msg = "tools/plenary-to-junit/testdata/stdout_spec.lua:22: error message\n\nstack traceback:\n\ttools/plenary-to-junit/testdata/stdout_spec.lua:22: in function <tools/plenary-to-junit/testdata/stdout_spec.lua:1>\n"
+    } },
+  fail = { {
+      descriptions = { "describe", "fails 1" },
+      msg = "tools/plenary-to-junit/testdata/stdout_spec.lua:8: error message\n\nstack traceback:\n\ttools/plenary-to-junit/testdata/stdout_spec.lua:8: in function <tools/plenary-to-junit/testdata/stdout_spec.lua:6>\n"
+    }, {
+      descriptions = { "describe", "fails 2" },
+      msg = "tools/plenary-to-junit/testdata/stdout_spec.lua:14: error message\n\nstack traceback:\n\ttools/plenary-to-junit/testdata/stdout_spec.lua:14: in function <tools/plenary-to-junit/testdata/stdout_spec.lua:12>\n"
+    } },
+  pass = { {
+      descriptions = { "describe", "passes" }
+    } }
+}	]]></error>
+    <system-out><![CDATA[errors stdout]]></system-out>
+  </testcase>
+</testsuite>

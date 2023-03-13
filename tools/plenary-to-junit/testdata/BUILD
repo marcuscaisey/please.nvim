@@ -91,3 +91,15 @@ generate_test_snapshot(
     output = "empty_snapshot.xml",
     test_target = ":empty_spec",
 )
+
+neovim_test(
+    name = "stdout_spec",
+    labels = ["manual"],
+    test_file = "stdout_spec.lua",
+)
+
+generate_test_snapshot(
+    name = "generate_stdout_snapshot",
+    output = "stdout_snapshot.xml",
+    test_target = ":stdout_spec",
+)

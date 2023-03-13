@@ -55,3 +55,9 @@ plenary_to_junit_test(
     snapshot_target = "//tools/plenary-to-junit/testdata:empty_snapshot",
     test_target = "//tools/plenary-to-junit/testdata:empty_spec",
 )
+
+plenary_to_junit_test(
+    name = "test_stdout",
+    snapshot_target = "//tools/plenary-to-junit/testdata:stdout_snapshot",
+    test_target = "//tools/plenary-to-junit/testdata:stdout_spec",
+)

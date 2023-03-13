@@ -27,6 +27,7 @@ type TestCase struct {
 	Failure *Failure `xml:"failure,omitempty"`
 	Skipped *Skipped `xml:"skipped,omitempty"`
 	Error   *Error   `xml:"error,omitempty"`
+	Stdout  *Stdout  `xml:"system-out,omitempty"`
 }
 
 type Failure struct {
@@ -41,6 +42,10 @@ type Error struct {
 	Value   string `xml:",cdata"`
 }
 
+type Stdout struct {
+	Value string `xml:",cdata"`
+}
+
 var (
 	suiteNamePattern     = regexp.MustCompile(`^Testing:\s+(.+)$`)
 	outcomePattern       = regexp.MustCompile(`^\x1B\[\d+m(\w+)\x1B\[0m\s+\|\|\s+(.+)$`)
@@ -50,6 +55,7 @@ var (
 	escapeSeqPattern     = regexp.MustCompile(`\x1B\[\d+m`)
 	unexpectedErrPattern = regexp.MustCompile(`^We had an unexpected error:\s+`)
 	separator            = strings.Repeat("=", 40)
+	failureIndent        = strings.Repeat(" ", 12)
 
 	logger = log.New(os.Stderr, "Converting plenary test output to JUnit XML report: ", 0)
 )
@@ -129,14 +135,21 @@ func main() {
 	}
 
 	outputLinesByFailure := map[*Failure][]string{}
+	var stdoutLines []string
 
-	for i := 2; i < len(lines); i++ {
+	for i := 3; i < len(lines); i++ {
 		trimmedLine := strings.TrimSpace(lines[i])
 
 		if matches := outcomePattern.FindStringSubmatch(trimmedLine); len(matches) > 0 {
 			suite.Tests++
 			testCase := &TestCase{
 				Name: matches[2],
+			}
+			if stdout := strings.TrimSpace(strings.Join(stdoutLines, "\n")); stdout != "" {
+				testCase.Stdout = &Stdout{
+					Value: stdout,
+				}
+				stdoutLines = nil
 			}
 			switch matches[1] {
 			case "Success":
@@ -155,35 +168,48 @@ func main() {
 			assertLineMatches(lines, i+2, errorsCountPattern, lastDottedPart(suite.Name))
 			assertLineIs(lines, i+3, separator, lastDottedPart(suite.Name))
 
-			if i+4 < len(lines) && unexpectedErrPattern.MatchString(lines[i+4]) {
+			if i+4 == len(lines) {
+				break
+			}
+
+			if unexpectedErrPattern.MatchString(lines[i+4]) {
 				suite.Tests++
 				suite.Errors++
 				errorLines := make([]string, len(lines)-(i+4))
 				errorLines[0] = unexpectedErrPattern.ReplaceAllLiteralString(lines[i+4], "")
 				copy(errorLines[1:], lines[i+5:])
-				suite.TestCases = append(suite.TestCases, &TestCase{
+				testCase := &TestCase{
 					Name: lastDottedPart(suite.Name),
 					Error: &Error{
 						Message: `Unexpected error reported. This usually occurs when an error is raised outside of an "it" block.`,
 						Value:   strings.Join(errorLines, "\n"),
 					},
-				})
+				}
+				if stdout := strings.TrimSpace(strings.Join(stdoutLines, "\n")); stdout != "" {
+					testCase.Stdout = &Stdout{
+						Value: stdout,
+					}
+				}
+				suite.TestCases = append(suite.TestCases, testCase)
 				break
-
-			} else if suite.Failures > 0 {
-				assertLineIs(lines, i+4, "Tests Failed. Exit: 1", lastDottedPart(suite.Name))
-				i = i + 4
-
-			} else {
-				i = i + 3
 			}
 
-		} else if len(suite.TestCases) > 0 && suite.TestCases[len(suite.TestCases)-1].Failure != nil {
+			if suite.Failures == 0 {
+				printErrorSuiteAndExit(lines, suite.Name, "unexpected line %d: %q", i+4, trimmedLine)
+			}
+
+			assertLineIs(lines, i+4, "Tests Failed. Exit: 1", lastDottedPart(suite.Name))
+			if len(lines) == i+5 {
+				break
+			}
+			printErrorSuiteAndExit(lines, suite.Name, "unexpected line %d: %q", i+5, trimmedLine)
+
+		} else if strings.HasPrefix(lines[i], failureIndent) && len(suite.TestCases) > 0 && suite.TestCases[len(suite.TestCases)-1].Failure != nil {
 			currentFailure := suite.TestCases[len(suite.TestCases)-1].Failure
 			if currentFailure.Message == "" {
 				currentFailure.Message = trimmedLine
 			} else {
-				outputLinesByFailure[currentFailure] = append(outputLinesByFailure[currentFailure], strings.TrimPrefix(lines[i], strings.Repeat(" ", 12)))
+				outputLinesByFailure[currentFailure] = append(outputLinesByFailure[currentFailure], strings.TrimPrefix(lines[i], failureIndent))
 			}
 
 		} else if trimmedLine == separator {
@@ -202,10 +228,8 @@ func main() {
 			assertLineIs(lines, i+3, separator, suite.Name)
 			i = i + 3
 
-		} else if len(suite.TestCases) == 0 || (trimmedLine == "" && suite.TestCases[len(suite.TestCases)-1].Pass) {
-
 		} else {
-			printErrorSuiteAndExit(lines, suite.Name, "unexpected line %d: %q", i+1, trimmedLine)
+			stdoutLines = append(stdoutLines, lines[i])
 		}
 	}
 
