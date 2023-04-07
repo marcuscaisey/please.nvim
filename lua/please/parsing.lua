@@ -5,6 +5,9 @@ local ts_utils = require('nvim-treesitter.ts_utils')
 local logging = require('please.logging')
 local cursor = require('please.cursor')
 
+-- vim.treesitter.query.parse_query is deprecated since nvim 0.9
+local parse_query = vim.treesitter.query.parse or treesitter_query.parse_query
+
 local parsing = {}
 
 -- makes a query which selects build targets, accepting an optional name arg which filters for build targets with the
@@ -41,7 +44,7 @@ local function find_target_in_file(filepath, target)
   local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
   local parser = treesitter.get_parser(bufnr, 'python')
   local tree = parser:parse()[1]
-  local query = treesitter_query.parse_query('python', make_build_target_query(target))
+  local query = parse_query('python', make_build_target_query(target))
 
   for id, node in query:iter_captures(tree:root(), bufnr) do
     local name = query.captures[id]
@@ -371,7 +374,7 @@ parsing.get_test_at_cursor = function()
 
   local tree = treesitter.get_parser(0, vim.bo.filetype):parse()[1]
   for _, config in ipairs(vim.tbl_values(configs)) do
-    local query = treesitter_query.parse_query(vim.bo.filetype, config.query)
+    local query = parse_query(vim.bo.filetype, config.query)
     for _, match in query:iter_matches(tree:root(), 0) do
       local captures = extract_captures_from_match(match, query)
       if cursor_in_node_range(captures.test) then
@@ -407,7 +410,7 @@ parsing.list_tests_in_file = function()
   local tests = {}
   local tree = treesitter.get_parser(0, vim.bo.filetype):parse()[1]
   for _, config in ipairs(vim.tbl_values(configs)) do
-    local query = treesitter_query.parse_query(vim.bo.filetype, config.query)
+    local query = parse_query(vim.bo.filetype, config.query)
     for _, match in query:iter_matches(tree:root(), 0) do
       local captures = extract_captures_from_match(match, query)
       table.insert(tests, {
@@ -452,7 +455,7 @@ parsing.get_target_at_cursor = function(root)
   logging.log_call('parsing.get_target_at_cursor')
 
   local tree = treesitter.get_parser(0, 'python'):parse()[1]
-  local query = treesitter_query.parse_query('python', make_build_target_query())
+  local query = parse_query('python', make_build_target_query())
 
   for _, match in query:iter_matches(tree:root(), 0) do
     local captures = extract_captures_from_match(match, query)
