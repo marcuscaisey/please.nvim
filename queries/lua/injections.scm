@@ -10,16 +10,16 @@
 (
   [
     (field
-      value: (string ("string_content") @injection.content))
+      value: (string (string_content) @injection.content))
     (variable_declaration
       (assignment_statement
         (expression_list
           value: (string
-            content: ("string_content") @injection.content))))
+            content: (string_content) @injection.content))))
     (assignment_statement
       (expression_list
         value: (string
-          content: ("string_content") @injection.content)))
+          content: (string_content) @injection.content)))
   ]
   .
   (comment
