@@ -178,9 +178,7 @@ popup.run = function(cmd, args, opts)
     end
     is_shutdown = true
     close_windows()
-    -- TODO: replace this with call to Job:shutdown method when it doesn't cause the editor to become unresponsive for
-    -- 1s (https://github.com/nvim-lua/plenary.nvim/pull/406)
-    job:_shutdown()
+    job:shutdown()
   end
   -- close popup on q
   vim.keymap.set('n', 'q', close, { buffer = term_bufnr })
