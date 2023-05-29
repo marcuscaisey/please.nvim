@@ -18,23 +18,23 @@ neovim_toolchain(
 
 neovim_github_plugin(
     name = "plenary",
-    hashes = ["99352fe60df43043e7a6ab8692efe80059343f806f223d865f2902f0f484591b"],
+    hashes = ["44c00fb21991db538c86f81c2b7801f5968ccc231406b6aaabead7fefa0be412"],
     repo = "nvim-lua/plenary.nvim",
-    revision = "4b7e52044bbb84242158d977a50c4cbcd85070c7",
+    revision = "69d0a92d4cddd847fec10b29d7366e423df62eb8",
 )
 
 neovim_github_plugin(
     name = "nvim_treesitter",
-    hashes = ["4f91bc6976dc6e79489083cf421e9f1d06a1a603a735aaf3057c1d558ba80e52"],
+    hashes = ["e397e66ccf12f7798801d4ac32317d8871578c4fa8e4ca496d01e18fae288d86"],
     repo = "nvim-treesitter/nvim-treesitter",
-    revision = "b273a06728305c1e7bd0179977ca48049aeff5e6",
+    revision = "12453e0e3d2e82a4ae813f1540315c7cf2df2363",
 )
 
 neovim_github_plugin(
     name = "nvim_dap",
-    hashes = ["86f5ae3590d5f25ed8af958770d73c33bdbea1f276bb0270f5b3f2c3ebc63520"],
+    hashes = ["342aabd7f7d858b14deff060981278738ce14ac28cc51145c8c983e61e83abaf"],
     repo = "mfussenegger/nvim-dap",
-    revision = "61643680dcb771a29073cd432894e2f81a7c2ae3",
+    revision = "6cedcb527e264c8f25e86afa8dae74c6692dee51",
 )
 
 neovim_github_tree_sitter_parser(
@@ -47,10 +47,10 @@ neovim_github_tree_sitter_parser(
 
 neovim_github_tree_sitter_parser(
     name = "python_tree_sitter_parser",
-    hashes = ["614353f778e12637c76135d93157c219b69275f9c7efd58503221f4032c9210e"],
+    hashes = ["b4f7daba261b0d0aecd7223dc1d2463b784cc3c2e673bc4832ef28d43e8abefc"],
     lang = "python",
     repo = "tree-sitter/tree-sitter-python",
-    revision = "v0.20.0",
+    revision = "62827156d01c74dc1538266344e788da74536b8a",
 )
 
 neovim_lemmy_help(
