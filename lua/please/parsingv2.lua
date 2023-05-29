@@ -337,43 +337,4 @@ M.list_tests_at_cursor = function()
   end, tests)
 end
 
----Returns the tests from the current file.
----Current supported languages are:
----- Go
----  - test functions
----  - subtests
----  - table tests
----@return {name:string, selector:string}[]? tests
----@return string?: error if any, this should be checked before using the tests
-M.list_tests_in_file = function()
-  logging.log_call('please.parsing.list_tests_in_file')
-
-  local parsers_by_node_type = parsers_by_node_type_by_filetype[vim.bo.filetype]
-  if not parsers_by_node_type then
-    return nil, string.format('finding tests is not supported for %s files', vim.bo.filetype)
-  end
-
-  local ts_parser = vim.treesitter.get_parser(0, vim.bo.filetype)
-  local tree = ts_parser:parse()[1]
-  local root = tree:root()
-
-  local tests = {} ---@type please.parsing.Test[]
-  for child in root:iter_children() do
-    local parser = parsers_by_node_type[child:type()]
-    if parser then
-      local parent_test = parser(child)
-      if parent_test then
-        for _, test in ipairs(parent_test:traverse()) do
-          table.insert(tests, {
-            name = test.name,
-            selector = test.selector,
-          })
-        end
-      end
-    end
-  end
-
-  return tests
-end
-
 return M
