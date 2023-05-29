@@ -3,7 +3,7 @@ local parsingv2 = require('please.parsingv2')
 local temptree = require('tests.utils.temptree')
 
 describe('list_tests_at_cursor', function()
-  describe('should return Go tests -', function()
+  describe('returns Go tests -', function()
     local test_cases = {
       {
         name = 'test function',
@@ -15,10 +15,13 @@ describe('list_tests_at_cursor', function()
           func TestFunction2(t *testing.T) {
               t.Fatal("oh no")
           }
-        ]], --go
+        ]],                            -- go
         cursor = { row = 2, col = 5 }, -- inside TestFunction1
         expected_tests = {
-          { name = 'TestFunction1', selector = '^TestFunction1$' },
+          {
+            name = 'TestFunction1',
+            selector = '^TestFunction1$',
+          },
         },
       },
       {
@@ -33,7 +36,7 @@ describe('list_tests_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]], --go
+        ]],                            -- go
         cursor = { row = 3, col = 9 }, -- inside PascalCaseName
         expected_tests = {
           {
@@ -58,7 +61,7 @@ describe('list_tests_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]], --go
+        ]],                            -- go
         cursor = { row = 7, col = 9 }, -- inside snake case name
         expected_tests = {
           {
@@ -74,7 +77,7 @@ describe('list_tests_at_cursor', function()
       {
         name = 'test function with nested subtests',
         file = [[
-          func TestFunctionWithNestedSubtest(t *testing.T) {
+          func TestFunctionWithNestedSubtests(t *testing.T) {
               t.Run("Subtest", func(t *testing.T) {
                   t.Run("NestedSubtest1", func(t *testing.T) {
                       t.Fatal("oh no")
@@ -85,20 +88,20 @@ describe('list_tests_at_cursor', function()
                   })
               })
           }
-        ]], --go
+        ]],                             -- go
         cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
         expected_tests = {
           {
-            name = 'TestFunctionWithNestedSubtest',
-            selector = '^TestFunctionWithNestedSubtest$',
+            name = 'TestFunctionWithNestedSubtests',
+            selector = '^TestFunctionWithNestedSubtests$',
           },
           {
-            name = 'TestFunctionWithNestedSubtest/Subtest',
-            selector = '^TestFunctionWithNestedSubtest$/^Subtest$',
+            name = 'TestFunctionWithNestedSubtests/Subtest',
+            selector = '^TestFunctionWithNestedSubtests$/^Subtest$',
           },
           {
-            name = 'TestFunctionWithNestedSubtest/Subtest/NestedSubtest1',
-            selector = '^TestFunctionWithNestedSubtest$/^Subtest$/^NestedSubtest1$',
+            name = 'TestFunctionWithNestedSubtests/Subtest/NestedSubtest1',
+            selector = '^TestFunctionWithNestedSubtests$/^Subtest$/^NestedSubtest1$',
           },
         },
       },
@@ -129,7 +132,7 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]], --go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_tests = {
           {
@@ -169,7 +172,7 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]], --go
+        ]],                              -- go
         cursor = { row = 13, col = 13 }, -- inside snake case name
         expected_tests = {
           {
@@ -209,7 +212,7 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]], --go
+        ]],                              -- go
         cursor = { row = 21, col = 13 }, -- inside t.Run
         expected_tests = {
           {
@@ -253,7 +256,7 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]], --go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_tests = {
           {
@@ -282,7 +285,7 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]], --go
+        ]],                              -- go
         cursor = { row = 10, col = 13 }, -- inside t.Run
         expected_tests = {
           {
@@ -324,7 +327,7 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]], --go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside TestCase1
         expected_tests = {
           {
@@ -370,7 +373,7 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]], --go
+        ]],                              -- go
         cursor = { row = 22, col = 17 }, -- inside Subtest1
         expected_tests = {
           {
@@ -428,7 +431,7 @@ describe('list_tests_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]], --go
+        ]],                             -- go
         cursor = { row = 9, col = 17 }, -- inside TestCase1
         expected_tests = {
           {
@@ -478,7 +481,7 @@ describe('list_tests_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]], --go
+        ]],                              -- go
         cursor = { row = 22, col = 17 }, -- inside t.Run
         expected_tests = {
           {
@@ -520,9 +523,9 @@ describe('list_tests_at_cursor', function()
     end
   end)
 
-  it('should return error if language of file is not supported', function()
+  it('returns error if language of file is not supported', function()
     local root, teardown_tree = temptree.create({
-      ['hello.rb'] = 'puts "Hello, World!"', --ruby
+      ['hello.rb'] = 'puts "Hello, World!"', -- ruby
     })
 
     vim.cmd('edit ' .. root .. '/hello.rb')
@@ -535,13 +538,13 @@ describe('list_tests_at_cursor', function()
     teardown_tree()
   end)
 
-  it('should return error if cursor is not in a test', function()
+  it('returns error if cursor is not in a test', function()
     local root, teardown_tree = temptree.create({
       ['foo_test.go'] = [[
         func Func() {
             fmt.Println("foo")
         }
-      ]], --go
+      ]], -- go
     })
 
     vim.cmd('edit ' .. root .. '/' .. 'foo_test.go')
@@ -550,6 +553,372 @@ describe('list_tests_at_cursor', function()
     local tests, err = parsingv2.list_tests_at_cursor()
 
     assert.are.equal(err, 'cursor is not in a test')
+    assert.is_nil(tests, 'expected no tests to be returned')
+
+    teardown_tree()
+  end)
+end)
+
+describe('list_tests_in_file', function()
+  describe('returns Go tests -', function()
+    local test_cases = {
+      {
+        name = 'test function',
+        file = [[
+          func TestFunction1(t *testing.T) {
+              t.Fatal("oh no")
+          }
+
+          func TestFunction2(t *testing.T) {
+              t.Fatal("oh no")
+          }
+        ]], -- go
+        expected_tests = {
+          {
+            name = 'TestFunction1',
+            selector = '^TestFunction1$',
+          },
+          {
+            name = 'TestFunction2',
+            selector = '^TestFunction2$',
+          },
+        },
+      },
+      {
+        name = 'test function with subtests',
+        file = [[
+          func TestFunctionWithSubtests(t *testing.T) {
+              t.Run("PascalCaseName", func(t *testing.T) {
+                  t.Fatal("oh no")
+              })
+
+              t.Run("snake case name", func(t *testing.T) {
+                  t.Fatal("oh no")
+              })
+          }
+        ]], -- go
+        expected_tests = {
+          {
+            name = 'TestFunctionWithSubtests',
+            selector = '^TestFunctionWithSubtests$',
+          },
+          {
+            name = 'TestFunctionWithSubtests/PascalCaseName',
+            selector = '^TestFunctionWithSubtests$/^PascalCaseName$',
+          },
+          {
+            name = 'TestFunctionWithSubtests/snake_case_name',
+            selector = '^TestFunctionWithSubtests$/^snake_case_name$',
+          },
+        },
+      },
+      {
+        name = 'test function with nested subtests',
+        file = [[
+          func TestFunctionWithNestedSubtests(t *testing.T) {
+              t.Run("Subtest", func(t *testing.T) {
+                  t.Run("NestedSubtest1", func(t *testing.T) {
+                      t.Fatal("oh no")
+                  })
+
+                  t.Run("NestedSubtest2", func(t *testing.T) {
+                      t.Fatal("oh no")
+                  })
+              })
+          }
+        ]], -- go
+        expected_tests = {
+          {
+            name = 'TestFunctionWithNestedSubtests',
+            selector = '^TestFunctionWithNestedSubtests$',
+          },
+          {
+            name = 'TestFunctionWithNestedSubtests/Subtest',
+            selector = '^TestFunctionWithNestedSubtests$/^Subtest$',
+          },
+          {
+            name = 'TestFunctionWithNestedSubtests/Subtest/NestedSubtest1',
+            selector = '^TestFunctionWithNestedSubtests$/^Subtest$/^NestedSubtest1$',
+          },
+          {
+            name = 'TestFunctionWithNestedSubtests/Subtest/NestedSubtest2',
+            selector = '^TestFunctionWithNestedSubtests$/^Subtest$/^NestedSubtest2$',
+          },
+        },
+      },
+      {
+        name = 'test function with table tests',
+        file = [[
+          func TestFunctionWithTableTests(t *testing.T) {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "PascalCaseName",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "snake case name",
+                      input: 2,
+                      want:  3,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  t.Run(tc.name, func(t *testing.T) {
+                      t.Fatal("oh no")
+                  })
+              }
+          }
+        ]], -- go
+        expected_tests = {
+          {
+            name = 'TestFunctionWithTableTests',
+            selector = '^TestFunctionWithTableTests$',
+          },
+          {
+            name = 'TestFunctionWithTableTests/PascalCaseName',
+            selector = '^TestFunctionWithTableTests$/^PascalCaseName$',
+          },
+          {
+            name = 'TestFunctionWithTableTests/snake_case_name',
+            selector = '^TestFunctionWithTableTests$/^snake_case_name$',
+          },
+        },
+      },
+      {
+        name = 'test function with table tests - test cases defined with var',
+        file = [[
+          func TestFunctionWithTableTestsVar(t *testing.T) {
+              var testCases = []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "PascalCaseName",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "snake case name",
+                      input: 2,
+                      want:  3,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  t.Run(tc.name, func(t *testing.T) {
+                      t.Fatal("oh no")
+                  })
+              }
+          }
+        ]], -- go
+        expected_tests = {
+          {
+            name = 'TestFunctionWithTableTestsVar',
+            selector = '^TestFunctionWithTableTestsVar$',
+          },
+          {
+            name = 'TestFunctionWithTableTestsVar/PascalCaseName',
+            selector = '^TestFunctionWithTableTestsVar$/^PascalCaseName$',
+          },
+          {
+            name = 'TestFunctionWithTableTestsVar/snake_case_name',
+            selector = '^TestFunctionWithTableTestsVar$/^snake_case_name$',
+          },
+        },
+      },
+      {
+        name = 'test function with table tests - empty test cases',
+        file = [[
+          func TestFunctionWithEmptyTableTestCases(t *testing.T) {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{}
+
+              for _, tc := range testCases {
+                  t.Run(tc.name, func(t *testing.T) {
+                      t.Fatal("oh no")
+                  })
+              }
+          }
+        ]], -- go
+        expected_tests = {
+          {
+            name = 'TestFunctionWithEmptyTableTestCases',
+            selector = '^TestFunctionWithEmptyTableTestCases$',
+          },
+        },
+      },
+      {
+        name = 'test function with subtests nested inside table test',
+        file = [[
+          func TestFunctionWithSubtestsNestedInsideTableTest(t *testing.T) {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "TestCase1",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "TestCase2",
+                      input: 1,
+                      want:  2,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  t.Run(tc.name, func(t *testing.T) {
+                      t.Run("Subtest1", func(t *testing.T) {
+                          t.Fatal("oh no")
+                      })
+
+                      t.Run("Subtest2", func(t *testing.T) {
+                          t.Fatal("oh no")
+                      })
+                  })
+              }
+          }
+        ]], -- go
+        expected_tests = {
+          {
+            name = 'TestFunctionWithSubtestsNestedInsideTableTest',
+            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$',
+          },
+          {
+            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1',
+            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase1$',
+          },
+          {
+            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1/Subtest1',
+            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase1$/^Subtest1$',
+          },
+          {
+            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1/Subtest2',
+            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase1$/^Subtest2$',
+          },
+          {
+            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase2',
+            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase2$',
+          },
+          {
+            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase2/Subtest1',
+            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase2$/^Subtest1$',
+          },
+          {
+            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase2/Subtest2',
+            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase2$/^Subtest2$',
+          },
+        },
+      },
+      {
+        name = 'test function with table tests nested inside subtest',
+        file = [[
+          func TestFunctionWithTableTestsNestedInsideSubtest(t *testing.T) {
+              t.Run("Subtest1", func(t *testing.T) {
+                  testCases := []struct {
+                      name  string
+                      input int
+                      want  int
+                  }{
+                      {
+                          name:  "TestCase1",
+                          input: 1,
+                          want:  2,
+                      },
+                      {
+                          name:  "TestCase2",
+                          input: 1,
+                          want:  2,
+                      },
+                  }
+
+                  for _, tc := range testCases {
+                      t.Run(tc.name, func(t *testing.T) {
+                          t.Fatal("oh no")
+                      })
+                  }
+              })
+
+              t.Run("Subtest2", func(t *testing.T) {
+                  t.Fatal("oh no")
+              })
+          }
+        ]],                              -- go
+        cursor = { row = 22, col = 17 }, -- inside t.Run
+        expected_tests = {
+          {
+            name = 'TestFunctionWithTableTestsNestedInsideSubtest',
+            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$',
+          },
+          {
+            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1',
+            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$',
+          },
+          {
+            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
+            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase1$',
+          },
+          {
+            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase2',
+            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase2$',
+          },
+          {
+            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest2',
+            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest2$',
+          },
+        },
+      },
+      {
+        name = 'test file with no tests',
+        file = [[
+          func NotATestFunction(t *testing.T) {
+
+          }
+        ]],                            -- go
+        cursor = { row = 2, col = 4 }, -- inside NotATestFunction
+        expected_tests = {},
+      },
+    }
+
+    for _, tc in ipairs(test_cases) do
+      it(tc.name, function()
+        local root, teardown_tree = temptree.create({
+          ['foo_test.go'] = tc.file,
+        })
+
+        vim.cmd('edit ' .. root .. '/foo_test.go')
+
+        local tests, err = parsingv2.list_tests_in_file()
+
+        assert.is_nil(err, 'expected no error to be returned')
+        assert.are.same(tc.expected_tests, tests, 'incorrect tests returned')
+
+        teardown_tree()
+      end)
+    end
+  end)
+
+  it('returns error if language of file is not supported', function()
+    local root, teardown_tree = temptree.create({
+      ['hello.rb'] = 'puts "Hello, World!"', -- ruby
+    })
+
+    vim.cmd('edit ' .. root .. '/hello.rb')
+
+    local tests, err = parsingv2.list_tests_in_file()
+
+    assert.are.equal(err, 'finding tests is not supported for ruby files')
     assert.is_nil(tests, 'expected no tests to be returned')
 
     teardown_tree()

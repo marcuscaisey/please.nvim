@@ -1,16 +1,7 @@
 local cursor = require('please.cursor')
+local logging = require('please.logging')
 
 local M = {}
-
----Type stub for the Neovim tsnode type. It's implemented as a reference to an object held by the C tree-sitter
----library, so this just provides typing of its methods.
----@class tsnode
----@field parent fun():tsnode?
----@field named_child_count fun():integer
----@field named_child fun(node:tsnode,index:integer):tsnode
----@field range fun():integer,integer,integer,integer
----@field type fun():string
----@field id fun():string
 
 ---A range of cursor positions.
 ---@class please.parsing.Range
@@ -26,7 +17,7 @@ function Range:new(start, end_)
   return setmetatable({ start = start, end_ = end_ }, self)
 end
 
----@param node tsnode
+---@param node TSNode
 ---@return please.parsing.Range
 function Range.from_node(node)
   local start_row, start_col, end_row, end_col = node:range()
@@ -83,8 +74,8 @@ function Test:traverse(filter)
 end
 
 ---@param query Query
----@param node tsnode
----@return table<string, tsnode>[]
+---@param node TSNode
+---@return table<string, TSNode>[]
 local query_matches_in_node = function(query, node)
   local matches = {} -- table<string, tsnode>
   local node_start, _, node_stop, _ = node:range()
@@ -99,11 +90,9 @@ local query_matches_in_node = function(query, node)
   return matches
 end
 
----@type Query
-local subtest_query = vim.treesitter.query.parse_query(
+local subtest_query = vim.treesitter.query.parse(
   'go',
   [[
-  ;; query
   (
     (parameter_list
       (parameter_declaration
@@ -123,11 +112,9 @@ local subtest_query = vim.treesitter.query.parse_query(
   ]]
 )
 
----@type Query
-local table_test_query = vim.treesitter.query.parse_query(
+local table_test_query = vim.treesitter.query.parse(
   'go',
   [[
-  ;; query
   (
     (parameter_list
       (parameter_declaration
@@ -205,8 +192,8 @@ local parse_subtests
 
 ---@param parent_name string
 ---@param parent_selector string
----@param parent_test_node tsnode
----@param parent_body_node tsnode
+---@param parent_test_node TSNode
+---@param parent_body_node TSNode
 ---@return please.parsing.Test[]
 parse_subtests = function(parent_name, parent_selector, parent_test_node, parent_body_node)
   local subtests = {}
@@ -219,7 +206,7 @@ parse_subtests = function(parent_name, parent_selector, parent_test_node, parent
       if captures.subtest:parent():id() == parent_body_node:id() then
         -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
         -- underscores since that's how the go test runner displays test names with spaces in.
-        local subtest_name = vim.treesitter.query.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
+        local subtest_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
         local name = parent_name .. '/' .. subtest_name
         local selector = parent_selector .. '/^' .. subtest_name .. '$'
         table.insert(
@@ -242,7 +229,7 @@ parse_subtests = function(parent_name, parent_selector, parent_test_node, parent
     if captures.for_loop:parent():id() == parent_body_node:id() then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
       -- underscores since that's how the go test runner displays test names with spaces in.
-      local test_case_name = vim.treesitter.query.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
+      local test_case_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
       local name = parent_name .. '/' .. test_case_name
       local selector = parent_selector .. '/^' .. test_case_name .. '$'
       table.insert(
@@ -262,11 +249,9 @@ parse_subtests = function(parent_name, parent_selector, parent_test_node, parent
   return subtests
 end
 
----@type Query
-local test_func_query = vim.treesitter.query.parse_query(
+local test_func_query = vim.treesitter.query.parse(
   'go',
   [[
-  ;; query
   (function_declaration
     (identifier) @name
     (#match? @name "^Test.+")
@@ -280,7 +265,7 @@ local test_func_query = vim.treesitter.query.parse_query(
   ]]
 )
 
----@param root_node tsnode
+---@param root_node TSNode
 ---@return please.parsing.Test?
 local parse_test_func = function(root_node)
   local matches = query_matches_in_node(test_func_query, root_node)
@@ -288,7 +273,7 @@ local parse_test_func = function(root_node)
     return
   end
   local captures = matches[1]
-  local name = vim.treesitter.query.get_node_text(captures.name, 0)
+  local name = vim.treesitter.get_node_text(captures.name, 0)
   local selector = '^' .. name .. '$'
   return Test:new({
     name = name,
@@ -298,7 +283,7 @@ local parse_test_func = function(root_node)
   })
 end
 
----@type table<string, table<string, fun(root_node:tsnode):please.parsing.Test?>>
+---@type table<string, table<string, fun(root_node:TSNode):please.parsing.Test?>>
 local parsers_by_node_type_by_filetype = {
   go = {
     function_declaration = parse_test_func,
@@ -306,16 +291,22 @@ local parsers_by_node_type_by_filetype = {
 }
 
 ---Returns the tests at the current cursor position.
+---Current supported languages are:
+---- Go
+---  - test functions
+---  - subtests
+---  - table tests
 ---@return {name:string, selector:string}[]? tests
----@return string? error
+---@return string? error if any, this should be checked before using the tests
 M.list_tests_at_cursor = function()
+  logging.log_call('please.parsing.list_tests_at_cursor')
+
   local parsers_by_node_type = parsers_by_node_type_by_filetype[vim.bo.filetype]
   if not parsers_by_node_type then
     return nil, string.format('finding tests is not supported for %s files', vim.bo.filetype)
   end
 
-  local pos = cursor.get()
-  local root_node = vim.treesitter.get_node_at_pos(0, pos.row - 1, pos.col - 1, { lang = 'go' }) ---@type tsnode?
+  local root_node = vim.treesitter.get_node()
   while root_node and not parsers_by_node_type[root_node:type()] do
     root_node = root_node:parent()
   end
@@ -329,6 +320,7 @@ M.list_tests_at_cursor = function()
     return nil, 'cursor is not in a test'
   end
 
+  local pos = cursor.get()
   local tests = parent_test:traverse(function(t)
     for _, range in ipairs(t.ranges) do
       if range:contains(pos) then
@@ -343,6 +335,45 @@ M.list_tests_at_cursor = function()
       selector = test.selector,
     }
   end, tests)
+end
+
+---Returns the tests from the current file.
+---Current supported languages are:
+---- Go
+---  - test functions
+---  - subtests
+---  - table tests
+---@return {name:string, selector:string}[]? tests
+---@return string?: error if any, this should be checked before using the tests
+M.list_tests_in_file = function()
+  logging.log_call('please.parsing.list_tests_in_file')
+
+  local parsers_by_node_type = parsers_by_node_type_by_filetype[vim.bo.filetype]
+  if not parsers_by_node_type then
+    return nil, string.format('finding tests is not supported for %s files', vim.bo.filetype)
+  end
+
+  local ts_parser = vim.treesitter.get_parser(0, vim.bo.filetype)
+  local tree = ts_parser:parse()[1]
+  local root = tree:root()
+
+  local tests = {} ---@type please.parsing.Test[]
+  for child in root:iter_children() do
+    local parser = parsers_by_node_type[child:type()]
+    if parser then
+      local parent_test = parser(child)
+      if parent_test then
+        for _, test in ipairs(parent_test:traverse()) do
+          table.insert(tests, {
+            name = test.name,
+            selector = test.selector,
+          })
+        end
+      end
+    end
+  end
+
+  return tests
 end
 
 return M

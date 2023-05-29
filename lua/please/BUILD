@@ -48,6 +48,8 @@ neovim_lua_module(
     ],
     deps = [
         ":cursor",
+        ":logging",
+        "//third_party/neovim:go_tree_sitter_parser",
     ],
 )
 
