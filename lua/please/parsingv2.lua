@@ -36,6 +36,7 @@ function Range:contains(pos)
 end
 
 ---Language agnostic representation of a test and its children. A Test along with its children forms a tree of tests.
+---@private
 ---@class please.parsing.Test
 ---@field name string
 ---@field selector string The string which should be passed to the test runner to run this test.
@@ -77,9 +78,9 @@ end
 ---@param node TSNode
 ---@return table<string, TSNode>[]
 local query_matches_in_node = function(query, node)
-  local matches = {} -- table<string, tsnode>
-  local node_start, _, node_stop, _ = node:range()
-  for _, match in query:iter_matches(node, 0, node_start, node_stop) do
+  local matches = {} ---@type table<string, TSNode>[]
+  local node_start_row, _, node_stop_row, _ = node:range()
+  for _, match in query:iter_matches(node, 0, node_start_row, node_stop_row) do
     local captured_nodes = {}
     for id, captured_node in pairs(match) do
       local name = query.captures[id]
@@ -139,8 +140,8 @@ local table_test_query = vim.treesitter.query.parse(
                       (literal_element
                         (identifier) @_test_case_name_field)
                       (literal_element
-                        (interpreted_string_literal) @name ))
-                    (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case )))))
+                        (interpreted_string_literal) @name))
+                    (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
       (short_var_declaration
         left: (expression_list
           (identifier) @_test_cases_var)
@@ -160,13 +161,13 @@ local table_test_query = vim.treesitter.query.parse(
                     (literal_element
                       (identifier) @_test_case_name_field)
                     (literal_element
-                      (interpreted_string_literal) @name ))
-                  (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case ))))
+                      (interpreted_string_literal) @name))
+                  (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
       ]
       (for_statement
         (range_clause
           left: (expression_list
-            (identifier) @_test_cases_loop_var . )
+            (identifier) @_test_cases_loop_var .)
           right: (identifier) @_test_cases_loop_range_var)
         (#eq? @_test_cases_loop_range_var @_test_cases_var)
         body: (block
@@ -183,7 +184,7 @@ local table_test_query = vim.treesitter.query.parse(
               (#eq? @_name_arg_operand @_test_cases_loop_var)
               (#eq? @_name_arg_field @_test_case_struct_name_field)
               (func_literal
-                body: (block) @subtest_body))) @subtest )) @for_loop )
+                body: (block)))))) @for_loop)
   )
   ]]
 )
@@ -192,43 +193,41 @@ local parse_subtests
 
 ---@param parent_name string
 ---@param parent_selector string
----@param parent_test_node TSNode
----@param parent_body_node TSNode
+---@param parent_test TSNode
+---@param parent_body TSNode
 ---@return please.parsing.Test[]
-parse_subtests = function(parent_name, parent_selector, parent_test_node, parent_body_node)
-  local subtests = {}
+parse_subtests = function(parent_name, parent_selector, parent_test, parent_body)
+  local subtests = {} ---@type please.parsing.Test[]
 
-  local subtest_matches = query_matches_in_node(subtest_query, parent_test_node)
-  if #subtest_matches > 0 then
-    for _, captures in ipairs(subtest_matches) do
-      -- We make sure that the subtest is a direct child of parent_body_node so that we don't pick up any nested
-      -- subtests which will be picked up by recursive calls of parse_subtests.
-      if captures.subtest:parent():id() == parent_body_node:id() then
-        -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
-        -- underscores since that's how the go test runner displays test names with spaces in.
-        local subtest_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
-        local name = parent_name .. '/' .. subtest_name
-        local selector = parent_selector .. '/^' .. subtest_name .. '$'
-        table.insert(
-          subtests,
-          Test:new({
-            name = name,
-            selector = selector,
-            ranges = { Range.from_node(captures.subtest) },
-            children = parse_subtests(name, selector, captures.subtest, captures.body),
-          })
-        )
-      end
+  local subtest_matches = query_matches_in_node(subtest_query, parent_test)
+  for _, captures in ipairs(subtest_matches) do
+    -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested
+    -- subtests which will be picked up by recursive calls of parse_subtests.
+    if captures.subtest:parent():id() == parent_body:id() then
+      -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
+      -- underscores to match how the Go test runner displays test names.
+      local subtest_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
+      local name = parent_name .. '/' .. subtest_name
+      local selector = parent_selector .. '/^' .. subtest_name .. '$'
+      table.insert(
+        subtests,
+        Test:new({
+          name = name,
+          selector = selector,
+          ranges = { Range.from_node(captures.subtest) },
+          children = parse_subtests(name, selector, captures.subtest, captures.body),
+        })
+      )
     end
   end
 
-  local table_test_matches = query_matches_in_node(table_test_query, parent_test_node)
+  local table_test_matches = query_matches_in_node(table_test_query, parent_test)
   for _, captures in ipairs(table_test_matches) do
-    -- We make sure that the for loop part of the table test is a direct child of parent_body_node so that we don't pick
+    -- We make sure that the for loop part of the table test is a direct child of parent_body so that we don't pick
     -- up any nested table tests which will be picked up by recursive calls of parse_subtests.
-    if captures.for_loop:parent():id() == parent_body_node:id() then
+    if captures.for_loop:parent():id() == parent_body:id() then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
-      -- underscores since that's how the go test runner displays test names with spaces in.
+      -- underscores to match how the Go test runner displays test names.
       local test_case_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
       local name = parent_name .. '/' .. test_case_name
       local selector = parent_selector .. '/^' .. test_case_name .. '$'
@@ -237,10 +236,7 @@ parse_subtests = function(parent_name, parent_selector, parent_test_node, parent
         Test:new({
           name = name,
           selector = selector,
-          ranges = { Range.from_node(captures.test_case), Range.from_node(captures.subtest) },
-          -- TODO: we should only need to parse the nested subtests once since they are
-          -- the same for each test case
-          children = parse_subtests(name, selector, captures.subtest, captures.subtest_body),
+          ranges = { Range.from_node(captures.test_case) },
         })
       )
     end
@@ -290,7 +286,7 @@ local parsers_by_node_type_by_filetype = {
   },
 }
 
----Returns the tests at the current cursor position.
+---Returns the test at the current cursor position.
 ---Current supported languages are:
 ---- Go
 ---  - test functions
@@ -298,8 +294,8 @@ local parsers_by_node_type_by_filetype = {
 ---  - table tests
 ---@return {name:string, selector:string}[]? tests
 ---@return string? error if any, this should be checked before using the tests
-M.list_tests_at_cursor = function()
-  logging.log_call('please.parsing.list_tests_at_cursor')
+M.get_test_at_cursor = function()
+  logging.log_call('please.parsing.get_test_at_cursor')
 
   local parsers_by_node_type = parsers_by_node_type_by_filetype[vim.bo.filetype]
   if not parsers_by_node_type then
@@ -329,12 +325,8 @@ M.list_tests_at_cursor = function()
     end
     return false
   end)
-  return vim.tbl_map(function(test)
-    return {
-      name = test.name,
-      selector = test.selector,
-    }
-  end, tests)
+  local test = tests[#tests]
+  return { name = test.name, selector = test.selector }
 end
 
 return M

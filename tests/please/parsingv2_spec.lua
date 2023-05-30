@@ -2,8 +2,8 @@ local cursor = require('please.cursor')
 local parsingv2 = require('please.parsingv2')
 local temptree = require('tests.utils.temptree')
 
-describe('list_tests_at_cursor', function()
-  describe('returns Go tests -', function()
+describe('get_test_at_cursor', function()
+  describe('returns Go test -', function()
     local test_cases = {
       {
         name = 'test function',
@@ -15,13 +15,11 @@ describe('list_tests_at_cursor', function()
           func TestFunction2(t *testing.T) {
               t.Fatal("oh no")
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 2, col = 5 }, -- inside TestFunction1
-        expected_tests = {
-          {
-            name = 'TestFunction1',
-            selector = '^TestFunction1$',
-          },
+        expected_test = {
+          name = 'TestFunction1',
+          selector = '^TestFunction1$',
         },
       },
       {
@@ -36,17 +34,11 @@ describe('list_tests_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 3, col = 9 }, -- inside PascalCaseName
-        expected_tests = {
-          {
-            name = 'TestFunctionWithSubtests',
-            selector = '^TestFunctionWithSubtests$',
-          },
-          {
-            name = 'TestFunctionWithSubtests/PascalCaseName',
-            selector = '^TestFunctionWithSubtests$/^PascalCaseName$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithSubtests/PascalCaseName',
+          selector = '^TestFunctionWithSubtests$/^PascalCaseName$',
         },
       },
       {
@@ -61,17 +53,11 @@ describe('list_tests_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 7, col = 9 }, -- inside snake case name
-        expected_tests = {
-          {
-            name = 'TestFunctionWithSubtests',
-            selector = '^TestFunctionWithSubtests$',
-          },
-          {
-            name = 'TestFunctionWithSubtests/snake_case_name',
-            selector = '^TestFunctionWithSubtests$/^snake_case_name$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithSubtests/snake_case_name',
+          selector = '^TestFunctionWithSubtests$/^snake_case_name$',
         },
       },
       {
@@ -88,21 +74,11 @@ describe('list_tests_at_cursor', function()
                   })
               })
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
-        expected_tests = {
-          {
-            name = 'TestFunctionWithNestedSubtests',
-            selector = '^TestFunctionWithNestedSubtests$',
-          },
-          {
-            name = 'TestFunctionWithNestedSubtests/Subtest',
-            selector = '^TestFunctionWithNestedSubtests$/^Subtest$',
-          },
-          {
-            name = 'TestFunctionWithNestedSubtests/Subtest/NestedSubtest1',
-            selector = '^TestFunctionWithNestedSubtests$/^Subtest$/^NestedSubtest1$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithNestedSubtests/Subtest/NestedSubtest1',
+          selector = '^TestFunctionWithNestedSubtests$/^Subtest$/^NestedSubtest1$',
         },
       },
       {
@@ -132,17 +108,11 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
-        expected_tests = {
-          {
-            name = 'TestFunctionWithTableTests',
-            selector = '^TestFunctionWithTableTests$',
-          },
-          {
-            name = 'TestFunctionWithTableTests/PascalCaseName',
-            selector = '^TestFunctionWithTableTests$/^PascalCaseName$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithTableTests/PascalCaseName',
+          selector = '^TestFunctionWithTableTests$/^PascalCaseName$',
         },
       },
       {
@@ -172,17 +142,11 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 13, col = 13 }, -- inside snake case name
-        expected_tests = {
-          {
-            name = 'TestFunctionWithTableTests',
-            selector = '^TestFunctionWithTableTests$',
-          },
-          {
-            name = 'TestFunctionWithTableTests/snake_case_name',
-            selector = '^TestFunctionWithTableTests$/^snake_case_name$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithTableTests/snake_case_name',
+          selector = '^TestFunctionWithTableTests$/^snake_case_name$',
         },
       },
       {
@@ -212,21 +176,11 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 21, col = 13 }, -- inside t.Run
-        expected_tests = {
-          {
-            name = 'TestFunctionWithTableTests',
-            selector = '^TestFunctionWithTableTests$',
-          },
-          {
-            name = 'TestFunctionWithTableTests/PascalCaseName',
-            selector = '^TestFunctionWithTableTests$/^PascalCaseName$',
-          },
-          {
-            name = 'TestFunctionWithTableTests/snake_case_name',
-            selector = '^TestFunctionWithTableTests$/^snake_case_name$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithTableTests',
+          selector = '^TestFunctionWithTableTests$',
         },
       },
       {
@@ -256,17 +210,11 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
-        expected_tests = {
-          {
-            name = 'TestFunctionWithTableTestsVar',
-            selector = '^TestFunctionWithTableTestsVar$',
-          },
-          {
-            name = 'TestFunctionWithTableTestsVar/PascalCaseName',
-            selector = '^TestFunctionWithTableTestsVar$/^PascalCaseName$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithTableTestsVar/PascalCaseName',
+          selector = '^TestFunctionWithTableTestsVar$/^PascalCaseName$',
         },
       },
       {
@@ -285,13 +233,11 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 10, col = 13 }, -- inside t.Run
-        expected_tests = {
-          {
-            name = 'TestFunctionWithEmptyTableTestCases',
-            selector = '^TestFunctionWithEmptyTableTestCases$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithEmptyTableTestCases',
+          selector = '^TestFunctionWithEmptyTableTestCases$',
         },
       },
       {
@@ -327,17 +273,11 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside TestCase1
-        expected_tests = {
-          {
-            name = 'TestFunctionWithSubtestsNestedInsideTableTest',
-            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$',
-          },
-          {
-            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1',
-            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase1$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1',
+          selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase1$',
         },
       },
       {
@@ -373,29 +313,11 @@ describe('list_tests_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 22, col = 17 }, -- inside Subtest1
-        expected_tests = {
-          {
-            name = 'TestFunctionWithSubtestsNestedInsideTableTest',
-            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$',
-          },
-          {
-            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1',
-            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase1$',
-          },
-          {
-            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1/Subtest1',
-            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase1$/^Subtest1$',
-          },
-          {
-            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase2',
-            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase2$',
-          },
-          {
-            name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase2/Subtest1',
-            selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase2$/^Subtest1$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithSubtestsNestedInsideTableTest',
+          selector = '^TestFunctionWithSubtestsNestedInsideTableTest$',
         },
       },
       {
@@ -431,21 +353,11 @@ describe('list_tests_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 9, col = 17 }, -- inside TestCase1
-        expected_tests = {
-          {
-            name = 'TestFunctionWithTableTestsNestedInsideSubtest',
-            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$',
-          },
-          {
-            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1',
-            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$',
-          },
-          {
-            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
-            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase1$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
+          selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase1$',
         },
       },
       {
@@ -481,25 +393,11 @@ describe('list_tests_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 22, col = 17 }, -- inside t.Run
-        expected_tests = {
-          {
-            name = 'TestFunctionWithTableTestsNestedInsideSubtest',
-            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$',
-          },
-          {
-            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1',
-            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$',
-          },
-          {
-            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
-            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase1$',
-          },
-          {
-            name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase2',
-            selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase2$',
-          },
+        expected_test = {
+          name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1',
+          selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$',
         },
       },
     }
@@ -513,10 +411,10 @@ describe('list_tests_at_cursor', function()
         vim.cmd('edit ' .. root .. '/foo_test.go')
         cursor.set(tc.cursor)
 
-        local tests, err = parsingv2.list_tests_at_cursor()
+        local test, err = parsingv2.get_test_at_cursor()
 
         assert.is_nil(err, 'expected no error to be returned')
-        assert.are.same(tc.expected_tests, tests, 'incorrect tests returned')
+        assert.are.same(tc.expected_test, test, 'incorrect test returned')
 
         teardown_tree()
       end)
@@ -530,7 +428,7 @@ describe('list_tests_at_cursor', function()
 
     vim.cmd('edit ' .. root .. '/hello.rb')
 
-    local tests, err = parsingv2.list_tests_at_cursor()
+    local tests, err = parsingv2.get_test_at_cursor()
 
     assert.are.equal(err, 'finding tests is not supported for ruby files')
     assert.is_nil(tests, 'expected no tests to be returned')
@@ -550,7 +448,7 @@ describe('list_tests_at_cursor', function()
     vim.cmd('edit ' .. root .. '/' .. 'foo_test.go')
     cursor.set({ row = 2, col = 5 })
 
-    local tests, err = parsingv2.list_tests_at_cursor()
+    local tests, err = parsingv2.get_test_at_cursor()
 
     assert.are.equal(err, 'cursor is not in a test')
     assert.is_nil(tests, 'expected no tests to be returned')
