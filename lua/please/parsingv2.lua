@@ -3,75 +3,46 @@ local logging = require('please.logging')
 
 local M = {}
 
----A range of cursor positions.
----@class please.parsing.Range
----@field start please.cursor.Position
----@field end_ please.cursor.Position
-local Range = {}
+---Language agnostic representation of a test and its children. A Test along with its children forms a tree of Tests.
+---@private
+---@class please.parsing.Test
+---@field name string
+---@field selector string The string which should be passed to the test runner to run this test.
+---@field start please.cursor.Position The start position of the test.
+---@field end_ please.cursor.Position The end position of the test.
+---@field children please.parsing.Test[]
+local Test = {}
 
----@param start please.cursor.Position
----@param end_ please.cursor.Position
----@return please.parsing.Range
-function Range:new(start, end_)
+---@param test {name: string, selector: string, node: TSNode, children: please.parsing.Test[]}
+---@return please.parsing.Test
+function Test:new(test)
   self.__index = self
-  return setmetatable({ start = start, end_ = end_ }, self)
+  local start_row, start_col, end_row, end_col = test.node:range()
+  return setmetatable({
+    name = test.name,
+    selector = test.selector,
+    start = { row = start_row + 1, col = start_col + 1 },
+    end_ = { row = end_row + 1, col = end_col },
+    children = test.children or {},
+  }, self)
 end
 
----@param node TSNode
----@return please.parsing.Range
-function Range.from_node(node)
-  local start_row, start_col, end_row, end_col = node:range()
-  local start = { row = start_row + 1, col = start_col + 1 }
-  local end_ = { row = end_row + 1, col = end_col }
-  return Range:new(start, end_)
-end
-
----Returns whether the range (including the start and end) contains the given position.
+---Returns whether the test (including start and end) contains the given position.
 ---@param pos please.cursor.Position
 ---@return boolean
-function Range:contains(pos)
+function Test:contains(pos)
   return (pos.row == self.start.row and self.start.col <= pos.col)
     or (self.start.row < pos.row and pos.row < self.end_.row)
     or (pos.row == self.end_.row and pos.col <= self.end_.col)
 end
 
----Language agnostic representation of a test and its children. A Test along with its children forms a tree of tests.
----@private
----@class please.parsing.Test
----@field name string
----@field selector string The string which should be passed to the test runner to run this test.
----@field ranges please.parsing.Range[] The line ranges which this test covers. This will usually only contain a single range. An example of a test with multiple ranges is a Go table test where the definition of the test cases and the body of the t.Run call are separate ranges.
----@field children please.parsing.Test[]
-local Test = {}
-
----@param test {name: string, selector: string, ranges: please.parsing.Range[], children: please.parsing.Test[]}
----@return please.parsing.Test
-function Test:new(test)
-  self.__index = self
-  return setmetatable({
-    name = test.name,
-    selector = test.selector,
-    ranges = test.ranges or {},
-    children = test.children or {},
-  }, self)
-end
-
----Returns the list of tests obtained by performing a pre-order depth-first traversal of the test tree.
----@param filter? fun(test: please.parsing.Test):boolean Optional callback used to decide whether to include a test and its children.
----@return please.parsing.Test[]
-function Test:traverse(filter)
-  if filter and not filter(self) then
-    return {}
-  end
-
-  local tests = { self } ---@type please.parsing.Test[]
+---Performs a pre-order depth traversal of the test tree, calling the given function with each test.
+---@param f fun(test: please.parsing.Test)
+function Test:for_each(f)
+  f(self)
   for _, child in ipairs(self.children) do
-    for _, t in ipairs(child:traverse(filter)) do
-      table.insert(tests, t)
-    end
+    child:for_each(f)
   end
-
-  return tests
 end
 
 ---@param query Query
@@ -214,7 +185,7 @@ parse_subtests = function(parent_name, parent_selector, parent_test, parent_body
         Test:new({
           name = name,
           selector = selector,
-          ranges = { Range.from_node(captures.subtest) },
+          node = captures.subtest,
           children = parse_subtests(name, selector, captures.subtest, captures.body),
         })
       )
@@ -236,7 +207,7 @@ parse_subtests = function(parent_name, parent_selector, parent_test, parent_body
         Test:new({
           name = name,
           selector = selector,
-          ranges = { Range.from_node(captures.test_case) },
+          node = captures.test_case,
         })
       )
     end
@@ -274,7 +245,7 @@ local parse_test_func = function(root_node)
   return Test:new({
     name = name,
     selector = selector,
-    ranges = { Range.from_node(captures.test) },
+    node = captures.test,
     children = parse_subtests(name, selector, captures.test, captures.body),
   })
 end
@@ -316,16 +287,14 @@ M.get_test_at_cursor = function()
     return nil, 'cursor is not in a test'
   end
 
-  local pos = cursor.get()
-  local tests = parent_test:traverse(function(t)
-    for _, range in ipairs(t.ranges) do
-      if range:contains(pos) then
-        return true
-      end
+  local current_pos = cursor.get()
+  local test ---@type please.parsing.Test
+  parent_test:for_each(function(t)
+    if t:contains(current_pos) then
+      test = t
     end
-    return false
   end)
-  local test = tests[#tests]
+
   return { name = test.name, selector = test.selector }
 end
 
