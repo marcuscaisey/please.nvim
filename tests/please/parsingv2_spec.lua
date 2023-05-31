@@ -400,6 +400,405 @@ describe('get_test_at_cursor', function()
           selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$',
         },
       },
+      {
+        name = 'testify suite method',
+        file = [[
+          func (s *testSuite) TestMethod1() {
+              s.Fail("oh no")
+          }
+
+          func (s *testSuiteWithNew) TestMethod2() {
+              s.Fail("oh no")
+          }
+
+          func (s *testSuiteInAnotherFile) TestMethod3() {
+              s.Fail("oh no")
+          }
+        ]], -- go
+        cursor = { row = 2, col = 5 }, -- inside TestMethod1
+        expected_test = {
+          name = 'TestMethod1',
+          selector = '/^TestMethod1$',
+        },
+      },
+      {
+        name = 'testify suite method with subtests - pascal case name',
+        file = [[
+          func (s *testSuite) TestMethodWithSubtests() {
+              s.Run("PascalCaseName", func() {
+                  s.Fail("oh no")
+              })
+
+              s.Run("snake case name", func() {
+                  s.Fail("oh no")
+              })
+          }
+        ]], -- go
+        cursor = { row = 3, col = 9 }, -- inside PascalCaseName
+        expected_test = {
+          name = 'TestMethodWithSubtests/PascalCaseName',
+          selector = '/^TestMethodWithSubtests$/^PascalCaseName$',
+        },
+      },
+      {
+        name = 'testify suite method with subtests - snake case name',
+        file = [[
+          func (s *testSuite) TestMethodWithSubtests() {
+              s.Run("PascalCaseName", func() {
+                  s.Fail("oh no")
+              })
+
+              s.Run("snake case name", func() {
+                  s.Fail("oh no")
+              })
+          }
+        ]], -- go
+        cursor = { row = 7, col = 9 }, -- inside snake case name
+        expected_test = {
+          name = 'TestMethodWithSubtests/snake_case_name',
+          selector = '/^TestMethodWithSubtests$/^snake_case_name$',
+        },
+      },
+      {
+        name = 'testify suite method with nested subtests',
+        file = [[
+          func (s *testSuite) TestMethodWithNestedSubtests() {
+              s.Run("Subtest", func() {
+                  s.Run("NestedSubtest1", func() {
+                      s.Fail("oh no")
+                  })
+
+                  s.Run("NestedSubtest2", func() {
+                      s.Fail("oh no")
+                  })
+              })
+          }
+        ]], -- go
+        cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
+        expected_test = {
+          name = 'TestMethodWithNestedSubtests/Subtest/NestedSubtest1',
+          selector = '/^TestMethodWithNestedSubtests$/^Subtest$/^NestedSubtest1$',
+        },
+      },
+      {
+        name = 'testify suite method with table tests - cursor inside test case - pascal case name',
+        file = [[
+          func (s *testSuite) TestMethodWithTableTests() {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "PascalCaseName",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "snake case name",
+                      input: 2,
+                      want:  3,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  s.Run(tc.name, func() {
+                      s.Fail("oh no")
+                  })
+              }
+          }
+        ]], -- go
+        cursor = { row = 8, col = 13 }, -- inside PascalCaseName
+        expected_test = {
+          name = 'TestMethodWithTableTests/PascalCaseName',
+          selector = '/^TestMethodWithTableTests$/^PascalCaseName$',
+        },
+      },
+      {
+        name = 'testify suite method with table tests - cursor inside test case - snake case name',
+        file = [[
+          func (s *testSuite) TestMethodWithTableTests() {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "PascalCaseName",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "snake case name",
+                      input: 2,
+                      want:  3,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  s.Run(tc.name, func() {
+                      s.Fail("oh no")
+                  })
+              }
+          }
+        ]], -- go
+        cursor = { row = 13, col = 13 }, -- inside snake case name
+        expected_test = {
+          name = 'TestMethodWithTableTests/snake_case_name',
+          selector = '/^TestMethodWithTableTests$/^snake_case_name$',
+        },
+      },
+      {
+        name = 'testify suite method with table tests - cursor inside t.Run',
+        file = [[
+          func (s *testSuite) TestMethodWithTableTests() {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "PascalCaseName",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "snake case name",
+                      input: 2,
+                      want:  3,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  s.Run(tc.name, func() {
+                      s.Fail("oh no")
+                  })
+              }
+          }
+        ]], -- go
+        cursor = { row = 21, col = 13 }, -- inside t.Run
+        expected_test = {
+          name = 'TestMethodWithTableTests',
+          selector = '/^TestMethodWithTableTests$',
+        },
+      },
+      {
+        name = 'testify suite method with table tests - test cases defined with var',
+        file = [[
+          func (s *testSuite) TestMethodWithVarTableTests() {
+              var testCases = []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "PascalCaseName",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "snake case name",
+                      input: 2,
+                      want:  3,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  s.Run(tc.name, func() {
+                      s.Fail("oh no")
+                  })
+              }
+          }
+        ]], -- go
+        cursor = { row = 8, col = 13 }, -- inside PascalCaseName
+        expected_test = {
+          name = 'TestMethodWithVarTableTests/PascalCaseName',
+          selector = '/^TestMethodWithVarTableTests$/^PascalCaseName$',
+        },
+      },
+      {
+        name = 'testify suite method with table tests - empty test cases',
+        file = [[
+          func (s *testSuite) TestMethodWithEmptyTableTestCases() {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{}
+
+              for _, tc := range testCases {
+                  s.Run(tc.name, func() {
+                      s.Fail("oh no")
+                  })
+              }
+          }
+        ]], -- go
+        cursor = { row = 10, col = 13 }, -- inside t.Run
+        expected_test = {
+          name = 'TestMethodWithEmptyTableTestCases',
+          selector = '/^TestMethodWithEmptyTableTestCases$',
+        },
+      },
+      {
+        name = 'testify suite method with subtests nested inside table test - cursor inside test case',
+        file = [[
+          func (s *testSuite) TestMethodWithSubtestsNestedInsideTableTest() {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "TestCase1",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "TestCase2",
+                      input: 1,
+                      want:  2,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  s.Run(tc.name, func() {
+                      s.Run("Subtest1", func() {
+                          s.Fail("oh no")
+                      })
+
+                      s.Run("Subtest2", func() {
+                          s.Fail("oh no")
+                      })
+                  })
+              }
+          }
+        ]], -- go
+        cursor = { row = 8, col = 13 }, -- inside TestCase1
+        expected_test = {
+          name = 'TestMethodWithSubtestsNestedInsideTableTest/TestCase1',
+          selector = '/^TestMethodWithSubtestsNestedInsideTableTest$/^TestCase1$',
+        },
+      },
+      {
+        name = 'testify suite method with subtests nested inside table test - cursor inside subtest',
+        file = [[
+          func (s *testSuite) TestMethodWithSubtestsNestedInsideTableTest() {
+              testCases := []struct {
+                  name  string
+                  input int
+                  want  int
+              }{
+                  {
+                      name:  "TestCase1",
+                      input: 1,
+                      want:  2,
+                  },
+                  {
+                      name:  "TestCase2",
+                      input: 1,
+                      want:  2,
+                  },
+              }
+
+              for _, tc := range testCases {
+                  s.Run(tc.name, func() {
+                      s.Run("Subtest1", func() {
+                          s.Fail("oh no")
+                      })
+
+                      s.Run("Subtest2", func() {
+                          s.Fail("oh no")
+                      })
+                  })
+              }
+          }
+        ]], -- go
+        cursor = { row = 22, col = 17 }, -- inside Subtest1
+        expected_test = {
+          name = 'TestMethodWithSubtestsNestedInsideTableTest',
+          selector = '/^TestMethodWithSubtestsNestedInsideTableTest$',
+        },
+      },
+      {
+        name = 'testify suite method with table tests nested inside subtest - cursor inside test case',
+        file = [[
+          func (s *testSuite) TestMethodWithTableTestsNestedInsideSubtest() {
+              s.Run("Subtest1", func() {
+                  testCases := []struct {
+                      name  string
+                      input int
+                      want  int
+                  }{
+                      {
+                          name:  "TestCase1",
+                          input: 1,
+                          want:  2,
+                      },
+                      {
+                          name:  "TestCase2",
+                          input: 1,
+                          want:  2,
+                      },
+                  }
+
+                  for _, tc := range testCases {
+                      s.Run(tc.name, func() {
+                          s.Fail("oh no")
+                      })
+                  }
+              })
+
+              s.Run("Subtest2", func() {
+                  s.Fail("oh no")
+              })
+          }
+        ]], -- go
+        cursor = { row = 9, col = 17 }, -- inside TestCase1
+        expected_test = {
+          name = 'TestMethodWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
+          selector = '/^TestMethodWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase1$',
+        },
+      },
+      {
+        name = 'testify suite method with table tests nested inside subtest - cursor inside t.Run',
+        file = [[
+          func (s *testSuite) TestMethodWithTableTestsNestedInsideSubtest() {
+              s.Run("Subtest1", func() {
+                  testCases := []struct {
+                      name  string
+                      input int
+                      want  int
+                  }{
+                      {
+                          name:  "TestCase1",
+                          input: 1,
+                          want:  2,
+                      },
+                      {
+                          name:  "TestCase2",
+                          input: 1,
+                          want:  2,
+                      },
+                  }
+
+                  for _, tc := range testCases {
+                      s.Run(tc.name, func() {
+                          s.Fail("oh no")
+                      })
+                  }
+              })
+
+              s.Run("Subtest2", func() {
+                  s.Fail("oh no")
+              })
+          }
+        ]], -- go
+        cursor = { row = 22, col = 17 }, -- inside t.Run
+        expected_test = {
+          name = 'TestMethodWithTableTestsNestedInsideSubtest/Subtest1',
+          selector = '/^TestMethodWithTableTestsNestedInsideSubtest$/^Subtest1$',
+        },
+      },
     }
 
     for _, tc in ipairs(test_cases) do
