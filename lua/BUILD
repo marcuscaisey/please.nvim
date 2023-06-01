@@ -6,7 +6,6 @@ neovim_lua_module(
         "//lua/please:debug",
         "//lua/please:logging",
         "//lua/please:parsing",
-        "//lua/please:parsingv2",
         "//lua/please:query",
         "//lua/please/runners",
         "//third_party/neovim:plenary",

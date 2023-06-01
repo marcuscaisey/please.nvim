@@ -42,19 +42,6 @@ neovim_lua_module(
 )
 
 neovim_lua_module(
-    name = "parsingv2",
-    srcs = [
-        "parsingv2.lua",
-    ],
-    deps = [
-        ":cursor",
-        ":logging",
-        "//third_party/neovim:go_tree_sitter_parser",
-        "//third_party/neovim:python_tree_sitter_parser",
-    ],
-)
-
-neovim_lua_module(
     name = "plugin",
     srcs = ["plugin.lua"],
     deps = [

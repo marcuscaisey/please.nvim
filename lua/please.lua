@@ -89,7 +89,6 @@
 local Path = require('plenary.path')
 local query = require('please.query')
 local parsing = require('please.parsing')
-local parsingv2 = require('please.parsingv2')
 local runners = require('please.runners')
 local logging = require('please.logging')
 local cursor = require('please.cursor')
@@ -336,7 +335,7 @@ please.test = function(opts)
     if opts.under_cursor or opts.list then
       local tests
       if opts.under_cursor then
-        tests = { assert(parsingv2.get_test_at_cursor()) }
+        tests = { assert(parsing.get_test_at_cursor()) }
       elseif opts.list then
         tests = assert(parsing.list_tests_in_file())
       end
