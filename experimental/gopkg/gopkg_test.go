@@ -98,6 +98,8 @@ func TestFunctionWithEmptyTableTestCases(t *testing.T) {
 			t.Fatal("oh no")
 		})
 	}
+
+	t.Fatal("oh no")
 }
 
 func TestFunctionWithSubtestsNestedInsideTableTest(t *testing.T) {
@@ -166,7 +168,15 @@ type testSuite struct {
 	suite.Suite
 }
 
+type testSuiteWithEmbeddedPointer struct {
+	*suite.Suite
+}
+
 type testSuiteWithNew struct {
+	suite.Suite
+}
+
+type testSuiteMultipleRuns struct {
 	suite.Suite
 }
 
@@ -174,19 +184,45 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, &testSuite{})
 }
 
+func TestSuiteWithEmbeddedPointer(t *testing.T) {
+	suite.Run(t, &testSuiteWithEmbeddedPointer{
+		Suite: &suite.Suite{},
+	})
+}
+
 func TestSuiteWithNew(t *testing.T) {
 	suite.Run(t, new(testSuiteWithNew))
+}
+
+func TestSuiteMultipleRuns1(t *testing.T) {
+	suite.Run(t, &testSuiteMultipleRuns{})
+}
+
+func TestSuiteMultipleRuns2(t *testing.T) {
+	suite.Run(t, &testSuiteMultipleRuns{})
 }
 
 func (s *testSuite) TestMethod1() {
 	s.Fail("oh no")
 }
 
-func (s *testSuiteWithNew) TestMethod2() {
+func (s *testSuiteWithEmbeddedPointer) TestMethod2() {
 	s.Fail("oh no")
 }
 
-func (s *testSuiteInAnotherFile) TestMethod3() {
+func (s *testSuiteWithNew) TestMethod3() {
+	s.Fail("oh no")
+}
+
+func (s *testSuiteInAnotherFile) TestMethod4() {
+	s.Fail("oh no")
+}
+
+func (s testSuite) TestMethod5() {
+	s.Fail("oh no")
+}
+
+func (s *testSuiteMultipleRuns) TestMethod6() {
 	s.Fail("oh no")
 }
 
@@ -274,6 +310,8 @@ func (s *testSuite) TestMethodWithEmptyTableTestCases() {
 			s.Fail("oh no")
 		})
 	}
+
+	s.Fail("oh no")
 }
 
 func (s *testSuite) TestMethodWithSubtestsNestedInsideTableTest() {

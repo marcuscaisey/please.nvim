@@ -81,15 +81,53 @@ local test_func_query = vim.treesitter.query.parse(
   ]]
 )
 
+-- TODO: make capture names consistent
 local test_method_query = vim.treesitter.query.parse(
   'go',
   [[
     (method_declaration
       receiver: (parameter_list
         (parameter_declaration
-          name: (identifier) @receiver))
+          name: (identifier) @receiver
+          type: [
+            (pointer_type
+              (type_identifier) @suite_type)
+            (type_identifier) @suite_type
+          ]))
       name: (field_identifier) @name
       body: (block) @body) @test
+  ]]
+)
+
+local test_suite_query = vim.treesitter.query.parse(
+  'go',
+  [[
+    (function_declaration
+      (identifier) @name
+      (#match? @name "^Test.+")
+      parameters: (parameter_list
+        (parameter_declaration
+          name: (identifier) @_t_param
+          type: (pointer_type) @_type)
+          (#eq? @_type "*testing.T"))
+      body: (block
+        (call_expression
+          function: (selector_expression
+            field: (field_identifier) @_field
+            (#eq? @_field "Run"))
+          arguments: (argument_list
+            (identifier) @_run_t_arg
+            (#eq? @_run_t_arg @_t_param)
+            [
+              (unary_expression
+                operand: (composite_literal
+                  type: (type_identifier) @suite_type))
+              (call_expression
+                function: (identifier) @_new_func
+                (#eq? @_new_func "new")
+                arguments: (argument_list
+                  (type_identifier) @suite_type))
+            ]))))
   ]]
 )
 
@@ -264,6 +302,21 @@ local parse_test_method = function(root_node)
     local parent_selector = '/^' .. parent_name .. '$'
     local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
     local parent_body = captures.body
+    local suite_type = vim.treesitter.get_node_text(captures.suite_type, 0)
+
+    local tree = vim.treesitter.get_parser(0, vim.bo.filetype):parse()[1]
+    local suite_names = {}
+    for test_suite_captures in iter_match_captures(test_suite_query, tree:root()) do
+      if vim.treesitter.get_node_text(test_suite_captures.suite_type, 0) == suite_type then
+        table.insert(suite_names, vim.treesitter.get_node_text(test_suite_captures.name, 0))
+      end
+    end
+
+    if #suite_names == 1 then
+      parent_name = suite_names[1] .. '/' .. parent_name
+      parent_selector = '^' .. suite_names[1] .. '$' .. parent_selector
+    end
+
     return Test:new({
       name = parent_name,
       selector = parent_selector,

@@ -407,11 +407,7 @@ describe('get_test_at_cursor', function()
               s.Fail("oh no")
           }
 
-          func (s *testSuiteWithNew) TestMethod2() {
-              s.Fail("oh no")
-          }
-
-          func (s *testSuiteInAnotherFile) TestMethod3() {
+          func (s *testSuiteWithEmbeddedPointer) TestMethod2() {
               s.Fail("oh no")
           }
         ]], -- go
@@ -419,6 +415,97 @@ describe('get_test_at_cursor', function()
         expected_test = {
           name = 'TestMethod1',
           selector = '/^TestMethod1$',
+        },
+      },
+      {
+        name = 'testify suite method with suite name - struct literal',
+        file = [[
+          func TestSuite(t *testing.T) {
+              suite.Run(t, &testSuite{})
+          }
+
+          func (s *testSuite) TestMethod1() {
+              s.Fail("oh no")
+          }
+        ]], -- go
+        cursor = { row = 6, col = 5 }, -- inside TestMethod1
+        expected_test = {
+          name = 'TestSuite/TestMethod1',
+          selector = '^TestSuite$/^TestMethod1$',
+        },
+      },
+      {
+        name = 'testify suite method with suite name - embedded pointer',
+        file = [[
+          func TestSuiteWithEmbeddedPointer(t *testing.T) {
+              suite.Run(t, &testSuiteWithEmbeddedPointer{
+                  Suite: &suite.Suite{},
+              })
+          }
+
+          func (s *testSuiteWithEmbeddedPointer) TestMethod2() {
+              s.Fail("oh no")
+          }
+        ]], -- go
+        cursor = { row = 8, col = 5 }, -- inside TestMethod2
+        expected_test = {
+          name = 'TestSuiteWithEmbeddedPointer/TestMethod2',
+          selector = '^TestSuiteWithEmbeddedPointer$/^TestMethod2$',
+        },
+      },
+      {
+        name = 'testify suite method with suite name - new',
+        file = [[
+          func TestSuiteWithNew(t *testing.T) {
+              suite.Run(t, new(testSuiteWithNew))
+          }
+
+          func (s *testSuiteWithNew) TestMethod3() {
+              s.Fail("oh no")
+          }
+        ]], -- go
+        cursor = { row = 6, col = 5 }, -- inside TestMethod3
+        expected_test = {
+          name = 'TestSuiteWithNew/TestMethod3',
+          selector = '^TestSuiteWithNew$/^TestMethod3$',
+        },
+      },
+      {
+        name = 'testify suite method with suite name - value receiver type',
+        file = [[
+          func TestSuite(t *testing.T) {
+              suite.Run(t, &testSuite{})
+          }
+
+          func (s testSuite) TestMethod5() {
+              s.Fail("oh no")
+          }
+        ]], -- go
+        cursor = { row = 6, col = 5 }, -- inside TestMethod5
+        expected_test = {
+          name = 'TestSuite/TestMethod5',
+          selector = '^TestSuite$/^TestMethod5$',
+        },
+      },
+      {
+        name = 'testify suite method with suite name - multiple runs',
+        file = [[
+          func TestSuiteMultipleRuns1(t *testing.T) {
+              suite.Run(t, &testSuiteMultipleRuns{})
+          }
+
+          func TestSuiteMultipleRuns2(t *testing.T) {
+              suite.Run(t, &testSuiteMultipleRuns{})
+          }
+
+          func (s *testSuiteMultipleRuns) TestMethod6() {
+              s.Fail("oh no")
+          }
+        ]], -- go
+        cursor = { row = 10, col = 5 }, -- inside TestMethod6
+        expected_test = {
+          name = 'TestMethod6',
+          selector = '/^TestMethod6$',
         },
       },
       {
