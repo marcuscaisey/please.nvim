@@ -1,5 +1,5 @@
 [Please]
-version = 16.24.0
+version = 16.28.0
 
 [Parse]
 preloadbuilddefs = build_defs/neovim.build_defs
