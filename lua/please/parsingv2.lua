@@ -45,21 +45,25 @@ function Test:for_each(f)
   end
 end
 
+---Wrapper around TSNode:iter_matches which returns the captures for each match.
 ---@param query Query
 ---@param node TSNode
----@return table<string, TSNode>[]
-local query_matches_in_node = function(query, node)
-  local matches = {} ---@type table<string, TSNode>[]
-  local node_start_row, _, node_stop_row, _ = node:range()
-  for _, match in query:iter_matches(node, 0, node_start_row, node_stop_row, { max_start_depth = 1 }) do
-    local captured_nodes = {}
-    for id, captured_node in pairs(match) do
-      local name = query.captures[id]
-      captured_nodes[name] = captured_node
+---@return fun(): table<string, TSNode>?
+local iter_match_captures = function(query, node)
+  local node_start, _, node_stop, _ = node:range()
+  local iter = query:iter_matches(node, 0, node_start, node_stop + 1, { max_start_depth = 1 })
+  return function()
+    local _, match = iter()
+    if not match then
+      return nil
     end
-    table.insert(matches, captured_nodes)
+    local captures = {}
+    for id, capture in pairs(match) do
+      local name = query.captures[id]
+      captures[name] = capture
+    end
+    return captures
   end
-  return matches
 end
 
 local subtest_query = vim.treesitter.query.parse(
@@ -158,9 +162,7 @@ local parse_subtests
 parse_subtests = function(parent_name, parent_selector, receiver, parent_body)
   local subtests = {} ---@type please.parsing.Test[]
 
-  -- TODO: inline query_matches_in_node
-  local subtest_matches = query_matches_in_node(subtest_query, parent_body)
-  for _, captures in ipairs(subtest_matches) do
+  for captures in iter_match_captures(subtest_query, parent_body) do
     -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
     -- will be picked up by recursive calls of parse_test_method_subtests. Passing max_start_depth = 1 to iter_matches
     -- achieves the same thing but is not released yet, so we do both for now.
@@ -184,8 +186,7 @@ parse_subtests = function(parent_name, parent_selector, receiver, parent_body)
     end
   end
 
-  local table_test_matches = query_matches_in_node(table_test_query, parent_body)
-  for _, captures in ipairs(table_test_matches) do
+  for captures in iter_match_captures(table_test_query, parent_body) do
     -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
     -- will be picked up by recursive calls of parse_test_method_subtests. Passing max_start_depth = 1 to iter_matches
     -- achieves the same thing but is not released yet, so we do both for now.
@@ -211,6 +212,7 @@ parse_subtests = function(parent_name, parent_selector, receiver, parent_body)
   return subtests
 end
 
+-- TODO: group all queries together
 local test_func_query = vim.treesitter.query.parse(
   'go',
   [[
@@ -229,21 +231,18 @@ local test_func_query = vim.treesitter.query.parse(
 ---@param root_node TSNode
 ---@return please.parsing.Test?
 local parse_test_func = function(root_node)
-  local matches = query_matches_in_node(test_func_query, root_node)
-  if #matches == 0 then
-    return
+  for captures in iter_match_captures(test_func_query, root_node) do
+    local parent_name = vim.treesitter.get_node_text(captures.name, 0)
+    local parent_selector = '^' .. parent_name .. '$'
+    local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
+    local parent_body = captures.body
+    return Test:new({
+      name = parent_name,
+      selector = parent_selector,
+      node = captures.test,
+      children = parse_subtests(parent_name, parent_selector, receiver, parent_body),
+    })
   end
-  local captures = matches[1]
-  local parent_name = vim.treesitter.get_node_text(captures.name, 0)
-  local parent_selector = '^' .. parent_name .. '$'
-  local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
-  local parent_body = captures.body
-  return Test:new({
-    name = parent_name,
-    selector = parent_selector,
-    node = captures.test,
-    children = parse_subtests(parent_name, parent_selector, receiver, parent_body),
-  })
 end
 
 local test_method_query = vim.treesitter.query.parse(
@@ -261,25 +260,22 @@ local test_method_query = vim.treesitter.query.parse(
 ---@param root_node TSNode
 ---@return please.parsing.Test?
 local parse_test_method = function(root_node)
-  local matches = query_matches_in_node(test_method_query, root_node)
-  if #matches == 0 then
-    return
+  for captures in iter_match_captures(test_method_query, root_node) do
+    local parent_name = vim.treesitter.get_node_text(captures.name, 0)
+    local parent_selector = '/^' .. parent_name .. '$'
+    local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
+    local parent_body = captures.body
+    return Test:new({
+      name = parent_name,
+      selector = parent_selector,
+      node = captures.test,
+      children = parse_subtests(parent_name, parent_selector, receiver, parent_body),
+    })
   end
-  local captures = matches[1]
-  local parent_name = vim.treesitter.get_node_text(captures.name, 0)
-  local parent_selector = '/^' .. parent_name .. '$'
-  local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
-  local parent_body = captures.body
-  return Test:new({
-    name = parent_name,
-    selector = parent_selector,
-    node = captures.test,
-    children = parse_subtests(parent_name, parent_selector, receiver, parent_body),
-  })
 end
 
 ---@type table<string, table<string, fun(root_node:TSNode):please.parsing.Test?>>
-local parsers_by_node_type_by_filetype = {
+local parsers_by_root_node_type_by_filetype = {
   go = {
     function_declaration = parse_test_func,
     method_declaration = parse_test_method,
@@ -297,20 +293,20 @@ local parsers_by_node_type_by_filetype = {
 M.get_test_at_cursor = function()
   logging.log_call('please.parsing.get_test_at_cursor')
 
-  local parsers_by_node_type = parsers_by_node_type_by_filetype[vim.bo.filetype]
-  if not parsers_by_node_type then
+  local parsers_by_root_node_type = parsers_by_root_node_type_by_filetype[vim.bo.filetype]
+  if not parsers_by_root_node_type then
     return nil, string.format('finding tests is not supported for %s files', vim.bo.filetype)
   end
 
   local root_node = vim.treesitter.get_node()
-  while root_node and not parsers_by_node_type[root_node:type()] do
+  while root_node and not parsers_by_root_node_type[root_node:type()] do
     root_node = root_node:parent()
   end
   if not root_node then
     return nil, 'cursor is not in a test'
   end
 
-  local parser = parsers_by_node_type[root_node:type()]
+  local parser = parsers_by_root_node_type[root_node:type()]
   local parent_test = parser(root_node)
   if not parent_test then
     return nil, 'cursor is not in a test'
