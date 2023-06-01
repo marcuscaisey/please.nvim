@@ -328,11 +328,57 @@ local parse_test_method = function(root_node)
   end
 end
 
+local unittest_methods_query = vim.treesitter.query.parse(
+  'python',
+  [[
+    (class_definition
+      name: (identifier) @class_name
+      body: (block [
+        (function_definition
+          name: (identifier) @name
+          (#match? @name "^test_.+")) @test
+        (decorated_definition
+          definition: (function_definition
+            name: (identifier) @name
+            (#match? @name "^test_.+"))) @test
+      ])) @class
+  ]]
+)
+
+---@param root_node TSNode
+---@return please.parsing.Test?
+local parse_unittest_test_case = function(root_node)
+  local test ---@type please.parsing.Test
+  for captures in iter_match_captures(unittest_methods_query, root_node) do
+    local class_name = vim.treesitter.get_node_text(captures.class_name, 0)
+    if not test then
+      test = Test:new({
+        name = class_name,
+        selector = class_name,
+        node = captures.class,
+      })
+    end
+    local name = class_name .. '.' .. vim.treesitter.get_node_text(captures.name, 0)
+    table.insert(
+      test.children,
+      Test:new({
+        name = name,
+        selector = name,
+        node = captures.test,
+      })
+    )
+  end
+  return test
+end
+
 ---@type table<string, table<string, fun(root_node:TSNode):please.parsing.Test?>>
 local parsers_by_root_node_type_by_filetype = {
   go = {
     function_declaration = parse_test_func,
     method_declaration = parse_test_method,
+  },
+  python = {
+    class_definition = parse_unittest_test_case,
   },
 }
 
@@ -342,7 +388,7 @@ local parsers_by_root_node_type_by_filetype = {
 ---  - test functions
 ---  - subtests
 ---  - table tests
----@return {name:string, selector:string}[]? tests
+---@return {name:string, selector:string}? tests
 ---@return string? error if any, this should be checked before using the tests
 M.get_test_at_cursor = function()
   logging.log_call('please.parsing.get_test_at_cursor')

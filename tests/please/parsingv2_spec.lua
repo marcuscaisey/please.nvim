@@ -3,10 +3,34 @@ local parsingv2 = require('please.parsingv2')
 local temptree = require('tests.utils.temptree')
 
 describe('get_test_at_cursor', function()
+  ---@alias test_case {name:string, filetype:string, file:string, cursor:please.cursor.Position, expected_test:{name:string, selector:string}}
+  ---@param test_cases test_case[]
+  local run_tests = function(test_cases)
+    for _, tc in ipairs(test_cases) do
+      it(tc.name, function()
+        local root, teardown_tree = temptree.create({
+          ['test_file'] = tc.file,
+        })
+
+        vim.cmd('edit ' .. root .. '/test_file')
+        vim.api.nvim_set_option_value('filetype', tc.filetype, { buf = 0 })
+        cursor.set(tc.cursor)
+
+        local test, err = parsingv2.get_test_at_cursor()
+
+        assert.is_nil(err, 'expected no error to be returned')
+        assert.are.same(tc.expected_test, test, 'incorrect test returned')
+
+        teardown_tree()
+      end)
+    end
+  end
+
   describe('returns Go test -', function()
     local test_cases = {
       {
         name = 'test function',
+        filetype = 'go',
         file = [[
           func TestFunction1(t *testing.T) {
               t.Fatal("oh no")
@@ -15,7 +39,7 @@ describe('get_test_at_cursor', function()
           func TestFunction2(t *testing.T) {
               t.Fatal("oh no")
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 2, col = 5 }, -- inside TestFunction1
         expected_test = {
           name = 'TestFunction1',
@@ -24,6 +48,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with subtests - pascal case name',
+        filetype = 'go',
         file = [[
           func TestFunctionWithSubtests(t *testing.T) {
               t.Run("PascalCaseName", func(t *testing.T) {
@@ -34,7 +59,7 @@ describe('get_test_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 3, col = 9 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithSubtests/PascalCaseName',
@@ -43,6 +68,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with subtests - snake case name',
+        filetype = 'go',
         file = [[
           func TestFunctionWithSubtests(t *testing.T) {
               t.Run("PascalCaseName", func(t *testing.T) {
@@ -53,7 +79,7 @@ describe('get_test_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 7, col = 9 }, -- inside snake case name
         expected_test = {
           name = 'TestFunctionWithSubtests/snake_case_name',
@@ -62,6 +88,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with nested subtests',
+        filetype = 'go',
         file = [[
           func TestFunctionWithNestedSubtests(t *testing.T) {
               t.Run("Subtest", func(t *testing.T) {
@@ -74,7 +101,7 @@ describe('get_test_at_cursor', function()
                   })
               })
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
         expected_test = {
           name = 'TestFunctionWithNestedSubtests/Subtest/NestedSubtest1',
@@ -83,6 +110,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with table tests - cursor inside test case - pascal case name',
+        filetype = 'go',
         file = [[
           func TestFunctionWithTableTests(t *testing.T) {
               testCases := []struct {
@@ -108,7 +136,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithTableTests/PascalCaseName',
@@ -117,6 +145,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with table tests - cursor inside test case - snake case name',
+        filetype = 'go',
         file = [[
           func TestFunctionWithTableTests(t *testing.T) {
               testCases := []struct {
@@ -142,7 +171,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 13, col = 13 }, -- inside snake case name
         expected_test = {
           name = 'TestFunctionWithTableTests/snake_case_name',
@@ -151,6 +180,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with table tests - cursor inside t.Run',
+        filetype = 'go',
         file = [[
           func TestFunctionWithTableTests(t *testing.T) {
               testCases := []struct {
@@ -176,7 +206,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 21, col = 13 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithTableTests',
@@ -185,6 +215,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with table tests - test cases defined with var',
+        filetype = 'go',
         file = [[
           func TestFunctionWithTableTestsVar(t *testing.T) {
               var testCases = []struct {
@@ -210,7 +241,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithTableTestsVar/PascalCaseName',
@@ -219,6 +250,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with table tests - empty test cases',
+        filetype = 'go',
         file = [[
           func TestFunctionWithEmptyTableTestCases(t *testing.T) {
               testCases := []struct {
@@ -233,7 +265,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 10, col = 13 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithEmptyTableTestCases',
@@ -242,6 +274,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with subtests nested inside table test - cursor inside test case',
+        filetype = 'go',
         file = [[
           func TestFunctionWithSubtestsNestedInsideTableTest(t *testing.T) {
               testCases := []struct {
@@ -273,7 +306,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside TestCase1
         expected_test = {
           name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1',
@@ -282,6 +315,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with subtests nested inside table test - cursor inside subtest',
+        filetype = 'go',
         file = [[
           func TestFunctionWithSubtestsNestedInsideTableTest(t *testing.T) {
               testCases := []struct {
@@ -313,7 +347,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 22, col = 17 }, -- inside Subtest1
         expected_test = {
           name = 'TestFunctionWithSubtestsNestedInsideTableTest',
@@ -322,6 +356,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with table tests nested inside subtest - cursor inside test case',
+        filetype = 'go',
         file = [[
           func TestFunctionWithTableTestsNestedInsideSubtest(t *testing.T) {
               t.Run("Subtest1", func(t *testing.T) {
@@ -353,7 +388,7 @@ describe('get_test_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 9, col = 17 }, -- inside TestCase1
         expected_test = {
           name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
@@ -362,6 +397,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'test function with table tests nested inside subtest - cursor inside t.Run',
+        filetype = 'go',
         file = [[
           func TestFunctionWithTableTestsNestedInsideSubtest(t *testing.T) {
               t.Run("Subtest1", func(t *testing.T) {
@@ -393,7 +429,7 @@ describe('get_test_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 22, col = 17 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1',
@@ -402,6 +438,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethod1() {
               s.Fail("oh no")
@@ -410,7 +447,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuiteWithEmbeddedPointer) TestMethod2() {
               s.Fail("oh no")
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 2, col = 5 }, -- inside TestMethod1
         expected_test = {
           name = 'TestMethod1',
@@ -419,6 +456,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with suite name - struct literal',
+        filetype = 'go',
         file = [[
           func TestSuite(t *testing.T) {
               suite.Run(t, &testSuite{})
@@ -427,7 +465,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuite) TestMethod1() {
               s.Fail("oh no")
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 6, col = 5 }, -- inside TestMethod1
         expected_test = {
           name = 'TestSuite/TestMethod1',
@@ -436,6 +474,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with suite name - embedded pointer',
+        filetype = 'go',
         file = [[
           func TestSuiteWithEmbeddedPointer(t *testing.T) {
               suite.Run(t, &testSuiteWithEmbeddedPointer{
@@ -446,7 +485,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuiteWithEmbeddedPointer) TestMethod2() {
               s.Fail("oh no")
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 8, col = 5 }, -- inside TestMethod2
         expected_test = {
           name = 'TestSuiteWithEmbeddedPointer/TestMethod2',
@@ -455,6 +494,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with suite name - new',
+        filetype = 'go',
         file = [[
           func TestSuiteWithNew(t *testing.T) {
               suite.Run(t, new(testSuiteWithNew))
@@ -463,7 +503,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuiteWithNew) TestMethod3() {
               s.Fail("oh no")
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 6, col = 5 }, -- inside TestMethod3
         expected_test = {
           name = 'TestSuiteWithNew/TestMethod3',
@@ -472,6 +512,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with suite name - value receiver type',
+        filetype = 'go',
         file = [[
           func TestSuite(t *testing.T) {
               suite.Run(t, &testSuite{})
@@ -480,7 +521,7 @@ describe('get_test_at_cursor', function()
           func (s testSuite) TestMethod5() {
               s.Fail("oh no")
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 6, col = 5 }, -- inside TestMethod5
         expected_test = {
           name = 'TestSuite/TestMethod5',
@@ -489,6 +530,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with suite name - multiple runs',
+        filetype = 'go',
         file = [[
           func TestSuiteMultipleRuns1(t *testing.T) {
               suite.Run(t, &testSuiteMultipleRuns{})
@@ -501,7 +543,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuiteMultipleRuns) TestMethod6() {
               s.Fail("oh no")
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 10, col = 5 }, -- inside TestMethod6
         expected_test = {
           name = 'TestMethod6',
@@ -510,6 +552,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with subtests - pascal case name',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithSubtests() {
               s.Run("PascalCaseName", func() {
@@ -520,7 +563,7 @@ describe('get_test_at_cursor', function()
                   s.Fail("oh no")
               })
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 3, col = 9 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithSubtests/PascalCaseName',
@@ -529,6 +572,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with subtests - snake case name',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithSubtests() {
               s.Run("PascalCaseName", func() {
@@ -539,7 +583,7 @@ describe('get_test_at_cursor', function()
                   s.Fail("oh no")
               })
           }
-        ]], -- go
+        ]],                            -- go
         cursor = { row = 7, col = 9 }, -- inside snake case name
         expected_test = {
           name = 'TestMethodWithSubtests/snake_case_name',
@@ -548,6 +592,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with nested subtests',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithNestedSubtests() {
               s.Run("Subtest", func() {
@@ -560,7 +605,7 @@ describe('get_test_at_cursor', function()
                   })
               })
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
         expected_test = {
           name = 'TestMethodWithNestedSubtests/Subtest/NestedSubtest1',
@@ -569,6 +614,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with table tests - cursor inside test case - pascal case name',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithTableTests() {
               testCases := []struct {
@@ -594,7 +640,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithTableTests/PascalCaseName',
@@ -603,6 +649,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with table tests - cursor inside test case - snake case name',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithTableTests() {
               testCases := []struct {
@@ -628,7 +675,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 13, col = 13 }, -- inside snake case name
         expected_test = {
           name = 'TestMethodWithTableTests/snake_case_name',
@@ -637,6 +684,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with table tests - cursor inside t.Run',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithTableTests() {
               testCases := []struct {
@@ -662,7 +710,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 21, col = 13 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithTableTests',
@@ -671,6 +719,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with table tests - test cases defined with var',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithVarTableTests() {
               var testCases = []struct {
@@ -696,7 +745,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithVarTableTests/PascalCaseName',
@@ -705,6 +754,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with table tests - empty test cases',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithEmptyTableTestCases() {
               testCases := []struct {
@@ -719,7 +769,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 10, col = 13 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithEmptyTableTestCases',
@@ -728,6 +778,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with subtests nested inside table test - cursor inside test case',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithSubtestsNestedInsideTableTest() {
               testCases := []struct {
@@ -759,7 +810,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 8, col = 13 }, -- inside TestCase1
         expected_test = {
           name = 'TestMethodWithSubtestsNestedInsideTableTest/TestCase1',
@@ -768,6 +819,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with subtests nested inside table test - cursor inside subtest',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithSubtestsNestedInsideTableTest() {
               testCases := []struct {
@@ -799,7 +851,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 22, col = 17 }, -- inside Subtest1
         expected_test = {
           name = 'TestMethodWithSubtestsNestedInsideTableTest',
@@ -808,6 +860,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with table tests nested inside subtest - cursor inside test case',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithTableTestsNestedInsideSubtest() {
               s.Run("Subtest1", func() {
@@ -839,7 +892,7 @@ describe('get_test_at_cursor', function()
                   s.Fail("oh no")
               })
           }
-        ]], -- go
+        ]],                             -- go
         cursor = { row = 9, col = 17 }, -- inside TestCase1
         expected_test = {
           name = 'TestMethodWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
@@ -848,6 +901,7 @@ describe('get_test_at_cursor', function()
       },
       {
         name = 'testify suite method with table tests nested inside subtest - cursor inside t.Run',
+        filetype = 'go',
         file = [[
           func (s *testSuite) TestMethodWithTableTestsNestedInsideSubtest() {
               s.Run("Subtest1", func() {
@@ -879,7 +933,7 @@ describe('get_test_at_cursor', function()
                   s.Fail("oh no")
               })
           }
-        ]], -- go
+        ]],                              -- go
         cursor = { row = 22, col = 17 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithTableTestsNestedInsideSubtest/Subtest1',
@@ -888,23 +942,70 @@ describe('get_test_at_cursor', function()
       },
     }
 
-    for _, tc in ipairs(test_cases) do
-      it(tc.name, function()
-        local root, teardown_tree = temptree.create({
-          ['foo_test.go'] = tc.file,
-        })
+    run_tests(test_cases)
+  end)
 
-        vim.cmd('edit ' .. root .. '/foo_test.go')
-        cursor.set(tc.cursor)
+  describe('returns Python test -', function()
+    local test_cases = { ---@type test_case[]
+      {
+        name = 'unittest test method',
+        filetype = 'python',
+        file = [[
+          class TestCase(unittest.TestCase):
 
-        local test, err = parsingv2.get_test_at_cursor()
+              def test_method_1(self):
+                  self.fail("oh no")
 
-        assert.is_nil(err, 'expected no error to be returned')
-        assert.are.same(tc.expected_test, test, 'incorrect test returned')
+              def test_method_2(self):
+                  self.fail("oh no")
+        ]],                            -- python
+        cursor = { row = 4, col = 9 }, -- inside test_method_1
+        expected_test = {
+          name = 'TestCase.test_method_1',
+          selector = 'TestCase.test_method_1',
+        },
+      },
+      {
+        name = 'unittest test method - decorator',
+        filetype = 'python',
+        file = [[
+          class TestCase(unittest.TestCase):
 
-        teardown_tree()
-      end)
-    end
+              def test_method_2(self):
+                  self.fail("oh no")
+
+              @decorator
+              def test_method_with_decorator(self):
+                  self.fail("oh no")
+        ]],                            -- python
+        cursor = { row = 8, col = 9 }, -- inside test_method_with_decorator
+        expected_test = {
+          name = 'TestCase.test_method_with_decorator',
+          selector = 'TestCase.test_method_with_decorator',
+        },
+      },
+      {
+        name = 'unittest test method - decorator with params',
+        filetype = 'python',
+        file = [[
+          class TestCase(unittest.TestCase):
+
+              def test_method_2(self):
+                  self.fail("oh no")
+
+              @decorator_with_params(2)
+              def test_method_with_decorator_with_params(self):
+                  self.fail("oh no")
+        ]],                            -- python
+        cursor = { row = 8, col = 9 }, -- inside test_method_with_decorator_with_params
+        expected_test = {
+          name = 'TestCase.test_method_with_decorator_with_params',
+          selector = 'TestCase.test_method_with_decorator_with_params',
+        },
+      },
+    }
+
+    run_tests(test_cases)
   end)
 
   it('returns error if language of file is not supported', function()
