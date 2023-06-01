@@ -32,8 +32,8 @@ end
 ---@return boolean
 function Test:contains(pos)
   return (pos.row == self.start.row and self.start.col <= pos.col)
-      or (self.start.row < pos.row and pos.row < self.end_.row)
-      or (pos.row == self.end_.row and pos.col <= self.end_.col)
+    or (self.start.row < pos.row and pos.row < self.end_.row)
+    or (pos.row == self.end_.row and pos.col <= self.end_.col)
 end
 
 ---Performs a pre-order depth traversal of the test tree, calling the given function with each test.
@@ -51,7 +51,7 @@ end
 local query_matches_in_node = function(query, node)
   local matches = {} ---@type table<string, TSNode>[]
   local node_start_row, _, node_stop_row, _ = node:range()
-  for _, match in query:iter_matches(node, 0, node_start_row, node_stop_row) do
+  for _, match in query:iter_matches(node, 0, node_start_row, node_stop_row, { max_start_depth = 1 }) do
     local captured_nodes = {}
     for id, captured_node in pairs(match) do
       local name = query.captures[id]
@@ -174,8 +174,6 @@ parse_test_func_subtests = function(parent_name, parent_selector, parent_test, p
   for _, captures in ipairs(subtest_matches) do
     -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested
     -- subtests which will be picked up by recursive calls of parse_subtests.
-    -- TODO: We've already got all of the subtests in captures. Can we avoid performing any more TS queries (by
-    -- recursively calling parse_test_func_subtests again)?
     if captures.subtest:parent():id() == parent_body:id() then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
       -- underscores to match how the Go test runner displays test names.
@@ -255,155 +253,27 @@ end
 local test_method_subtest_query = vim.treesitter.query.parse(
   'go',
   [[
-  (method_declaration
-    receiver: (parameter_list
-      (parameter_declaration
-        name: (identifier) @_receiver))
-    body: (block
-      (call_expression
-        function: (selector_expression
-          operand: (identifier) @_call_operand
-          field: (field_identifier) @_call_field)
-          (#eq? @_call_operand @_receiver)
-          (#eq? @_call_field "Run")
-        arguments: (argument_list
-          (interpreted_string_literal) @name
-          (func_literal
-            body: (block) @body))) @subtest))
-  ]]
-)
-
-local test_method_nested_subtest_query = vim.treesitter.query.parse(
-  'go',
-  [[
-  (call_expression
-    function: (selector_expression
-      operand: (identifier) @_parent_call_operand)
-    arguments: (argument_list
-      (func_literal
-        body: (block
-          (call_expression
-            function: (selector_expression
-              operand: (identifier) @_call_operand
-              field: (field_identifier) @_call_field
-              (#eq? @_call_operand @_parent_call_operand)
-              (#eq? @_call_field "Run"))
-            arguments: (argument_list
-              (interpreted_string_literal) @name
-              (func_literal
-                body: (block) @body))) @subtest))))
+    (call_expression
+      function: (selector_expression
+        operand: (identifier) @receiver
+        field: (field_identifier) @_field)
+        (#eq? @_field "Run")
+      arguments: (argument_list
+        (interpreted_string_literal) @name
+        (func_literal
+          body: (block) @body))) @subtest
   ]]
 )
 
 local test_method_table_test_query = vim.treesitter.query.parse(
   'go',
   [[
-  (method_declaration
-    receiver: (parameter_list
-      (parameter_declaration
-        name: (identifier) @_receiver))
-  (block [
-    (var_declaration
-      (var_spec
-        name: (identifier) @_test_cases_var
-        value: (expression_list
-          (composite_literal
-            type: (slice_type
-              element: (struct_type
-                (field_declaration_list
-                  (field_declaration
-                    name: (field_identifier) @_test_case_struct_name_field
-                    type: (type_identifier) @_test_case_struct_name_type)
-                  (#eq? @_test_case_struct_name_type "string"))))
-            body: (literal_value
-              (literal_element
-                (literal_value
-                  (keyed_element
-                    (literal_element
-                      (identifier) @_test_case_name_field)
-                    (literal_element
-                      (interpreted_string_literal) @name))
-                  (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
-    (short_var_declaration
-      left: (expression_list
-        (identifier) @_test_cases_var)
-      right: (expression_list
-        (composite_literal
-          type: (slice_type
-            element: (struct_type
-              (field_declaration_list
-                (field_declaration
-                  name: (field_identifier) @_test_case_struct_name_field
-                  type: (type_identifier) @_test_case_struct_name_type)
-                (#eq? @_test_case_struct_name_type "string"))))
-          body: (literal_value
-            (literal_element
-              (literal_value
-                (keyed_element
-                  (literal_element
-                    (identifier) @_test_case_name_field)
-                  (literal_element
-                    (interpreted_string_literal) @name))
-                (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
-    ]
-    (for_statement
-      (range_clause
-        left: (expression_list
-          (identifier) @_test_cases_loop_var .)
-        right: (identifier) @_test_cases_loop_range_var)
-      (#eq? @_test_cases_loop_range_var @_test_cases_var)
-      body: (block
-        (call_expression
-          function: (selector_expression
-            operand: (identifier) @_call_operand
-            field: (field_identifier) @_call_field)
-          (#eq? @_call_operand @_receiver)
-          (#eq? @_call_field "Run")
-          arguments: (argument_list
-            (selector_expression
-              operand: (identifier) @_name_arg_operand
-              field: (field_identifier) @_name_arg_field)
-            (#eq? @_name_arg_operand @_test_cases_loop_var)
-            (#eq? @_name_arg_field @_test_case_struct_name_field)
-            (func_literal
-              body: (block)))))) @for_loop))
-  ]]
-)
-
-local test_method_nested_table_test_query = vim.treesitter.query.parse(
-  'go',
-  [[
-  (call_expression
-    function: (selector_expression
-      operand: (identifier) @_receiver)
-    arguments: (argument_list
-      (func_literal
-        body: (block [
-          (var_declaration
-            (var_spec
-              name: (identifier) @_test_cases_var
-              value: (expression_list
-                (composite_literal
-                  type: (slice_type
-                    element: (struct_type
-                      (field_declaration_list
-                        (field_declaration
-                          name: (field_identifier) @_test_case_struct_name_field
-                          type: (type_identifier) @_test_case_struct_name_type)
-                        (#eq? @_test_case_struct_name_type "string"))))
-                  body: (literal_value
-                    (literal_element
-                      (literal_value
-                        (keyed_element
-                          (literal_element
-                            (identifier) @_test_case_name_field)
-                          (literal_element
-                            (interpreted_string_literal) @name))
-                        (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
-          (short_var_declaration
-            left: (expression_list
-              (identifier) @_test_cases_var)
-            right: (expression_list
+    (
+      [
+        (var_declaration
+          (var_spec
+            name: (identifier) @_test_cases_var
+            value: (expression_list
               (composite_literal
                 type: (slice_type
                   element: (struct_type
@@ -420,29 +290,49 @@ local test_method_nested_table_test_query = vim.treesitter.query.parse(
                           (identifier) @_test_case_name_field)
                         (literal_element
                           (interpreted_string_literal) @name))
-                      (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
-          ]
-          (for_statement
-            (range_clause
-              left: (expression_list
-                (identifier) @_test_cases_loop_var .)
-              right: (identifier) @_test_cases_loop_range_var)
-            (#eq? @_test_cases_loop_range_var @_test_cases_var)
-            body: (block
-              (call_expression
-                function: (selector_expression
-                  operand: (identifier) @_call_operand
-                  field: (field_identifier) @_call_field)
-                (#eq? @_call_operand @_receiver)
-                (#eq? @_call_field "Run")
-                arguments: (argument_list
-                  (selector_expression
-                    operand: (identifier) @_name_arg_operand
-                    field: (field_identifier) @_name_arg_field)
-                  (#eq? @_name_arg_operand @_test_cases_loop_var)
-                  (#eq? @_name_arg_field @_test_case_struct_name_field)
-                  (func_literal
-                    body: (block)))))) @for_loop))))
+                      (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
+        (short_var_declaration
+          left: (expression_list
+            (identifier) @_test_cases_var)
+          right: (expression_list
+            (composite_literal
+              type: (slice_type
+                element: (struct_type
+                  (field_declaration_list
+                    (field_declaration
+                      name: (field_identifier) @_test_case_struct_name_field
+                      type: (type_identifier) @_test_case_struct_name_type)
+                    (#eq? @_test_case_struct_name_type "string"))))
+              body: (literal_value
+                (literal_element
+                  (literal_value
+                    (keyed_element
+                      (literal_element
+                        (identifier) @_test_case_name_field)
+                      (literal_element
+                        (interpreted_string_literal) @name))
+                    (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
+      ]
+      (for_statement
+        (range_clause
+          left: (expression_list
+            (identifier) @_test_cases_loop_var .)
+          right: (identifier) @_test_cases_loop_range_var)
+        (#eq? @_test_cases_loop_range_var @_test_cases_var)
+        body: (block
+          (call_expression
+            function: (selector_expression
+              operand: (identifier) @receiver
+              field: (field_identifier) @_call_field)
+            (#eq? @_call_field "Run")
+            arguments: (argument_list
+              (selector_expression
+                operand: (identifier) @_name_arg_operand
+                field: (field_identifier) @_name_arg_field)
+              (#eq? @_name_arg_operand @_test_cases_loop_var)
+              (#eq? @_name_arg_field @_test_case_struct_name_field)
+              (func_literal
+                body: (block)))))) @for_loop)
   ]]
 )
 
@@ -450,19 +340,24 @@ local parse_test_method_subtests
 
 ---@param parent_name string
 ---@param parent_selector string
----@param parent_test TSNode
+---@param receiver string
 ---@param parent_body TSNode
----@param nested boolean
 ---@return please.parsing.Test[]
-parse_test_method_subtests = function(parent_name, parent_selector, parent_test, parent_body, nested)
+parse_test_method_subtests = function(parent_name, parent_selector, receiver, parent_body)
   local subtests = {} ---@type please.parsing.Test[]
 
-  local subtest_query = nested and test_method_nested_subtest_query or test_method_subtest_query
-  local subtest_matches = query_matches_in_node(subtest_query, parent_test)
+  -- TODO: inline query_matches_in_node
+  local subtest_matches = query_matches_in_node(test_method_subtest_query, parent_body)
   for _, captures in ipairs(subtest_matches) do
-    -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested
-    -- subtests which will be picked up by recursive calls of parse_subtests.
-    if captures.subtest:parent():id() == parent_body:id() then
+    print(string.format('%s: %s', parent_name, vim.treesitter.get_node_text(captures.name, 0)))
+    -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
+    -- will be picked up by recursive calls of parse_test_method_subtests. Passing max_start_depth = 1 to iter_matches
+    -- achieves the same thing but is not released yet, so we do both for now.
+    -- TODO: remove the extra check when minimum nvim version is 0.10
+    if
+      captures.subtest:parent():id() == parent_body:id()
+      and vim.treesitter.get_node_text(captures.receiver, 0) == receiver
+    then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
       -- underscores to match how the Go test runner displays test names.
       local subtest_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
@@ -474,18 +369,22 @@ parse_test_method_subtests = function(parent_name, parent_selector, parent_test,
           name = name,
           selector = selector,
           node = captures.subtest,
-          children = parse_test_method_subtests(name, selector, parent_test, captures.body, true),
+          children = parse_test_method_subtests(name, selector, receiver, captures.body),
         })
       )
     end
   end
 
-  local table_test_query = nested and test_method_nested_table_test_query or test_method_table_test_query
-  local table_test_matches = query_matches_in_node(table_test_query, parent_test)
+  local table_test_matches = query_matches_in_node(test_method_table_test_query, parent_body)
   for _, captures in ipairs(table_test_matches) do
-    -- We make sure that the for loop part of the table test is a direct child of parent_body so that we don't pick
-    -- up any nested table tests which will be picked up by recursive calls of parse_subtests.
-    if captures.for_loop:parent():id() == parent_body:id() then
+    -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
+    -- will be picked up by recursive calls of parse_test_method_subtests. Passing max_start_depth = 1 to iter_matches
+    -- achieves the same thing but is not released yet, so we do both for now.
+    -- TODO: remove the extra check when minimum nvim version is 0.10
+    if
+      captures.for_loop:parent():id() == parent_body:id()
+      and vim.treesitter.get_node_text(captures.receiver, 0) == receiver
+    then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
       -- underscores to match how the Go test runner displays test names.
       local test_case_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
@@ -508,9 +407,12 @@ end
 local test_method_query = vim.treesitter.query.parse(
   'go',
   [[
-  (method_declaration
-    name: (field_identifier) @name
-    body: (block) @body) @test
+    (method_declaration
+      receiver: (parameter_list
+        (parameter_declaration
+          name: (identifier) @receiver))
+      name: (field_identifier) @name
+      body: (block) @body) @test
   ]]
 )
 
@@ -522,13 +424,15 @@ local parse_test_method = function(root_node)
     return
   end
   local captures = matches[1]
-  local name = vim.treesitter.get_node_text(captures.name, 0)
-  local selector = '/^' .. name .. '$'
+  local parent_name = vim.treesitter.get_node_text(captures.name, 0)
+  local parent_selector = '/^' .. parent_name .. '$'
+  local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
+  local parent_body = captures.body
   return Test:new({
-    name = name,
-    selector = selector,
+    name = parent_name,
+    selector = parent_selector,
     node = captures.test,
-    children = parse_test_method_subtests(name, selector, captures.test, captures.body, false),
+    children = parse_test_method_subtests(parent_name, parent_selector, receiver, parent_body),
   })
 end
 
