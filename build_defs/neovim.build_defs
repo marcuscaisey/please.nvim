@@ -15,17 +15,18 @@ def neovim_toolchain(name:str, version:str, hashes:list = [], visibility:list = 
         hashes: A list of possible hashes for the downloaded archive. Optional.
         visibility: Visibility specification. Defaults to public.
     """
-    host_os_to_url = {
+    urls_by_os = {
         "darwin": f"https://github.com/neovim/neovim/releases/download/v{version}/nvim-macos.tar.gz",
         "linux": f"https://github.com/neovim/neovim/releases/download/v{version}/nvim-linux64.tar.gz",
     }
-    if CONFIG.HOSTOS not in host_os_to_url:
-        fail(f'neovim_toolchain rule is not supported on host OS: "{CONFIG.HOSTOS}"')
+    if CONFIG.OS not in urls_by_os:
+        fail(f'neovim_toolchain rule is not supported on OS: "{CONFIG.OS}"')
 
     download = remote_file(
         name = tag(name, "download"),
-        url = host_os_to_url[CONFIG.HOSTOS],
+        url = urls_by_os[CONFIG.OS],
         hashes = hashes,
+        out = f"nvim_{CONFIG.OS}_{version}.tar.gz",
     )
 
     return genrule(
