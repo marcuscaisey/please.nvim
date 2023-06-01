@@ -742,7 +742,7 @@ local parsers_by_root_node_type_by_filetype = {
 ---  - testify suite subtests
 ---  - testify suite table tests
 ---- Python
----  - unittest test cases
+---  - unittest test classes
 ---  - unittest test methods
 ---@return {name:string, selector:string}? tests
 ---@return string? error if any, this should be checked before using the tests
