@@ -32,8 +32,8 @@ end
 ---@return boolean
 function Test:contains(pos)
   return (pos.row == self.start.row and self.start.col <= pos.col)
-    or (self.start.row < pos.row and pos.row < self.end_.row)
-    or (pos.row == self.end_.row and pos.col <= self.end_.col)
+      or (self.start.row < pos.row and pos.row < self.end_.row)
+      or (pos.row == self.end_.row and pos.col <= self.end_.col)
 end
 
 ---Performs a pre-order depth traversal of the test tree, calling the given function with each test.
@@ -75,13 +75,12 @@ local test_func_query = vim.treesitter.query.parse(
       parameters: (parameter_list
         (parameter_declaration
           name: (identifier) @receiver
-          type: (pointer_type) @_type)
-          (#eq? @_type "*testing.T"))
+          type: (pointer_type) @_receiver_type)
+          (#eq? @_receiver_type "*testing.T"))
       body: (block) @body) @test
   ]]
 )
 
--- TODO: make capture names consistent
 local test_method_query = vim.treesitter.query.parse(
   'go',
   [[
@@ -91,8 +90,8 @@ local test_method_query = vim.treesitter.query.parse(
           name: (identifier) @receiver
           type: [
             (pointer_type
-              (type_identifier) @suite_type)
-            (type_identifier) @suite_type
+              (type_identifier) @receiver_type)
+            (type_identifier) @receiver_type
           ]))
       name: (field_identifier) @name
       body: (block) @body) @test
@@ -108,13 +107,13 @@ local test_suite_query = vim.treesitter.query.parse(
       parameters: (parameter_list
         (parameter_declaration
           name: (identifier) @_t_param
-          type: (pointer_type) @_type)
-          (#eq? @_type "*testing.T"))
+          type: (pointer_type) @_t_param_type)
+          (#eq? @_t_param_type "*testing.T"))
       body: (block
         (call_expression
           function: (selector_expression
-            field: (field_identifier) @_field
-            (#eq? @_field "Run"))
+            field: (field_identifier) @_run_field
+            (#eq? @_run_field "Run"))
           arguments: (argument_list
             (identifier) @_run_t_arg
             (#eq? @_run_t_arg @_t_param)
@@ -137,8 +136,8 @@ local subtest_query = vim.treesitter.query.parse(
     (call_expression
       function: (selector_expression
         operand: (identifier) @receiver
-        field: (field_identifier) @_field)
-        (#eq? @_field "Run")
+        field: (field_identifier) @_run_field)
+        (#eq? @_run_field "Run")
       arguments: (argument_list
         (interpreted_string_literal) @name
         (func_literal
@@ -204,8 +203,8 @@ local table_test_query = vim.treesitter.query.parse(
           (call_expression
             function: (selector_expression
               operand: (identifier) @receiver
-              field: (field_identifier) @_call_field)
-            (#eq? @_call_field "Run")
+              field: (field_identifier) @_run_field)
+            (#eq? @_run_field "Run")
             arguments: (argument_list
               (selector_expression
                 operand: (identifier) @_name_arg_operand
@@ -301,20 +300,23 @@ local parse_test_method = function(root_node)
     local parent_name = vim.treesitter.get_node_text(captures.name, 0)
     local parent_selector = '/^' .. parent_name .. '$'
     local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
+    local receiver_type = vim.treesitter.get_node_text(captures.receiver_type, 0)
     local parent_body = captures.body
-    local suite_type = vim.treesitter.get_node_text(captures.suite_type, 0)
 
     local tree = vim.treesitter.get_parser(0, vim.bo.filetype):parse()[1]
     local suite_names = {}
     for test_suite_captures in iter_match_captures(test_suite_query, tree:root()) do
-      if vim.treesitter.get_node_text(test_suite_captures.suite_type, 0) == suite_type then
+      if vim.treesitter.get_node_text(test_suite_captures.suite_type, 0) == receiver_type then
         table.insert(suite_names, vim.treesitter.get_node_text(test_suite_captures.name, 0))
       end
     end
-
+    -- If there 0 suite names, then obviously we can't prefix the name and selector.
+    -- If there are more than 1, then it's ambiguous which one we should use, so we also leave the name and selector so
+    -- that both suites are included by the Go test runner.
     if #suite_names == 1 then
-      parent_name = suite_names[1] .. '/' .. parent_name
-      parent_selector = '^' .. suite_names[1] .. '$' .. parent_selector
+      local suite_name = suite_names[1]
+      parent_name = suite_name .. '/' .. parent_name
+      parent_selector = '^' .. suite_name .. '$' .. parent_selector
     end
 
     return Test:new({
