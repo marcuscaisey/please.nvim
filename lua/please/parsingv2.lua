@@ -66,6 +66,33 @@ local iter_match_captures = function(query, node)
   end
 end
 
+local test_func_query = vim.treesitter.query.parse(
+  'go',
+  [[
+    (function_declaration
+      (identifier) @name
+      (#match? @name "^Test.+")
+      parameters: (parameter_list
+        (parameter_declaration
+          name: (identifier) @receiver
+          type: (pointer_type) @_type)
+          (#eq? @_type "*testing.T"))
+      body: (block) @body) @test
+  ]]
+)
+
+local test_method_query = vim.treesitter.query.parse(
+  'go',
+  [[
+    (method_declaration
+      receiver: (parameter_list
+        (parameter_declaration
+          name: (identifier) @receiver))
+      name: (field_identifier) @name
+      body: (block) @body) @test
+  ]]
+)
+
 local subtest_query = vim.treesitter.query.parse(
   'go',
   [[
@@ -212,22 +239,6 @@ parse_subtests = function(parent_name, parent_selector, receiver, parent_body)
   return subtests
 end
 
--- TODO: group all queries together
-local test_func_query = vim.treesitter.query.parse(
-  'go',
-  [[
-    (function_declaration
-      (identifier) @name
-      (#match? @name "^Test.+")
-      parameters: (parameter_list
-        (parameter_declaration
-          name: (identifier) @receiver
-          type: (pointer_type) @_type)
-          (#eq? @_type "*testing.T"))
-      body: (block) @body) @test
-  ]]
-)
-
 ---@param root_node TSNode
 ---@return please.parsing.Test?
 local parse_test_func = function(root_node)
@@ -244,18 +255,6 @@ local parse_test_func = function(root_node)
     })
   end
 end
-
-local test_method_query = vim.treesitter.query.parse(
-  'go',
-  [[
-    (method_declaration
-      receiver: (parameter_list
-        (parameter_declaration
-          name: (identifier) @receiver))
-      name: (field_identifier) @name
-      body: (block) @body) @test
-  ]]
-)
 
 ---@param root_node TSNode
 ---@return please.parsing.Test?
