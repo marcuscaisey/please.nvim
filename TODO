@@ -12,3 +12,6 @@
 - go table test get_test_at_cursor test cases
 - remove parentheses from test under_cursor history entries
 - add more demo videos of interesting features
+- extract neovim build defs into please plugin
+- move TODOs to github issues
+- upgrade to plz v17.0.0
