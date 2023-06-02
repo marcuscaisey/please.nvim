@@ -194,33 +194,33 @@ describe('run', function()
 
   -- TODO: get this test working, it passes atm but it also passes when i is not mapped to <nop>. for some reason, even
   -- i is not sending the buffer into terminal mode like it should
-  -- it('i does not enter terminal mode', function()
-  --   local cmd = 'ls'
-  --   local args = {}
+  pending('i does not enter terminal mode', function()
+    local cmd = 'ls'
+    local args = {}
 
-  --   popup.run(cmd, args)
-  --   wait_for_new_win()
+    popup.run(cmd, args)
+    wait_for_new_win()
 
-  --   vim.api.nvim_feedkeys('i', 'x', false)
-  --   -- if the above i entered terminal mode, then the q below would not exit the pop
-  --   vim.api.nvim_feedkeys('q', 'x', false)
+    vim.api.nvim_feedkeys('i', 'x', false)
+    -- if the above i entered terminal mode, then the q below would not exit the pop
+    vim.api.nvim_feedkeys('q', 'x', false)
 
-  --   wait_for_win(start_winid)
-  -- end)
+    wait_for_win(start_winid)
+  end)
 
   -- TODO: get this test working, vim.api.nvim_win_get_cursor(popup_winid)[1] is returning 1 everytime
-  -- it('should move cursor to last line of new window', function()
-  --   local cmd = 'bash'
-  --   local args = { '-c', 'for i in $(seq 1 5); do echo line $i; done' }
+  pending('should move cursor to last line of new window', function()
+    local cmd = 'bash'
+    local args = { '-c', 'for i in $(seq 1 5); do echo line $i; done' }
 
-  --   popup.run(cmd, args)
+    popup.run(cmd, args)
 
-  --   local popup_winid = wait_for_new_win()
-  --   assert_win_lines({ 'line 1', 'line 2', 'line 3', 'line 4', 'line 5' }, popup_winid)
-  --   local last_buf_line = vim.api.nvim_buf_line_count(vim.fn.winbufnr(popup_winid))
-  --   local current_cursor_line = vim.api.nvim_win_get_cursor(popup_winid)[1]
-  --   assert.are.equal(last_buf_line, current_cursor_line, 'incorrect cursor line')
-  -- end)
+    local popup_winid = wait_for_new_win()
+    assert_win_lines({ 'line 1', 'line 2', 'line 3', 'line 4', 'line 5' }, popup_winid)
+    local last_buf_line = vim.api.nvim_buf_line_count(vim.fn.winbufnr(popup_winid))
+    local current_cursor_line = vim.api.nvim_win_get_cursor(popup_winid)[1]
+    assert.are.equal(last_buf_line, current_cursor_line, 'incorrect cursor line')
+  end)
 
   it('should output the command / args and quit / restore info after it exits', function()
     local cmd = 'bash'
