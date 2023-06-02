@@ -5,7 +5,7 @@ version = 16.24.0
 preloadbuilddefs = build_defs/neovim.build_defs
 
 [BuildConfig]
-nvim-tool = //third_party/neovim:toolchain|nvim
+nvim-tool = //third_party/neovim:toolchain_0_9_1|nvim
 plenary-plugin = //third_party/neovim:plenary
 lemmy-help-tool = //third_party/neovim:lemmy_help
 

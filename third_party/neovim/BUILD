@@ -1,10 +1,19 @@
 neovim_toolchain(
-    name = "toolchain",
+    name = "toolchain_0_8_0",
     hashes = [
         "abe0b0c1ca46b7d05e689d4791055a6dbbf2394cb53a6a8d8274813e6762c1f1",  # darwin
         "1af27471f76f1b4f7ad6563c863a4a78117f0515e3390ee4d911132970517fa7",  # linux
     ],
     version = "0.8.0",
+)
+
+neovim_toolchain(
+    name = "toolchain_0_9_1",
+    hashes = [
+        "6f7de66c494d7b73cdf878f060dedd1b2d66a648a387a245aa2aec76a5b4c777",  # darwin
+        "6c083017304213c3a3efde8d332a52231b8df8206d35146942097c303ebf93d5",  # linux
+    ],
+    version = "0.9.1",
 )
 
 neovim_github_plugin(
