@@ -39,7 +39,7 @@ neovim_test(
 )
 
 generate_test_snapshot(
-    name = "generate_error_spec",
+    name = "generate_error_spec_snapshot",
     output = "error_snapshot.xml",
     test_target = ":error_spec",
 )

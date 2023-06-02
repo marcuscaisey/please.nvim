@@ -1,5 +1,7 @@
 <testsuite name="tools.plenary-to-junit.testdata.error_spec" tests="1" failures="0" skipped="0" errors="1">
   <testcase name="error_spec">
-    <error><![CDATA[tools/plenary-to-junit/testdata/error_spec.lua:1: error message]]></error>
+    <error><![CDATA[tools/plenary-to-junit/testdata/error_spec.lua:1: error line 1
+  error line 2
+  error line 3]]></error>
   </testcase>
 </testsuite>

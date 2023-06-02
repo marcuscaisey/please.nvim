@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 type TestSuite struct {
@@ -96,7 +97,7 @@ func printErrorSuiteAndExit(lines []string, testName string, msg string, args ..
 				Name: testName,
 				Error: &Error{
 					Message: fmt.Sprintf("Converting plenary test output to JUnit XML report: %s", fmt.Sprintf(msg, args...)),
-					Value:   strings.Join(numberedLines, "\n"),
+					Value:   "Test output:\n" + strings.Join(numberedLines, "\n"),
 				},
 			},
 		},
@@ -217,16 +218,20 @@ func main() {
 			if len(lines) <= i+2 {
 				printErrorSuiteAndExit(lines, lastDottedPart(suite.Name), "expected line %d after %q, only %d lines in input", i+1, "FAILED TO LOAD FILE", len(lines))
 			}
+			i = i + 2
 			suite.Tests++
 			suite.Errors++
+			var errorLines []string
+			for ; i < len(lines) && strings.TrimSpace(lines[i]) != separator; i++ {
+				errorLines = append(errorLines, strings.TrimRightFunc(escapeSeqPattern.ReplaceAllLiteralString(lines[i], ""), unicode.IsSpace))
+			}
 			suite.TestCases = append(suite.TestCases, &TestCase{
 				Name: lastDottedPart(suite.Name),
 				Error: &Error{
-					Value: strings.TrimSpace(escapeSeqPattern.ReplaceAllLiteralString(lines[i+2], "")),
+					Value: strings.Join(errorLines, "\n"),
 				},
 			})
-			assertLineIs(lines, i+3, separator, suite.Name)
-			i = i + 3
+			assertLineIs(lines, i, separator, suite.Name)
 
 		} else {
 			stdoutLines = append(stdoutLines, lines[i])
