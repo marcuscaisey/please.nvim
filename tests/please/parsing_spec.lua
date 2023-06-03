@@ -206,7 +206,7 @@ describe('get_test_at_cursor', function()
           func TestFunction2(t *testing.T) {
               t.Fatal("oh no")
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 2, col = 5 }, -- inside TestFunction1
         expected_test = {
           name = 'TestFunction1',
@@ -226,7 +226,7 @@ describe('get_test_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 3, col = 9 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithSubtests/PascalCaseName',
@@ -246,7 +246,7 @@ describe('get_test_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 7, col = 9 }, -- inside snake case name
         expected_test = {
           name = 'TestFunctionWithSubtests/snake_case_name',
@@ -268,7 +268,7 @@ describe('get_test_at_cursor', function()
                   })
               })
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
         expected_test = {
           name = 'TestFunctionWithNestedSubtests/Subtest/NestedSubtest1',
@@ -303,7 +303,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithTableTests/PascalCaseName',
@@ -338,7 +338,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 13, col = 13 }, -- inside snake case name
         expected_test = {
           name = 'TestFunctionWithTableTests/snake_case_name',
@@ -373,7 +373,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 21, col = 13 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithTableTests',
@@ -408,7 +408,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithTableTestsVar/PascalCaseName',
@@ -432,7 +432,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 10, col = 13 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithEmptyTableTestCases',
@@ -473,7 +473,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside TestCase1
         expected_test = {
           name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1',
@@ -514,7 +514,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 22, col = 17 }, -- inside Subtest1
         expected_test = {
           name = 'TestFunctionWithSubtestsNestedInsideTableTest',
@@ -555,7 +555,7 @@ describe('get_test_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 9, col = 17 }, -- inside TestCase1
         expected_test = {
           name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
@@ -596,7 +596,7 @@ describe('get_test_at_cursor', function()
                   t.Fatal("oh no")
               })
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 22, col = 17 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1',
@@ -614,7 +614,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuiteWithEmbeddedPointer) TestMethod2() {
               s.Fail("oh no")
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 2, col = 5 }, -- inside TestMethod1
         expected_test = {
           name = 'TestMethod1',
@@ -632,7 +632,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuite) TestMethod1() {
               s.Fail("oh no")
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 6, col = 5 }, -- inside TestMethod1
         expected_test = {
           name = 'TestSuite/TestMethod1',
@@ -652,7 +652,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuiteWithEmbeddedPointer) TestMethod2() {
               s.Fail("oh no")
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 8, col = 5 }, -- inside TestMethod2
         expected_test = {
           name = 'TestSuiteWithEmbeddedPointer/TestMethod2',
@@ -670,7 +670,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuiteWithNew) TestMethod3() {
               s.Fail("oh no")
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 6, col = 5 }, -- inside TestMethod3
         expected_test = {
           name = 'TestSuiteWithNew/TestMethod3',
@@ -688,7 +688,7 @@ describe('get_test_at_cursor', function()
           func (s testSuite) TestMethod5() {
               s.Fail("oh no")
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 6, col = 5 }, -- inside TestMethod5
         expected_test = {
           name = 'TestSuite/TestMethod5',
@@ -710,7 +710,7 @@ describe('get_test_at_cursor', function()
           func (s *testSuiteMultipleRuns) TestMethod6() {
               s.Fail("oh no")
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 10, col = 5 }, -- inside TestMethod6
         expected_test = {
           name = 'TestMethod6',
@@ -730,7 +730,7 @@ describe('get_test_at_cursor', function()
                   s.Fail("oh no")
               })
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 3, col = 9 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithSubtests/PascalCaseName',
@@ -750,7 +750,7 @@ describe('get_test_at_cursor', function()
                   s.Fail("oh no")
               })
           }
-        ]],                            -- go
+        ]], -- go
         cursor = { row = 7, col = 9 }, -- inside snake case name
         expected_test = {
           name = 'TestMethodWithSubtests/snake_case_name',
@@ -772,7 +772,7 @@ describe('get_test_at_cursor', function()
                   })
               })
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
         expected_test = {
           name = 'TestMethodWithNestedSubtests/Subtest/NestedSubtest1',
@@ -807,7 +807,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithTableTests/PascalCaseName',
@@ -842,7 +842,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 13, col = 13 }, -- inside snake case name
         expected_test = {
           name = 'TestMethodWithTableTests/snake_case_name',
@@ -877,7 +877,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 21, col = 13 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithTableTests',
@@ -912,7 +912,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithVarTableTests/PascalCaseName',
@@ -936,7 +936,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 10, col = 13 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithEmptyTableTestCases',
@@ -977,7 +977,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 8, col = 13 }, -- inside TestCase1
         expected_test = {
           name = 'TestMethodWithSubtestsNestedInsideTableTest/TestCase1',
@@ -1018,7 +1018,7 @@ describe('get_test_at_cursor', function()
                   })
               }
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 22, col = 17 }, -- inside Subtest1
         expected_test = {
           name = 'TestMethodWithSubtestsNestedInsideTableTest',
@@ -1059,7 +1059,7 @@ describe('get_test_at_cursor', function()
                   s.Fail("oh no")
               })
           }
-        ]],                             -- go
+        ]], -- go
         cursor = { row = 9, col = 17 }, -- inside TestCase1
         expected_test = {
           name = 'TestMethodWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
@@ -1100,7 +1100,7 @@ describe('get_test_at_cursor', function()
                   s.Fail("oh no")
               })
           }
-        ]],                              -- go
+        ]], -- go
         cursor = { row = 22, col = 17 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithTableTestsNestedInsideSubtest/Subtest1',
@@ -1125,7 +1125,7 @@ describe('get_test_at_cursor', function()
 
               def test_method_2(self):
                   self.fail("oh no")
-        ]],                            -- python
+        ]], -- python
         cursor = { row = 4, col = 9 }, -- inside test_method_1
         expected_test = {
           name = 'TestCase.test_method_1',
@@ -1144,7 +1144,7 @@ describe('get_test_at_cursor', function()
               @decorator
               def test_method_with_decorator(self):
                   self.fail("oh no")
-        ]],                            -- python
+        ]], -- python
         cursor = { row = 8, col = 9 }, -- inside test_method_with_decorator
         expected_test = {
           name = 'TestCase.test_method_with_decorator',
@@ -1163,7 +1163,7 @@ describe('get_test_at_cursor', function()
               @decorator_with_params(2)
               def test_method_with_decorator_with_params(self):
                   self.fail("oh no")
-        ]],                            -- python
+        ]], -- python
         cursor = { row = 8, col = 9 }, -- inside test_method_with_decorator_with_params
         expected_test = {
           name = 'TestCase.test_method_with_decorator_with_params',

@@ -104,8 +104,8 @@ local cursor_in_node_range = function(node)
   local row, col = cursor_pos.row, cursor_pos.col
   local start_row, start_col, end_row, end_col = ts_utils.get_vim_range({ node:range() })
   return (row == start_row and col >= start_col)
-      or (start_row < row and row < end_row)
-      or (row == end_row and col <= end_col)
+    or (start_row < row and row < end_row)
+    or (row == end_row and col <= end_col)
 end
 
 -- TODO: extract these out into $runtimepath/lua/queries?
@@ -380,8 +380,8 @@ end
 ---@return boolean
 function Test:contains(pos)
   return (pos.row == self.start.row and self.start.col <= pos.col)
-      or (self.start.row < pos.row and pos.row < self.end_.row)
-      or (pos.row == self.end_.row and pos.col <= self.end_.col)
+    or (self.start.row < pos.row and pos.row < self.end_.row)
+    or (pos.row == self.end_.row and pos.col <= self.end_.col)
 end
 
 ---Performs a pre-order depth traversal of the test tree, calling the given function with each test.
@@ -757,7 +757,7 @@ parsing.get_test_at_cursor = function()
   -- vim.treesitter.get_node_at_pos is deprecated since nvim 0.9
   -- TODO: remove when minimum nvim version is 0.10
   local root_node = vim.treesitter.get_node and vim.treesitter.get_node()
-      or vim.treesitter.get_node_at_pos(0, current_pos.row - 1, current_pos.col - 1)
+    or vim.treesitter.get_node_at_pos(0, current_pos.row - 1, current_pos.col - 1)
   while root_node and not parsers_by_root_node_type[root_node:type()] do
     root_node = root_node:parent()
   end
