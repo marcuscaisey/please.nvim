@@ -1,8 +1,9 @@
-def neovim_test_and_snapshot(name, test_file):
+def neovim_test_and_snapshot(name, test_file, deps = None):
     test_rule = neovim_test(
         name = name,
         labels = ["manual"],
         test_file = test_file,
+        deps = deps,
     )
 
     snapshot_name = name.removesuffix("_spec") + "_snapshot"
@@ -20,7 +21,7 @@ def neovim_test_and_snapshot(name, test_file):
         cmd = [
             "export root=$(plz query reporoot)",
             "cd $(mktemp -d)",
-            f"\\\$root/$(out_location {runner_target}) | \\\$root/$(out_location //tools/plenary-to-junit) | tee \\\$root/{pkg}/{snapshot_output}",
+            f"\\\$root/$(out_location {runner_target}) 2>&1 | \\\$root/$(out_location //tools/plenary-to-junit) | tee \\\$root/{pkg}/{snapshot_output}",
         ],
         labels = ["generate_snapshot"],
         deps = [
@@ -67,4 +68,17 @@ neovim_test_and_snapshot(
 neovim_test_and_snapshot(
     name = "stdout_spec",
     test_file = "stdout_spec.lua",
+)
+
+neovim_test_and_snapshot(
+    name = "nvim_startup_spec",
+    test_file = "nvim_startup_spec.lua",
+    deps = [
+        "//tools/plenary-to-junit/testdata/broken_plugin",
+    ],
+)
+
+neovim_test_and_snapshot(
+    name = "nvim_log_spec",
+    test_file = "nvim_log_spec.lua",
 )

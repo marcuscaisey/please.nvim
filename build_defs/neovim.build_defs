@@ -218,7 +218,7 @@ def neovim_test(name:str, test_file:str, deps:list = [], labels:list = [], nvim:
         # We disable pipefail so that we can set the exit code of the command in plenary-to-junit. This allows us to get
         # errors but no failures. around the bug where Please spits out "Test returned nonzero but reported no errors"
         # when a test returns
-        test_cmd = "set +o pipefail && $TOOLS_RUNNER | $TOOLS_PLENARY_TO_JUNIT > $RESULTS_FILE",
+        test_cmd = "set +o pipefail && $TOOLS_RUNNER 2>&1 | $TOOLS_PLENARY_TO_JUNIT > $RESULTS_FILE",
         labels = labels,
         test_tools = {
             "runner": runner,

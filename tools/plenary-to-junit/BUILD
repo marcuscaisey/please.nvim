@@ -5,7 +5,7 @@ def plenary_to_junit_test(name, test_target):
         name = name,
         data = [snapshot_target],
         no_test_output = True,
-        test_cmd = f"diff --color=always $(location {snapshot_target}) <($TOOLS_RUNNER | $TOOLS_PLENARY_TO_JUNIT)",
+        test_cmd = f"diff --color=always $(location {snapshot_target}) <($TOOLS_RUNNER 2>&1 | $TOOLS_PLENARY_TO_JUNIT)",
         test_tools = {
             "runner": "//" + test_target_pkg + ":" + tag(test_target_name, "runner"),
             "plenary_to_junit": ":plenary-to-junit",
@@ -54,4 +54,9 @@ plenary_to_junit_test(
 plenary_to_junit_test(
     name = "test_stdout",
     test_target = "//tools/plenary-to-junit/testdata:stdout_spec",
+)
+
+plenary_to_junit_test(
+    name = "test_nvim_startup",
+    test_target = "//tools/plenary-to-junit/testdata:nvim_startup_spec",
 )

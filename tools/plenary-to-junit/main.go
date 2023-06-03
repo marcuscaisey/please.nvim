@@ -49,7 +49,7 @@ type Stdout struct {
 
 var (
 	suiteNamePattern     = regexp.MustCompile(`^Testing:\s+(.+)$`)
-	outcomePattern       = regexp.MustCompile(`^\x1B\[\d+m(\w+)\x1B\[0m\s+\|\|\s+(.+)$`)
+	outcomePattern       = regexp.MustCompile(`^(.*?)\x1B\[\d+m(\w+)\x1B\[0m\s+\|\|\s+(.+)$`)
 	successCountPattern  = regexp.MustCompile(`^\x1B\[32mSuccess:`)
 	failedCountPattern   = regexp.MustCompile(`^\x1B\[31mFailed :`)
 	errorsCountPattern   = regexp.MustCompile(`^\x1B\[31mErrors :`)
@@ -127,24 +127,44 @@ func main() {
 		logger.Fatalf("reading input from stdin: %s\n", scanner.Err())
 	}
 
-	assertLineIs(lines, 0, "", "")
-	assertLineIs(lines, 1, separator, "")
+	i := 0
+	var startupErrorLines []string
+	for ; i < len(lines) && strings.TrimSpace(lines[i]) != separator; i++ {
+		startupErrorLines = append(startupErrorLines, strings.TrimRightFunc(lines[i], unicode.IsSpace))
+	}
+	assertLineIs(lines, i, separator, "")
+	i++
 
-	suiteNameMatches := assertLineMatches(lines, 2, suiteNamePattern, "")
+	suiteNameMatches := assertLineMatches(lines, i, suiteNamePattern, "")
 	suite := &TestSuite{
 		Name: strings.ReplaceAll(strings.TrimSuffix(suiteNameMatches[1], ".lua"), "/", "."),
+	}
+	i++
+
+	if startupError := strings.TrimRightFunc(strings.Join(startupErrorLines, "\n"), unicode.IsSpace); startupError != "" {
+		suite.TestCases = append(suite.TestCases, &TestCase{
+			Name: "nvim startup",
+			Error: &Error{
+				Value: startupError,
+			},
+		})
 	}
 
 	outputLinesByFailure := map[*Failure][]string{}
 	var stdoutLines []string
 
-	for i := 3; i < len(lines); i++ {
+	for ; i < len(lines); i++ {
+		// TODO: use TrimRightFunc instead
 		trimmedLine := strings.TrimSpace(lines[i])
 
 		if matches := outcomePattern.FindStringSubmatch(trimmedLine); len(matches) > 0 {
+			if matches[1] != "" {
+				stdoutLines = append(stdoutLines, matches[1])
+			}
+
 			suite.Tests++
 			testCase := &TestCase{
-				Name: matches[2],
+				Name: matches[3],
 			}
 			if stdout := strings.TrimSpace(strings.Join(stdoutLines, "\n")); stdout != "" {
 				testCase.Stdout = &Stdout{
@@ -152,7 +172,7 @@ func main() {
 				}
 				stdoutLines = nil
 			}
-			switch matches[1] {
+			switch matches[2] {
 			case "Success":
 				testCase.Pass = true
 			case "Fail":
@@ -215,10 +235,11 @@ func main() {
 
 		} else if trimmedLine == separator {
 			assertLineIs(lines, i+1, "FAILED TO LOAD FILE", lastDottedPart(suite.Name))
-			if len(lines) <= i+2 {
+			i++
+			if len(lines) <= i+1 {
 				printErrorSuiteAndExit(lines, lastDottedPart(suite.Name), "expected line %d after %q, only %d lines in input", i+1, "FAILED TO LOAD FILE", len(lines))
 			}
-			i = i + 2
+			i++
 			suite.Tests++
 			suite.Errors++
 			var errorLines []string

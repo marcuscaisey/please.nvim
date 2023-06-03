@@ -1,0 +1,8 @@
+<testsuite name="tools.plenary-to-junit.testdata.nvim_startup_spec" tests="1" failures="0" skipped="0" errors="0">
+  <testcase name="nvim startup">
+    <error><![CDATA[  stderr line 1
+  stderr line 2
+  stderr line 3]]></error>
+  </testcase>
+  <testcase name="describe passes"></testcase>
+</testsuite>
