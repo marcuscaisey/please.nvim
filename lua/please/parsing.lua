@@ -414,167 +414,185 @@ local iter_match_captures = function(query, node)
   end
 end
 
-local test_func_query = parse_query(
-  'go',
-  [[
-    (function_declaration
-      (identifier) @name
-      (#match? @name "^Test.+")
-      parameters: (parameter_list
-        (parameter_declaration
-          name: (identifier) @receiver
-          type: (pointer_type) @_receiver_type)
-          (#eq? @_receiver_type "*testing.T"))
-      body: (block) @body) @test
-  ]]
-)
-
-local test_method_query = parse_query(
-  'go',
-  [[
-    (method_declaration
-      receiver: (parameter_list
-        (parameter_declaration
-          name: (identifier) @receiver
-          type: [
-            (pointer_type
-              (type_identifier) @receiver_type)
-            (type_identifier) @receiver_type
-          ]))
-      name: (field_identifier) @name
-      body: (block) @body) @test
-  ]]
-)
-
-local test_suite_query = parse_query(
-  'go',
-  [[
-    (function_declaration
-      (identifier) @name
-      (#match? @name "^Test.+")
-      parameters: (parameter_list
-        (parameter_declaration
-          name: (identifier) @_t_param
-          type: (pointer_type) @_t_param_type)
-          (#eq? @_t_param_type "*testing.T"))
-      body: (block
+local queries = {
+  go = {
+    test_func = parse_query(
+      'go',
+      [[
+        (function_declaration
+          (identifier) @name
+          (#match? @name "^Test.+")
+          parameters: (parameter_list
+            (parameter_declaration
+              name: (identifier) @receiver
+              type: (pointer_type) @_receiver_type)
+              (#eq? @_receiver_type "*testing.T"))
+          body: (block) @body) @test
+      ]]
+    ),
+    test_suite_method = parse_query(
+      'go',
+      [[
+        (method_declaration
+          receiver: (parameter_list
+            (parameter_declaration
+              name: (identifier) @receiver
+              type: [
+                (pointer_type
+                  (type_identifier) @receiver_type)
+                (type_identifier) @receiver_type
+              ]))
+          name: (field_identifier) @name
+          body: (block) @body) @test
+      ]]
+    ),
+    test_suite = parse_query(
+      'go',
+      [[
+        (function_declaration
+          (identifier) @name
+          (#match? @name "^Test.+")
+          parameters: (parameter_list
+            (parameter_declaration
+              name: (identifier) @_t_param
+              type: (pointer_type) @_t_param_type)
+              (#eq? @_t_param_type "*testing.T"))
+          body: (block
+            (call_expression
+              function: (selector_expression
+                field: (field_identifier) @_run_field
+                (#eq? @_run_field "Run"))
+              arguments: (argument_list
+                (identifier) @_run_t_arg
+                (#eq? @_run_t_arg @_t_param)
+                [
+                  (unary_expression
+                    operand: (composite_literal
+                      type: (type_identifier) @suite_type))
+                  (call_expression
+                    function: (identifier) @_new_func
+                    (#eq? @_new_func "new")
+                    arguments: (argument_list
+                      (type_identifier) @suite_type))
+                ]))))
+      ]]
+    ),
+    subtest = parse_query(
+      'go',
+      [[
         (call_expression
           function: (selector_expression
-            field: (field_identifier) @_run_field
-            (#eq? @_run_field "Run"))
-          arguments: (argument_list
-            (identifier) @_run_t_arg
-            (#eq? @_run_t_arg @_t_param)
-            [
-              (unary_expression
-                operand: (composite_literal
-                  type: (type_identifier) @suite_type))
-              (call_expression
-                function: (identifier) @_new_func
-                (#eq? @_new_func "new")
-                arguments: (argument_list
-                  (type_identifier) @suite_type))
-            ]))))
-  ]]
-)
-
-local subtest_query = parse_query(
-  'go',
-  [[
-    (call_expression
-      function: (selector_expression
-        operand: (identifier) @receiver
-        field: (field_identifier) @_run_field)
-        (#eq? @_run_field "Run")
-      arguments: (argument_list
-        (interpreted_string_literal) @name
-        (func_literal
-          body: (block) @body))) @subtest
-  ]]
-)
-
-local table_test_query = parse_query(
-  'go',
-  [[
-    (
-      [
-        (var_declaration
-          (var_spec
-            name: (identifier) @_test_cases_var
-            value: (expression_list
-              (composite_literal
-                type: (slice_type
-                  element: (struct_type
-                    (field_declaration_list
-                      (field_declaration
-                        name: (field_identifier) @_test_case_struct_name_field
-                        type: (type_identifier) @_test_case_struct_name_type)
-                      (#eq? @_test_case_struct_name_type "string"))))
-                body: (literal_value
-                  (literal_element
-                    (literal_value
-                      (keyed_element
-                        (literal_element
-                          (identifier) @_test_case_name_field)
-                        (literal_element
-                          (interpreted_string_literal) @name))
-                      (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
-        (short_var_declaration
-          left: (expression_list
-            (identifier) @_test_cases_var)
-          right: (expression_list
-            (composite_literal
-              type: (slice_type
-                element: (struct_type
-                  (field_declaration_list
-                    (field_declaration
-                      name: (field_identifier) @_test_case_struct_name_field
-                      type: (type_identifier) @_test_case_struct_name_type)
-                    (#eq? @_test_case_struct_name_type "string"))))
-              body: (literal_value
-                (literal_element
-                  (literal_value
-                    (keyed_element
-                      (literal_element
-                        (identifier) @_test_case_name_field)
-                      (literal_element
-                        (interpreted_string_literal) @name))
-                    (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
-      ]
-      (for_statement
-        (range_clause
-          left: (expression_list
-            (identifier) @_test_cases_loop_var .)
-          right: (identifier) @_test_cases_loop_range_var)
-        (#eq? @_test_cases_loop_range_var @_test_cases_var)
-        body: (block
-          (call_expression
-            function: (selector_expression
-              operand: (identifier) @receiver
-              field: (field_identifier) @_run_field)
+            operand: (identifier) @receiver
+            field: (field_identifier) @_run_field)
             (#eq? @_run_field "Run")
-            arguments: (argument_list
-              (selector_expression
-                operand: (identifier) @_name_arg_operand
-                field: (field_identifier) @_name_arg_field)
-              (#eq? @_name_arg_operand @_test_cases_loop_var)
-              (#eq? @_name_arg_field @_test_case_struct_name_field)
-              (func_literal
-                body: (block)))))) @for_loop)
-  ]]
-)
+          arguments: (argument_list
+            (interpreted_string_literal) @name
+            (func_literal
+              body: (block) @body))) @subtest
+      ]]
+    ),
+    table_test = parse_query(
+      'go',
+      [[
+        (
+          [
+            (var_declaration
+              (var_spec
+                name: (identifier) @_test_cases_var
+                value: (expression_list
+                  (composite_literal
+                    type: (slice_type
+                      element: (struct_type
+                        (field_declaration_list
+                          (field_declaration
+                            name: (field_identifier) @_test_case_struct_name_field
+                            type: (type_identifier) @_test_case_struct_name_type)
+                          (#eq? @_test_case_struct_name_type "string"))))
+                    body: (literal_value
+                      (literal_element
+                        (literal_value
+                          (keyed_element
+                            (literal_element
+                              (identifier) @_test_case_name_field)
+                            (literal_element
+                              (interpreted_string_literal) @name))
+                          (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
+            (short_var_declaration
+              left: (expression_list
+                (identifier) @_test_cases_var)
+              right: (expression_list
+                (composite_literal
+                  type: (slice_type
+                    element: (struct_type
+                      (field_declaration_list
+                        (field_declaration
+                          name: (field_identifier) @_test_case_struct_name_field
+                          type: (type_identifier) @_test_case_struct_name_type)
+                        (#eq? @_test_case_struct_name_type "string"))))
+                  body: (literal_value
+                    (literal_element
+                      (literal_value
+                        (keyed_element
+                          (literal_element
+                            (identifier) @_test_case_name_field)
+                          (literal_element
+                            (interpreted_string_literal) @name))
+                        (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
+          ]
+          (for_statement
+            (range_clause
+              left: (expression_list
+                (identifier) @_test_cases_loop_var .)
+              right: (identifier) @_test_cases_loop_range_var)
+            (#eq? @_test_cases_loop_range_var @_test_cases_var)
+            body: (block
+              (call_expression
+                function: (selector_expression
+                  operand: (identifier) @receiver
+                  field: (field_identifier) @_run_field)
+                (#eq? @_run_field "Run")
+                arguments: (argument_list
+                  (selector_expression
+                    operand: (identifier) @_name_arg_operand
+                    field: (field_identifier) @_name_arg_field)
+                  (#eq? @_name_arg_operand @_test_cases_loop_var)
+                  (#eq? @_name_arg_field @_test_case_struct_name_field)
+                  (func_literal
+                    body: (block)))))) @for_loop)
+      ]]
+    ),
+  },
+  python = {
+    unittest_methods = parse_query(
+      'python',
+      [[
+        (class_definition
+          name: (identifier) @class_name
+          body: (block [
+            (function_definition
+              name: (identifier) @name
+              (#match? @name "^test_.+")) @test
+            (decorated_definition
+              definition: (function_definition
+                name: (identifier) @name
+                (#match? @name "^test_.+"))) @test
+          ])) @class
+      ]]
+    ),
+  },
+}
 
-local parse_subtests
+local parse_go_subtests
 
 ---@param parent_name string
 ---@param parent_selector string
 ---@param receiver string
 ---@param parent_body TSNode
 ---@return please.parsing.Test[]
-parse_subtests = function(parent_name, parent_selector, receiver, parent_body)
+parse_go_subtests = function(parent_name, parent_selector, receiver, parent_body)
   local subtests = {} ---@type please.parsing.Test[]
 
-  for captures in iter_match_captures(subtest_query, parent_body) do
+  for captures in iter_match_captures(queries.go.subtest, parent_body) do
     -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
     -- will be picked up by recursive calls of parse_test_method_subtests. Passing max_start_depth = 1 to iter_matches
     -- achieves the same thing but is not released yet, so we do both for now.
@@ -592,13 +610,13 @@ parse_subtests = function(parent_name, parent_selector, receiver, parent_body)
           name = name,
           selector = selector,
           node = captures.subtest,
-          children = parse_subtests(name, selector, subtest_receiver, captures.body),
+          children = parse_go_subtests(name, selector, subtest_receiver, captures.body),
         })
       )
     end
   end
 
-  for captures in iter_match_captures(table_test_query, parent_body) do
+  for captures in iter_match_captures(queries.go.table_test, parent_body) do
     -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
     -- will be picked up by recursive calls of parse_test_method_subtests. Passing max_start_depth = 1 to iter_matches
     -- achieves the same thing but is not released yet, so we do both for now.
@@ -626,8 +644,8 @@ end
 
 ---@param root_node TSNode
 ---@return please.parsing.Test?
-local parse_test_func = function(root_node)
-  for captures in iter_match_captures(test_func_query, root_node) do
+local parse_go_test_func = function(root_node)
+  for captures in iter_match_captures(queries.go.test_func, root_node) do
     local parent_name = vim.treesitter.get_node_text(captures.name, 0)
     local parent_selector = '^' .. parent_name .. '$'
     local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
@@ -636,15 +654,15 @@ local parse_test_func = function(root_node)
       name = parent_name,
       selector = parent_selector,
       node = captures.test,
-      children = parse_subtests(parent_name, parent_selector, receiver, parent_body),
+      children = parse_go_subtests(parent_name, parent_selector, receiver, parent_body),
     })
   end
 end
 
 ---@param root_node TSNode
 ---@return please.parsing.Test?
-local parse_test_method = function(root_node)
-  for captures in iter_match_captures(test_method_query, root_node) do
+local parse_go_test_suite_method = function(root_node)
+  for captures in iter_match_captures(queries.go.test_suite_method, root_node) do
     local parent_name = vim.treesitter.get_node_text(captures.name, 0)
     local parent_selector = '/^' .. parent_name .. '$'
     local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
@@ -653,7 +671,7 @@ local parse_test_method = function(root_node)
 
     local tree = vim.treesitter.get_parser(0, vim.bo.filetype):parse()[1]
     local suite_names = {}
-    for test_suite_captures in iter_match_captures(test_suite_query, tree:root()) do
+    for test_suite_captures in iter_match_captures(queries.go.test_suite, tree:root()) do
       if vim.treesitter.get_node_text(test_suite_captures.suite_type, 0) == receiver_type then
         table.insert(suite_names, vim.treesitter.get_node_text(test_suite_captures.name, 0))
       end
@@ -671,33 +689,16 @@ local parse_test_method = function(root_node)
       name = parent_name,
       selector = parent_selector,
       node = captures.test,
-      children = parse_subtests(parent_name, parent_selector, receiver, parent_body),
+      children = parse_go_subtests(parent_name, parent_selector, receiver, parent_body),
     })
   end
 end
 
-local unittest_methods_query = parse_query(
-  'python',
-  [[
-    (class_definition
-      name: (identifier) @class_name
-      body: (block [
-        (function_definition
-          name: (identifier) @name
-          (#match? @name "^test_.+")) @test
-        (decorated_definition
-          definition: (function_definition
-            name: (identifier) @name
-            (#match? @name "^test_.+"))) @test
-      ])) @class
-  ]]
-)
-
 ---@param root_node TSNode
 ---@return please.parsing.Test?
-local parse_unittest_test_case = function(root_node)
+local parse_python_unittest_methods = function(root_node)
   local test ---@type please.parsing.Test
-  for captures in iter_match_captures(unittest_methods_query, root_node) do
+  for captures in iter_match_captures(queries.python.unittest_methods, root_node) do
     local class_name = vim.treesitter.get_node_text(captures.class_name, 0)
     if not test then
       test = Test:new({
@@ -722,11 +723,11 @@ end
 ---@type table<string, table<string, fun(root_node:TSNode):please.parsing.Test?>>
 local parsers_by_root_node_type_by_filetype = {
   go = {
-    function_declaration = parse_test_func,
-    method_declaration = parse_test_method,
+    function_declaration = parse_go_test_func,
+    method_declaration = parse_go_test_suite_method,
   },
   python = {
-    class_definition = parse_unittest_test_case,
+    class_definition = parse_python_unittest_methods,
   },
 }
 
@@ -789,7 +790,7 @@ end
 ---  - table tests
 ---- Python
 ---  - unittest test methods
----@return Test[]
+---@return {name:string, selector:string}[]
 ---@return string|nil: error if any, this should be checked before using the tests
 parsing.list_tests_in_file = function()
   logging.log_call('parsing.list_tests_in_file')
