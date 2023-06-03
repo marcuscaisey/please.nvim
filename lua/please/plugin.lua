@@ -40,7 +40,7 @@ local create_user_command = function()
     toggle_debug_logs = logging.toggle_debug,
   }
   local cmd_name_to_opts = {
-    test = { 'under_cursor', 'list', 'failed' },
+    test = { 'under_cursor', 'failed' },
   }
 
   command.create_user_command(cmds, cmd_name_to_opts)

@@ -306,10 +306,9 @@ end
 ---cursor. Otherwise, test the target which takes the current file as an
 ---input.
 ---
----Optionally (when in a source file), you can run only a specific test.
----Either by running the test which is under the cursor or by choosing which
----test to run from a list of tests in the current file. This is supported
----for the following languages:
+---Optionally (when in a source file), you can run only the test which is
+---under the cursor.
+---This is supported for the following languages:
 ---- Go
 ---  - test functions
 ---  - subtests
@@ -322,7 +321,6 @@ end
 ---  - unittest test methods
 ---@param opts table|nil available options
 ---  * {under_cursor} (boolean): run the test under the cursor
----  * {list} (boolean): select which test to run
 ---  * {failed} (boolean): run just the test cases which failed from the
 ---    immediately previous run
 please.test = function(opts)
@@ -331,30 +329,20 @@ please.test = function(opts)
   logging.log_errors('Failed to test', function()
     opts = opts or {}
 
-    assert(validate_opts(opts, { 'under_cursor', 'list', 'failed' }))
+    assert(validate_opts(opts, { 'under_cursor', 'failed' }))
 
     local filepath = assert(get_filepath())
     local root = assert(query.reporoot(filepath))
 
-    if opts.under_cursor or opts.list then
-      local tests
-      if opts.under_cursor then
-        tests = { assert(parsing.get_test_at_cursor()) }
-      elseif opts.list then
-        tests = assert(parsing.list_tests_in_file())
-      end
-      local get_test_name = function(test)
-        return test.name
-      end
+    if opts.under_cursor then
+      local test = assert(parsing.get_test_at_cursor())
       local labels = assert(query.whatinputs(root, filepath))
-      select_if_many(tests, { prompt = 'Select test to run', format_item = get_test_name }, function(test)
-        select_if_many(labels, { prompt = 'Select target to test' }, function(label)
-          run_and_save_action(root, {
-            name = 'test_selector',
-            args = { root, label, test.selector },
-            description = string.format('Test %s (%s)', label, test.name),
-          })
-        end)
+      select_if_many(labels, { prompt = 'Select target to test' }, function(label)
+        run_and_save_action(root, {
+          name = 'test_selector',
+          args = { root, label, test.selector },
+          description = string.format('Test %s (%s)', label, test.name),
+        })
       end)
     elseif opts.failed then
       run_and_save_action(root, {

@@ -113,10 +113,9 @@ please.test({opts})                                                *please.test*
     cursor. Otherwise, test the target which takes the current file as an
     input.
 
-    Optionally (when in a source file), you can run only a specific test.
-    Either by running the test which is under the cursor or by choosing which
-    test to run from a list of tests in the current file. This is supported
-    for the following languages:
+    Optionally (when in a source file), you can run only the test which is
+    under the cursor.
+    This is supported for the following languages:
     - Go
       - test functions
       - subtests
@@ -131,7 +130,6 @@ please.test({opts})                                                *please.test*
     Parameters: ~
         {opts} (table|nil) available options
           * {under_cursor} (boolean): run the test under the cursor
-          * {list} (boolean): select which test to run
           * {failed} (boolean): run just the test cases which failed from the
             immediately previous run
 
