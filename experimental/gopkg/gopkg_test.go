@@ -15,14 +15,24 @@ func TestFunction2(t *testing.T) {
 }
 
 func TestFunctionWithSubtests(t *testing.T) {
-	t.Run("TestNameInCamelCase", func(t *testing.T) {
-		t.Run("NestedSubtest", func(t *testing.T) {
-			t.Fatal("oh no")
-		})
+	t.Run("PascalCaseName", func(t *testing.T) {
+		t.Fatal("oh no")
 	})
 
-	t.Run("test name in snake case", func(t *testing.T) {
+	t.Run("snake case name", func(t *testing.T) {
 		t.Fatal("oh no")
+	})
+}
+
+func TestFunctionWithNestedSubtests(t *testing.T) {
+	t.Run("Subtest", func(t *testing.T) {
+		t.Run("NestedSubtest1", func(t *testing.T) {
+			t.Fatal("oh no")
+		})
+
+		t.Run("NestedSubtest2", func(t *testing.T) {
+			t.Fatal("oh no")
+		})
 	})
 }
 
@@ -33,12 +43,12 @@ func TestFunctionWithTableTests(t *testing.T) {
 		want  int
 	}{
 		{
-			name:  "TestNameInCamelCase",
+			name:  "PascalCaseName",
 			input: 1,
 			want:  2,
 		},
 		{
-			name:  "test name in snake case",
+			name:  "snake case name",
 			input: 2,
 			want:  3,
 		},
@@ -51,19 +61,19 @@ func TestFunctionWithTableTests(t *testing.T) {
 	}
 }
 
-func TestFunctionWithVarTableTests(t *testing.T) {
+func TestFunctionWithTableTestsVar(t *testing.T) {
 	var testCases = []struct {
 		name  string
 		input int
 		want  int
 	}{
 		{
-			name:  "TestNameInCamelCase",
+			name:  "PascalCaseName",
 			input: 1,
 			want:  2,
 		},
 		{
-			name:  "test name in snake case",
+			name:  "snake case name",
 			input: 2,
 			want:  3,
 		},
@@ -88,21 +98,23 @@ func TestFunctionWithEmptyTableTestCases(t *testing.T) {
 			t.Fatal("oh no")
 		})
 	}
+
+	t.Fatal("oh no")
 }
 
-func TestFunctionWithSubtestsNestedInsideTableTests(t *testing.T) {
+func TestFunctionWithSubtestsNestedInsideTableTest(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input int
 		want  int
 	}{
 		{
-			name:  "TestNameOne",
+			name:  "TestCase1",
 			input: 1,
 			want:  2,
 		},
 		{
-			name:  "TestNameTwo",
+			name:  "TestCase2",
 			input: 1,
 			want:  2,
 		},
@@ -110,24 +122,31 @@ func TestFunctionWithSubtestsNestedInsideTableTests(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Run("SubtestOne", func(t *testing.T) {
+			t.Run("Subtest1", func(t *testing.T) {
+				t.Fatal("oh no")
 			})
 
-			t.Run("SubtestTwo", func(t *testing.T) {
+			t.Run("Subtest2", func(t *testing.T) {
+				t.Fatal("oh no")
 			})
 		})
 	}
 }
 
-func TestFunctionWithTableTestNestedInsideSubtest(t *testing.T) {
-	t.Run("SubtestName", func(t *testing.T) {
+func TestFunctionWithTableTestsNestedInsideSubtest(t *testing.T) {
+	t.Run("Subtest1", func(t *testing.T) {
 		testCases := []struct {
 			name  string
 			input int
 			want  int
 		}{
 			{
-				name:  "TableTestName",
+				name:  "TestCase1",
+				input: 1,
+				want:  2,
+			},
+			{
+				name:  "TestCase2",
 				input: 1,
 				want:  2,
 			},
@@ -139,13 +158,25 @@ func TestFunctionWithTableTestNestedInsideSubtest(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("Subtest2", func(t *testing.T) {
+		t.Fatal("oh no")
+	})
 }
 
 type testSuite struct {
 	suite.Suite
 }
 
+type testSuiteWithEmbeddedPointer struct {
+	*suite.Suite
+}
+
 type testSuiteWithNew struct {
+	suite.Suite
+}
+
+type testSuiteMultipleRuns struct {
 	suite.Suite
 }
 
@@ -153,31 +184,67 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, &testSuite{})
 }
 
+func TestSuiteWithEmbeddedPointer(t *testing.T) {
+	suite.Run(t, &testSuiteWithEmbeddedPointer{
+		Suite: &suite.Suite{},
+	})
+}
+
 func TestSuiteWithNew(t *testing.T) {
 	suite.Run(t, new(testSuiteWithNew))
+}
+
+func TestSuiteMultipleRuns1(t *testing.T) {
+	suite.Run(t, &testSuiteMultipleRuns{})
+}
+
+func TestSuiteMultipleRuns2(t *testing.T) {
+	suite.Run(t, &testSuiteMultipleRuns{})
 }
 
 func (s *testSuite) TestMethod1() {
 	s.Fail("oh no")
 }
 
-func (s *testSuiteWithNew) TestMethod2() {
+func (s *testSuiteWithEmbeddedPointer) TestMethod2() {
 	s.Fail("oh no")
 }
 
-func (s *testSuiteInAnotherFile) TestMethod3() {
+func (s *testSuiteWithNew) TestMethod3() {
+	s.Fail("oh no")
+}
+
+func (s *testSuiteInAnotherFile) TestMethod4() {
+	s.Fail("oh no")
+}
+
+func (s testSuite) TestMethod5() {
+	s.Fail("oh no")
+}
+
+func (s *testSuiteMultipleRuns) TestMethod6() {
 	s.Fail("oh no")
 }
 
 func (s *testSuite) TestMethodWithSubtests() {
-	s.Run("TestNameInCamelCase", func() {
-		s.Run("NestedSubtest", func() {
-			s.Fail("oh no")
-		})
+	s.Run("PascalCaseName", func() {
+		s.Fail("oh no")
 	})
 
-	s.Run("test name in snake case", func() {
+	s.Run("snake case name", func() {
 		s.Fail("oh no")
+	})
+}
+
+func (s *testSuite) TestMethodWithNestedSubtests() {
+	s.Run("Subtest", func() {
+		s.Run("NestedSubtest1", func() {
+			s.Fail("oh no")
+		})
+
+		s.Run("NestedSubtest2", func() {
+			s.Fail("oh no")
+		})
 	})
 }
 
@@ -188,12 +255,12 @@ func (s *testSuite) TestMethodWithTableTests() {
 		want  int
 	}{
 		{
-			name:  "TestNameInCamelCase",
+			name:  "PascalCaseName",
 			input: 1,
 			want:  2,
 		},
 		{
-			name:  "test name in snake case",
+			name:  "snake case name",
 			input: 2,
 			want:  3,
 		},
@@ -213,12 +280,12 @@ func (s *testSuite) TestMethodWithVarTableTests() {
 		want  int
 	}{
 		{
-			name:  "TestNameInCamelCase",
+			name:  "PascalCaseName",
 			input: 1,
 			want:  2,
 		},
 		{
-			name:  "test name in snake case",
+			name:  "snake case name",
 			input: 2,
 			want:  3,
 		},
@@ -243,21 +310,23 @@ func (s *testSuite) TestMethodWithEmptyTableTestCases() {
 			s.Fail("oh no")
 		})
 	}
+
+	s.Fail("oh no")
 }
 
-func (s *testSuite) TestMethodWithSubtestsNestedInsideTableTests() {
+func (s *testSuite) TestMethodWithSubtestsNestedInsideTableTest() {
 	testCases := []struct {
 		name  string
 		input int
 		want  int
 	}{
 		{
-			name:  "TestNameOne",
+			name:  "TestCase1",
 			input: 1,
 			want:  2,
 		},
 		{
-			name:  "TestNameTwo",
+			name:  "TestCase2",
 			input: 1,
 			want:  2,
 		},
@@ -265,24 +334,31 @@ func (s *testSuite) TestMethodWithSubtestsNestedInsideTableTests() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			s.Run("SubtestOne", func() {
+			s.Run("Subtest1", func() {
+				s.Fail("oh no")
 			})
 
-			s.Run("SubtestTwo", func() {
+			s.Run("Subtest2", func() {
+				s.Fail("oh no")
 			})
 		})
 	}
 }
 
-func (s *testSuite) TestMethodWithTableTestNestedInsideSubtest() {
-	s.Run("SubtestName", func() {
+func (s *testSuite) TestMethodWithTableTestsNestedInsideSubtest() {
+	s.Run("Subtest1", func() {
 		testCases := []struct {
 			name  string
 			input int
 			want  int
 		}{
 			{
-				name:  "TableTestName",
+				name:  "TestCase1",
+				input: 1,
+				want:  2,
+			},
+			{
+				name:  "TestCase2",
 				input: 1,
 				want:  2,
 			},
@@ -293,5 +369,9 @@ func (s *testSuite) TestMethodWithTableTestNestedInsideSubtest() {
 				s.Fail("oh no")
 			})
 		}
+	})
+
+	s.Run("Subtest2", func() {
+		s.Fail("oh no")
 	})
 }

@@ -3,6 +3,8 @@ local cursor = require('please.cursor')
 local temptree = require('tests.utils.temptree')
 local mock = require('tests.utils.mock')
 
+-- require('please.logging').toggle_debug()
+
 describe('jump_to_target', function()
   local create_temp_tree = function()
     return temptree.create({

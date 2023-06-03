@@ -7,7 +7,7 @@ import (
 )
 
 type testSuiteInAnotherFile struct {
-	*suite.Suite
+	suite.Suite
 }
 
 func TestSuiteInAnotherFile(t *testing.T) {

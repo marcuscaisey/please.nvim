@@ -311,10 +311,14 @@ end
 ---test to run from a list of tests in the current file. This is supported
 ---for the following languages:
 ---- Go
----  - regular test functions
----  - testify suite test methods
+---  - test functions
+---  - subtests
 ---  - table tests
+---  - testify suite methods
+---  - testify suite subtests
+---  - testify suite table tests
 ---- Python
+---  - unittest test classes
 ---  - unittest test methods
 ---@param opts table|nil available options
 ---  * {under_cursor} (boolean): run the test under the cursor
