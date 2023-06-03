@@ -1,105 +1,70 @@
-def generate_test_snapshot(name, test_target, output):
-    pkg = package_name()
-    test_target_pkg, test_target_name = decompose(test_target)
-    runner_target = ":" + tag(test_target.lstrip(":"), "runner")
+def neovim_test_and_snapshot(name, test_file):
+    test_rule = neovim_test(
+        name = name,
+        labels = ["manual"],
+        test_file = test_file,
+    )
+
+    snapshot_name = name.removesuffix("_spec") + "_snapshot"
+    snapshot_output = f"{snapshot_name}.xml"
     export_file(
-        name = output.rstrip(".xml"),
-        src = output,
+        name = snapshot_name,
+        src = snapshot_output,
         visibility = ["//tools/plenary-to-junit/..."],
     )
-    return sh_cmd(
-        name = name,
+
+    pkg = package_name()
+    runner_target = ":" + tag(name, "runner")
+    sh_cmd(
+        name = f"generate_{snapshot_name}",
         cmd = [
             "export root=$(plz query reporoot)",
             "cd $(mktemp -d)",
-            f"\\\$root/$(out_location {runner_target}) | \\\$root/$(out_location //tools/plenary-to-junit) | tee \\\$root/{pkg}/{output}",
+            f"\\\$root/$(out_location {runner_target}) | \\\$root/$(out_location //tools/plenary-to-junit) | tee \\\$root/{pkg}/{snapshot_output}",
         ],
+        labels = ["generate_snapshot"],
         deps = [
             runner_target,
             "//tools/plenary-to-junit",
         ],
     )
 
-neovim_test(
+sh_cmd(
+    name = "generate_snapshots",
+    cmd = "plz run parallel //tools/plenary-to-junit/testdata/... --include generate_snapshot",
+)
+
+neovim_test_and_snapshot(
     name = "pass_fail_skip_spec",
-    labels = ["manual"],
     test_file = "pass_fail_skip_spec.lua",
 )
 
-generate_test_snapshot(
-    name = "generate_pass_fail_skip_snapshot",
-    output = "pass_fail_skip_snapshot.xml",
-    test_target = ":pass_fail_skip_spec",
-)
-
-neovim_test(
+neovim_test_and_snapshot(
     name = "error_spec",
-    labels = ["manual"],
     test_file = "error_spec.lua",
 )
 
-generate_test_snapshot(
-    name = "generate_error_spec_snapshot",
-    output = "error_snapshot.xml",
-    test_target = ":error_spec",
-)
-
-neovim_test(
+neovim_test_and_snapshot(
     name = "error_after_tests_spec",
-    labels = ["manual"],
     test_file = "error_after_tests_spec.lua",
 )
 
-generate_test_snapshot(
-    name = "generate_error_after_tests_snapshot",
-    output = "error_after_tests_snapshot.xml",
-    test_target = ":error_after_tests_spec",
-)
-
-neovim_test(
+neovim_test_and_snapshot(
     name = "error_in_describe_spec",
-    labels = ["manual"],
     test_file = "error_in_describe_spec.lua",
 )
 
-generate_test_snapshot(
-    name = "generate_error_in_describe_snapshot",
-    output = "error_in_describe_snapshot.xml",
-    test_target = ":error_in_describe_spec",
-)
-
-neovim_test(
+neovim_test_and_snapshot(
     name = "error_in_describe_with_failure_spec",
-    labels = ["manual"],
     test_file = "error_in_describe_with_failure_spec.lua",
 )
 
-generate_test_snapshot(
-    name = "generate_error_in_describe_with_failure_snapshot",
-    output = "error_in_describe_with_failure_snapshot.xml",
-    test_target = ":error_in_describe_with_failure_spec",
-)
-
-neovim_test(
+neovim_test_and_snapshot(
     name = "empty_spec",
-    labels = ["manual"],
     test_file = "empty_spec.lua",
 )
 
-generate_test_snapshot(
-    name = "generate_empty_snapshot",
-    output = "empty_snapshot.xml",
-    test_target = ":empty_spec",
-)
-
-neovim_test(
+neovim_test_and_snapshot(
     name = "stdout_spec",
-    labels = ["manual"],
     test_file = "stdout_spec.lua",
-)
-
-generate_test_snapshot(
-    name = "generate_stdout_snapshot",
-    output = "stdout_snapshot.xml",
-    test_target = ":stdout_spec",
 )
