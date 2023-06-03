@@ -63,16 +63,11 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], help_srcs:list = [],
         help_opts: Options to pass to lemmy-help when generating the help file. Optional.
         visibility: Visibility specification. Defaults to public.
     """
-    # The plugin directories like autoload, lua, plugin etc have to live in the root, so it doesn't make sense to allow
-    # this target to be defined anywhere else.
-    if package_name() != "":
-        fail("neovim_plugin target must be defined in the root")
-
-    plugin_srcs = filegroup(
-        name = name,
-        srcs = srcs,
-        exported_deps = deps,
-        visibility = visibility,
+    runtimepath = package_name() or "."
+    runtimepath_rule = genrule(
+        name = tag(name, "runtimepath"),
+        out = f"{name}.runtimepath",
+        cmd = f"echo {runtimepath} > $OUT",
     )
 
     if help_srcs:
@@ -109,7 +104,12 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], help_srcs:list = [],
             ]),
         )
 
-    return plugin_srcs
+    return filegroup(
+        name = name,
+        srcs = srcs + [runtimepath_rule],
+        exported_deps = deps,
+        visibility = visibility,
+    )
 
 def neovim_lua_module(name:str, srcs:list, deps:list = [], visibility:list = ["PUBLIC"]):
     """
@@ -202,7 +202,7 @@ def neovim_test(name:str, test_file:str, deps:list = [], labels:list = [], nvim:
             # path to the plugin root directory. This way, we can find all of the paths which need to be added to
             # Neovim's runtimepath by concatenating the contents of all of the *.runtimepath files in the build
             # directory (which were unzipped from the script). The tr and sed are just joining the paths with commas.
-            '''runtimepaths="$(find . -name '*.runtimepath' | xargs cat | tr '\\n' ',' | sed 's/,$//g')"''',
+            '''runtimepaths="$(find . -name '*.runtimepath' | xargs cat | grep -v '^\.$' | tr '\\n' ',' | sed 's/,$//g')"''',
             # Run the test file, passing in the runtimepaths which the previous command returned.
             'echo "$TOOLS_NVIM --clean --headless --cmd \\"set runtimepath+=.,$runtimepaths\\" -c \\"PlenaryBustedFile $SRC\\"" >> "$TMPDIR"/_preamble.txt',
             # Exit so that we don't try to execute the ZIP file at the end of the script.
