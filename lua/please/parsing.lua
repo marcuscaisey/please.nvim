@@ -6,10 +6,8 @@ local logging = require('please.logging')
 local cursor = require('please.cursor')
 
 -- vim.treesitter.query.parse_query is deprecated since nvim 0.9
+-- TODO: remove when minimum nvim version is 0.10
 local parse_query = vim.treesitter.query.parse or treesitter_query.parse_query
-
--- vim.treesitter.query.get_node_text is deprecated since nvim 0.9
-local get_node_text = vim.treesitter.get_node_text or treesitter_query.get_node_text
 
 local parsing = {}
 
@@ -106,8 +104,8 @@ local cursor_in_node_range = function(node)
   local row, col = cursor_pos.row, cursor_pos.col
   local start_row, start_col, end_row, end_col = ts_utils.get_vim_range({ node:range() })
   return (row == start_row and col >= start_col)
-    or (start_row < row and row < end_row)
-    or (row == end_row and col <= end_col)
+      or (start_row < row and row < end_row)
+      or (row == end_row and col <= end_col)
 end
 
 -- TODO: extract these out into $runtimepath/lua/queries?
@@ -127,10 +125,10 @@ local find_test_configs = {
                 (#eq? @param_type "*testing.T"))))) @test
       ]],
       get_test_name = function(captures)
-        return get_node_text(captures.name, 0)
+        return vim.treesitter.get_node_text(captures.name, 0)
       end,
       get_test_selector = function(captures)
-        local name = get_node_text(captures.name, 0)
+        local name = vim.treesitter.get_node_text(captures.name, 0)
         return '^' .. name .. '$'
       end,
     },
@@ -211,13 +209,13 @@ local find_test_configs = {
                     (#eq? @_run_method_name_arg_field @_test_case_struct_name_field)))))))
       ]],
       get_test_name = function(captures)
-        local test_case_name = get_node_text(captures.test_case_name, 0):match('"(.+)"')
-        local test_func_name = get_node_text(captures.test_func_name, 0)
+        local test_case_name = vim.treesitter.get_node_text(captures.test_case_name, 0):match('"(.+)"')
+        local test_func_name = vim.treesitter.get_node_text(captures.test_func_name, 0)
         return test_func_name .. '/' .. test_case_name:gsub(' ', '_')
       end,
       get_test_selector = function(captures)
-        local test_case_name = get_node_text(captures.test_case_name, 0):match('"(.+)"')
-        local test_func_name = get_node_text(captures.test_func_name, 0)
+        local test_case_name = vim.treesitter.get_node_text(captures.test_case_name, 0):match('"(.+)"')
+        local test_func_name = vim.treesitter.get_node_text(captures.test_func_name, 0)
         return '^' .. test_func_name .. '$/^' .. test_case_name:gsub(' ', '_') .. '$'
       end,
     },
@@ -229,10 +227,10 @@ local find_test_configs = {
             (#match? @name "^Test.+"))) @test
       ]],
       get_test_name = function(captures)
-        return get_node_text(captures.name, 0)
+        return vim.treesitter.get_node_text(captures.name, 0)
       end,
       get_test_selector = function(captures)
-        local name = get_node_text(captures.name, 0)
+        local name = vim.treesitter.get_node_text(captures.name, 0)
         return '/^' .. name .. '$'
       end,
     },
@@ -310,13 +308,13 @@ local find_test_configs = {
                     (#eq? @_run_method_name_arg_field @_test_case_struct_name_field)))))))
       ]],
       get_test_name = function(captures)
-        local test_case_name = get_node_text(captures.test_case_name, 0):match('"(.+)"')
-        local test_method_name = get_node_text(captures.test_method_name, 0)
+        local test_case_name = vim.treesitter.get_node_text(captures.test_case_name, 0):match('"(.+)"')
+        local test_method_name = vim.treesitter.get_node_text(captures.test_method_name, 0)
         return test_method_name .. '/' .. test_case_name:gsub(' ', '_')
       end,
       get_test_selector = function(captures)
-        local test_case_name = get_node_text(captures.test_case_name, 0):match('"(.+)"')
-        local test_method_name = get_node_text(captures.test_method_name, 0)
+        local test_case_name = vim.treesitter.get_node_text(captures.test_case_name, 0):match('"(.+)"')
+        local test_method_name = vim.treesitter.get_node_text(captures.test_method_name, 0)
         return '/^' .. test_method_name .. '$/^' .. test_case_name:gsub(' ', '_') .. '$'
       end,
     },
@@ -340,13 +338,13 @@ local find_test_configs = {
             ]))
       ]],
       get_test_name = function(captures)
-        local class_name = get_node_text(captures.class_name, 0)
-        local name = get_node_text(captures.name, 0)
+        local class_name = vim.treesitter.get_node_text(captures.class_name, 0)
+        local name = vim.treesitter.get_node_text(captures.name, 0)
         return class_name .. '.' .. name
       end,
       get_test_selector = function(captures)
-        local class_name = get_node_text(captures.class_name, 0)
-        local name = get_node_text(captures.name, 0)
+        local class_name = vim.treesitter.get_node_text(captures.class_name, 0)
+        local name = vim.treesitter.get_node_text(captures.name, 0)
         return class_name .. '.' .. name
       end,
     },
@@ -416,7 +414,7 @@ local iter_match_captures = function(query, node)
   end
 end
 
-local test_func_query = vim.treesitter.query.parse(
+local test_func_query = parse_query(
   'go',
   [[
     (function_declaration
@@ -431,7 +429,7 @@ local test_func_query = vim.treesitter.query.parse(
   ]]
 )
 
-local test_method_query = vim.treesitter.query.parse(
+local test_method_query = parse_query(
   'go',
   [[
     (method_declaration
@@ -448,7 +446,7 @@ local test_method_query = vim.treesitter.query.parse(
   ]]
 )
 
-local test_suite_query = vim.treesitter.query.parse(
+local test_suite_query = parse_query(
   'go',
   [[
     (function_declaration
@@ -480,7 +478,7 @@ local test_suite_query = vim.treesitter.query.parse(
   ]]
 )
 
-local subtest_query = vim.treesitter.query.parse(
+local subtest_query = parse_query(
   'go',
   [[
     (call_expression
@@ -495,7 +493,7 @@ local subtest_query = vim.treesitter.query.parse(
   ]]
 )
 
-local table_test_query = vim.treesitter.query.parse(
+local table_test_query = parse_query(
   'go',
   [[
     (
@@ -678,7 +676,7 @@ local parse_test_method = function(root_node)
   end
 end
 
-local unittest_methods_query = vim.treesitter.query.parse(
+local unittest_methods_query = parse_query(
   'python',
   [[
     (class_definition
@@ -754,7 +752,11 @@ parsing.get_test_at_cursor = function()
     return nil, string.format('finding tests is not supported for %s files', vim.bo.filetype)
   end
 
-  local root_node = vim.treesitter.get_node()
+  local current_pos = cursor.get()
+  -- vim.treesitter.get_node_at_pos is deprecated since nvim 0.9
+  -- TODO: remove when minimum nvim version is 0.10
+  local root_node = vim.treesitter.get_node and vim.treesitter.get_node()
+      or vim.treesitter.get_node_at_pos(0, current_pos.row - 1, current_pos.col - 1)
   while root_node and not parsers_by_root_node_type[root_node:type()] do
     root_node = root_node:parent()
   end
@@ -850,14 +852,14 @@ parsing.get_target_at_cursor = function(root)
   for _, match in query:iter_matches(tree:root(), 0) do
     local captures = extract_captures_from_match(match, query)
     if cursor_in_node_range(captures.target) then
-      local name = get_node_text(captures.name, 0)
+      local name = vim.treesitter.get_node_text(captures.name, 0)
       -- name returned by treesitter is surrounded by quotes
       if name:sub(1, 1) == '"' then
         name = name:match('^"(.+)"$')
       else
         name = name:match("^'(.+)'$")
       end
-      local rule = get_node_text(captures.rule, 0)
+      local rule = vim.treesitter.get_node_text(captures.rule, 0)
       local build_file = vim.fn.expand('%:p')
       return build_label(root, build_file, name), rule, nil
     end
