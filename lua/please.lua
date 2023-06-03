@@ -310,7 +310,6 @@ end
 ---Either by running the test which is under the cursor or by choosing which
 ---test to run from a list of tests in the current file. This is supported
 ---for the following languages:
----Current supported languages are:
 ---- Go
 ---  - test functions
 ---  - subtests
