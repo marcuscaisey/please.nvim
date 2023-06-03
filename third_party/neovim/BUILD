@@ -56,7 +56,7 @@ neovim_github_tree_sitter_parser(
 neovim_lemmy_help(
     name = "lemmy_help",
     hashes = [
-        "757118e7112ecafdd4775b0174216da02b5d06c8c2b3d3a1c25376f0eae7e08e",  # darwin
+        "bb9898832f10ab8219781e4c86d52d4b51ac5f30cc8a59d07feb74c7ede17550",  # darwin
         "198bfac997957fa9a6b035f6bf9d6bae227bb3f301d216f0ccbc78643d8cda09",  # linux
     ],
     version = "0.11.0",

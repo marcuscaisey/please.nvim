@@ -353,16 +353,16 @@ def neovim_lemmy_help(name:str, version:str, hashes:list = [], visibility:list =
         hashes: A list of possible hashes for the downloaded archive. Optional.
         visibility: Visibility specification. Defaults to public.
     """
-    host_os_to_url = {
+    urls_by_os = {
         "darwin": f"https://github.com/numToStr/lemmy-help/releases/download/v{version}/lemmy-help-x86_64-apple-darwin.tar.gz",
         "linux": f"https://github.com/numToStr/lemmy-help/releases/download/v{version}/lemmy-help-x86_64-unknown-linux-gnu.tar.gz",
     }
-    if CONFIG.HOSTOS not in host_os_to_url:
-        fail(f'neovim_lemmy_help rule is not supported on host OS: "{CONFIG.HOSTOS}"')
+    if CONFIG.OS not in urls_by_os:
+        fail(f'neovim_lemmy_help rule is not supported on OS: "{CONFIG.OS}"')
 
     return remote_file(
         name = name,
-        url = host_os_to_url[CONFIG.HOSTOS],
+        url = urls_by_os[CONFIG.OS],
         extract = True,
         exported_files = ["lemmy-help"],
         binary = True,
