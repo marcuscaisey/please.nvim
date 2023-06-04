@@ -35,8 +35,8 @@ local function create_file_tree(root, tree, contents)
       create_file_tree(root, path_tail)
     else
       local path_tail = k
-      local contents = v
-      create_file_tree(root, path_tail, contents)
+      local tree_file_contents = v
+      create_file_tree(root, path_tail, tree_file_contents)
     end
   end
 end

@@ -18,9 +18,16 @@ local get_free_port = function()
   return port
 end
 
+---Wrapper around Configuration which adds our custom fields.
+---@class DapConfiguration : Configuration
+---@field root string The root of the plz repo.
+---@field label string The label of the target to debug.
+---@field extra_args string[]? Any extra arguments to pass to plz debug.
+
 M.setup = function()
   logging.debug('setting up plz debug adapter')
 
+  ---@type fun(callback: fun(adapter: Adapter), config: DapConfiguration)
   dap.adapters.plz = function(callback, config)
     logging.log_call('plz dap adapter')
 

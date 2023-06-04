@@ -7,6 +7,7 @@ local cursor = require('please.cursor')
 
 -- vim.treesitter.query.parse_query is deprecated since nvim 0.9
 -- TODO: remove when minimum nvim version is 0.10
+---@diagnostic disable-next-line: deprecated
 local parse_query = vim.treesitter.query.parse or treesitter_query.parse_query
 
 local parsing = {}
@@ -40,30 +41,12 @@ end
 -- TODO: should we get these from the .plzconfig? feels like it should be really rare that people change them
 local build_file_names = { 'BUILD', 'BUILD.plz' }
 
--- look for a target in a file and return the position (line, col), and whether it was found
-local function find_target_in_file(filepath, target)
-  local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
-  local parser = treesitter.get_parser(bufnr, 'python')
-  local tree = parser:parse()[1]
-  local query = parse_query('python', make_build_target_query(target))
-
-  for id, node in query:iter_captures(tree:root(), bufnr) do
-    local name = query.captures[id]
-    if name == 'target' then
-      local start_row, start_col = ts_utils.get_vim_range({ node:range() }, bufnr)
-      return { start_row, start_col }, true
-    end
-  end
-
-  return nil, false
-end
-
 ---Returns the location of a build target. If the location of the target in the BUILD file can't be found (might be
 ---dynamically created), then position will be {1, 1}.
 ---@param root string an absolute path to the repo root
 ---@param label string: a build label of the form //path/to/pkg:target
----@return string: an absolute path to the BUILD file
----@return number[]: the position that the build target definition starts as a (1, 1)-indexed (line, col) tuple
+---@return string?: an absolute path to the BUILD file
+---@return number[]?: the position that the build target definition starts as a (1, 1)-indexed (line, col) tuple
 ---@return string|nil: error if any, this should be checked before using the other return values
 parsing.locate_build_target = function(root, label)
   logging.log_call('parsing.locate_build_target')
@@ -76,12 +59,23 @@ parsing.locate_build_target = function(root, label)
     local build_path = pkg_path:joinpath(build_file_name)
     if build_path:exists() and build_path:is_file() then
       local filepath = vim.fn.simplify(build_path.filename)
-      local position, found = find_target_in_file(filepath, target)
-      if found then
-        return filepath, position, nil
-      else
-        return filepath, { 1, 1 }, nil
+
+      ---@diagnostic disable-next-line: param-type-mismatch
+      local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
+      local parser = treesitter.get_parser(bufnr, 'python')
+      local tree = parser:parse()[1]
+      local query = parse_query('python', make_build_target_query(target))
+
+      ---@diagnostic disable-next-line: param-type-mismatch
+      for id, node in query:iter_captures(tree:root(), bufnr, nil, nil) do
+        local name = query.captures[id]
+        if name == 'target' then
+          local start_row, start_col = ts_utils.get_vim_range({ node:range() }, bufnr)
+          return filepath, { start_row, start_col }
+        end
       end
+
+      return filepath, { 1, 1 }
     end
   end
 
@@ -155,8 +149,8 @@ end
 ---@param node TSNode
 ---@return fun(): table<string, TSNode>?
 local iter_match_captures = function(query, node)
-  local node_start, _, node_stop, _ = node:range()
-  local iter = query:iter_matches(node, 0, node_start, node_stop + 1, { max_start_depth = 1 })
+  ---@diagnostic disable-next-line: param-type-mismatch
+  local iter = query:iter_matches(node, 0, nil, nil, { max_start_depth = 1 })
   return function()
     local _, match = iter()
     if not match then
@@ -514,7 +508,8 @@ parsing.get_test_at_cursor = function()
   -- vim.treesitter.get_node_at_pos is deprecated since nvim 0.9
   -- TODO: remove when minimum nvim version is 0.10
   local root_node = vim.treesitter.get_node and vim.treesitter.get_node()
-    or vim.treesitter.get_node_at_pos(0, current_pos.row - 1, current_pos.col - 1)
+    ---@diagnostic disable-next-line: deprecated
+    or vim.treesitter.get_node_at_pos(0, current_pos.row - 1, current_pos.col - 1, {})
   while root_node and not parsers_by_root_node_type[root_node:type()] do
     root_node = root_node:parent()
   end
@@ -528,7 +523,6 @@ parsing.get_test_at_cursor = function()
     return nil, 'cursor is not in a test'
   end
 
-  local current_pos = cursor.get()
   local test ---@type please.parsing.Test
   parent_test:for_each(function(t)
     if t:contains(current_pos) then
@@ -549,8 +543,8 @@ end
 
 ---Returns the label and rule of the build target under the cursor.
 ---@param root string: an absolute path to the repo root
----@return string: a build label
----@return string: a build rule
+---@return string?: a build label
+---@return string?: a build rule
 ---@return string|nil: error if any, this should be checked before using the label and rule
 -- TODO: return a table instead of multiple values
 parsing.get_target_at_cursor = function(root)
@@ -559,7 +553,8 @@ parsing.get_target_at_cursor = function(root)
   local tree = treesitter.get_parser(0, 'python'):parse()[1]
   local query = parse_query('python', make_build_target_query())
 
-  for _, match in query:iter_matches(tree:root(), 0) do
+  ---@diagnostic disable-next-line: param-type-mismatch
+  for _, match in query:iter_matches(tree:root(), 0, nil, nil) do
     local captures = extract_captures_from_match(match, query)
     if cursor_in_node_range(captures.target) then
       local name = vim.treesitter.get_node_text(captures.name, 0)

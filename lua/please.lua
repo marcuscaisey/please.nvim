@@ -477,7 +477,7 @@ please.action_history = function()
   logging.log_call('please.action_history')
 
   logging.log_errors('Failed to show action history', function()
-    local cwd = get_filepath() or vim.loop.cwd()
+    local cwd = get_filepath() or assert(vim.loop.cwd())
     local root = assert(query.reporoot(cwd))
 
     local history = read_action_history()

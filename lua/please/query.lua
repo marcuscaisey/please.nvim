@@ -15,15 +15,18 @@ local strip_and_join_stderr = function(lines)
 end
 
 ---@param args string[]
----@param cwd string
+---@param cwd string?
 ---@return string[]: stdout lines
 ---@return string|nil: error if any
 local plz = function(args, cwd)
-  local job = Job:new({
+  local job_opts = {
     command = 'plz',
     args = args,
-    cwd = cwd,
-  })
+  }
+  if cwd then
+    job_opts.cwd = cwd
+  end
+  local job = Job:new(job_opts)
   local stdout_lines, code = job:sync()
 
   if code ~= 0 then
@@ -34,8 +37,8 @@ local plz = function(args, cwd)
 end
 
 ---@param path string: an absolute path
----@return string: an absolute path
----@return string|nil: error if any, this should be checked before using the repo root
+---@return string?: an absolute path
+---@return string?: error if any, this should be checked before using the repo root
 query.reporoot = function(path)
   logging.log_call('query.reporoot')
 
@@ -63,7 +66,7 @@ end
 ---Wrapper around plz query whatinputs which returns the labels of the build targets which filepath is an input for.
 ---@param root string: an absolute path to the repo root
 ---@param filepath string: an absolute path or path relative to the repo root
----@return table: build target labels
+---@return string[]?: build target labels
 ---@return string|nil: error if any, this should be checked before using the labels
 query.whatinputs = function(root, filepath)
   logging.log_call('query.whatinputs')
@@ -94,8 +97,8 @@ end
 ---Returns whether the given build target should be run in a sandbox.
 ---@param root string: absolute path to the repo root
 ---@param label string: a build label
----@return boolean
----@return string|nil: error if any, this should be checked before using the result
+---@return boolean?
+---@return string?: error if any, this should be checked before using the result
 query.is_target_sandboxed = function(root, label)
   logging.log_call('query.is_target_sandboxed')
 
@@ -113,12 +116,12 @@ query.is_target_sandboxed = function(root, label)
     sandbox_field = 'sandbox'
   end
 
-  local sandbox_value, err = target_value(root, label, sandbox_field)
-  if err then
-    return nil, err
+  local output, plz_err = plz({ '--repo_root', root, 'query', 'print', label, '--field', sandbox_field })
+  if plz_err then
+    return nil, plz_err
   end
 
-  return sandbox_value == 'True'
+  return output[1] == 'True'
 end
 
 return query

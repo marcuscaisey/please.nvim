@@ -47,8 +47,8 @@ local ansi = {
 ---The popup can be exited with q or by focusing on another window.
 ---@param cmd string: Command to run.
 ---@param args string[]: Args to pass to the command.
----@param opts table
----@field on_success function: callback which is called if the command is successful
+---@param opts table?
+---  * {on_success} (function): callback which is called if the command is successful
 popup.run = function(cmd, args, opts)
   opts = opts or {}
 
@@ -87,10 +87,10 @@ popup.run = function(cmd, args, opts)
   local is_complete = false
 
   local output_lines = {}
-  local output_line = function(line, opts)
+  local output_line = function(line, o)
     line = line or ''
-    opts = opts or { new_line = true }
-    if opts.new_line then
+    o = o or { new_line = true }
+    if o.new_line then
       line = line .. '\r\n'
     end
     table.insert(output_lines, line)
