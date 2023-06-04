@@ -1,5 +1,7 @@
 # TODO: download neovim, plenary, lemmy-help by default if not configured in .plzconfig
 
+subinclude("///shell//build_defs:shell")
+
 def neovim_toolchain(name:str, version:str, hashes:list = [], visibility:list = ["PUBLIC"]):
     """
     Downloads Neovim from GitHub and exposes the nvim binary as the entry point :<name>|nvim.
@@ -286,7 +288,7 @@ COMPILER_FLAGS = [
 
 c_library(
     name = "c",
-    srcs = glob("src/*.c"),
+    srcs = glob("src/*.c", allow_empty=True),
     hdrs = glob("src/tree_sitter/*.h"),
     compiler_flags = COMPILER_FLAGS,
     includes = ["src"],
@@ -295,7 +297,7 @@ c_library(
 
 cc_library(
     name = "cc",
-    srcs = glob("src/*.cc"),
+    srcs = glob("src/*.cc", allow_empty=True),
     hdrs = glob("src/tree_sitter/*.h"),
     compiler_flags = COMPILER_FLAGS,
     includes = ["src"],

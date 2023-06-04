@@ -1,21 +1,33 @@
 [Please]
-version = 16.28.0
+version = 17.0.0
 
 [Parse]
-preloadbuilddefs = build_defs/neovim.build_defs
+preloadsubincludes = //build_defs:neovim
+preloadsubincludes = ///python//build_defs:python
+preloadsubincludes = ///go//build_defs:go
+preloadsubincludes = ///shell//build_defs:shell
+preloadsubincludes = ///cc//build_defs:c
 
 [BuildConfig]
 nvim-tool = //third_party/neovim:toolchain_0_9_1|nvim
 plenary-plugin = //third_party/neovim:plenary
 lemmy-help-tool = //third_party/neovim:lemmy_help
 
-[go]
-gotool = //third_party/go:toolchain|go
-delvetool = //third_party/go:dlv
+[Plugin "go"]
+Target = //plugins:go
+GoTool = //third_party/go:toolchain|go
+DelveTool = //third_party/go:dlv
 
-[python]
-disablevendorflags = true
-moduledir = third_party/python
+[Plugin "python"]
+Target = //plugins:python
+DisableVendorFlags = true
+ModuleDir = third_party/python
+
+[Plugin "shell"]
+Target = //plugins:shell
+
+[Plugin "cc"]
+Target = //plugins:cc
 
 [sandbox]
 build = true
