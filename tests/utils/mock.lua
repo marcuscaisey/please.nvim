@@ -1,5 +1,6 @@
 local stub = require('luassert.stub')
 local runners = require('please.runners')
+local plz = require('please.plz')
 
 local M = {}
 
@@ -25,7 +26,7 @@ function M.PlzPopup:assert_called_with(args)
   if not self._called then
     error('cannot assert on popup args before it has been called')
   end
-  assert.are.equal('plz', self._cmd, 'incorrect command passed to popup')
+  assert.are.equal(plz, self._cmd, 'incorrect command passed to popup')
   assert.are.same(
     { '--repo_root', self._root, '--interactive_output', '--colour', unpack(args) },
     self._args,

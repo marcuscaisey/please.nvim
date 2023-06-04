@@ -93,12 +93,13 @@ local runners = require('please.runners')
 local logging = require('please.logging')
 local cursor = require('please.cursor')
 local debug = require('please.debug')
+local plz = require('please.plz')
 
 local please = {}
 
 local run_plz_cmd = function(root, args, opts)
   local cmd_args = { '--repo_root', root, '--interactive_output', '--colour', unpack(args) }
-  runners.popup('plz', cmd_args, opts)
+  runners.popup(plz, cmd_args, opts)
 end
 
 local actions = {

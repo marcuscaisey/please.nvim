@@ -27,4 +27,10 @@ neovim_test(
         "//lua/please:query",
         "//tests/utils:temptree",
     ],
+    data = [
+        "//third_party/please:plz",
+    ],
+    env = {
+        "PLEASE_NVIM_PLZ": "$TMP_DIR/third_party/please/plz",
+    },
 )

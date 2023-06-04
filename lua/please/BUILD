@@ -16,6 +16,7 @@ neovim_lua_module(
     srcs = ["debug.lua"],
     deps = [
         ":logging",
+        ":plz",
         ":query",
         ":utils",
         "//third_party/neovim:nvim_dap",
@@ -54,11 +55,17 @@ neovim_lua_module(
 )
 
 neovim_lua_module(
+    name = "plz",
+    srcs = ["plz.lua"],
+)
+
+neovim_lua_module(
     name = "query",
     srcs = ["query.lua"],
     deps = [
         ":logging",
         ":utils",
+        ":plz",
         "//third_party/neovim:plenary",
     ],
 )

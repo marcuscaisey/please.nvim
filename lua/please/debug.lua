@@ -5,6 +5,7 @@ local repl = require('dap.repl')
 local logging = require('please.logging')
 local utils = require('please.utils')
 local query = require('please.query')
+local plz = require('please.plz')
 
 local M = {}
 
@@ -33,7 +34,7 @@ M.setup = function()
 
     local port = get_free_port()
 
-    local command = 'plz'
+    local command = plz
     local args = { '--repo_root', config.root, 'debug', '--port', port, config.label, unpack(config.extra_args or {}) }
 
     local on_stdout = function(err, chunk)

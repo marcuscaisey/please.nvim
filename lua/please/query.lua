@@ -2,6 +2,7 @@ local Path = require('plenary.path')
 local Job = require('plenary.job')
 local logging = require('please.logging')
 local utils = require('please.utils')
+local plz = require('please.plz')
 
 local query = {}
 
@@ -18,9 +19,9 @@ end
 ---@param cwd string?
 ---@return string[]: stdout lines
 ---@return string|nil: error if any
-local plz = function(args, cwd)
+local exec_plz = function(args, cwd)
   local job_opts = {
-    command = 'plz',
+    command = plz,
     args = args,
   }
   if cwd then
@@ -49,7 +50,7 @@ query.reporoot = function(path)
   end
 
   local cwd = path_obj.filename
-  local output, err = plz({ 'query', 'reporoot' }, cwd)
+  local output, err = exec_plz({ 'query', 'reporoot' }, cwd)
   if err then
     return nil, err
   end
@@ -73,7 +74,7 @@ query.whatinputs = function(root, filepath)
 
   filepath = Path:new(filepath):make_relative(root)
 
-  local output, err = plz({ 'query', 'whatinputs', '--repo_root', root, filepath })
+  local output, err = exec_plz({ 'query', 'whatinputs', '--repo_root', root, filepath })
   if err then
     return nil, err
   end
@@ -87,7 +88,7 @@ query.whatinputs = function(root, filepath)
 end
 
 local target_value = function(root, label, field)
-  local output, err = plz({ '--repo_root', root, 'query', 'print', label, '--field', field })
+  local output, err = exec_plz({ '--repo_root', root, 'query', 'print', label, '--field', field })
   if err then
     return nil, err
   end
@@ -116,7 +117,7 @@ query.is_target_sandboxed = function(root, label)
     sandbox_field = 'sandbox'
   end
 
-  local output, plz_err = plz({ '--repo_root', root, 'query', 'print', label, '--field', sandbox_field })
+  local output, plz_err = exec_plz({ '--repo_root', root, 'query', 'print', label, '--field', sandbox_field })
   if plz_err then
     return nil, plz_err
   end
