@@ -37,33 +37,6 @@ local exec_plz = function(args, cwd)
   return stdout_lines, nil
 end
 
----@param path string: an absolute path
----@return string?: an absolute path
----@return string?: error if any, this should be checked before using the repo root
-query.reporoot = function(path)
-  logging.log_call('query.reporoot')
-
-  local path_obj = Path:new(path)
-
-  if not path_obj:is_dir() then
-    path_obj = path_obj:parent()
-  end
-
-  local cwd = path_obj.filename
-  local output, err = exec_plz({ 'query', 'reporoot' }, cwd)
-  if err then
-    return nil, err
-  end
-
-  local root = vim.fn.resolve(output[1])
-  -- If root is not a parent of path, then it must have come from the global plzconfig which has a defaultrepo set. We
-  -- shouldn't return it in this case since it won't be of any use for doing stuff with the current path.
-  if vim.fn.resolve(path):sub(1, #root) ~= root then
-    return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
-  end
-  return root
-end
-
 ---Wrapper around plz query whatinputs which returns the labels of the build targets which filepath is an input for.
 ---@param root string: an absolute path to the repo root
 ---@param filepath string: an absolute path or path relative to the repo root

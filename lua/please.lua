@@ -250,6 +250,17 @@ local get_filepath = function()
   return filepath, nil
 end
 
+---@param path string
+---@return string?
+---@return string?
+local get_repo_root = function(path)
+  local plzconfig_path = vim.fs.find('.plzconfig', { upward = true, path = path, type = 'file' })[1]
+  if plzconfig_path then
+    return vim.fs.dirname(plzconfig_path)
+  end
+  return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
+end
+
 ---Jumps to the location of the build target which takes the current file as
 ---an input.
 ---
@@ -261,7 +272,7 @@ please.jump_to_target = function()
 
   logging.log_errors('Failed to jump to target', function()
     local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+    local root = assert(get_repo_root(filepath))
     local labels = assert(query.whatinputs(root, filepath))
     select_if_many(labels, { prompt = 'Select target to jump to' }, function(label)
       local target_filepath, position = assert(parsing.locate_build_target(root, label))
@@ -283,7 +294,7 @@ please.build = function()
 
   logging.log_errors('Failed to build', function()
     local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+    local root = assert(get_repo_root(filepath))
 
     local labels
     if vim.bo.filetype == 'please' then
@@ -333,7 +344,7 @@ please.test = function(opts)
     assert(validate_opts(opts, { 'under_cursor', 'failed' }))
 
     local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+    local root = assert(get_repo_root(filepath))
 
     if opts.under_cursor then
       local test = assert(parsing.get_test_at_cursor())
@@ -378,7 +389,7 @@ please.run = function()
 
   logging.log_errors('Failed to run', function()
     local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+    local root = assert(get_repo_root(filepath))
 
     local labels
     if vim.bo.filetype == 'please' then
@@ -417,7 +428,7 @@ please.yank = function()
 
   logging.log_errors('Failed to yank', function()
     local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+    local root = assert(get_repo_root(filepath))
 
     local labels = {}
     if vim.bo.filetype == 'please' then
@@ -450,7 +461,7 @@ please.debug = function()
 
   logging.log_errors('Failed to debug', function()
     local filepath = assert(get_filepath())
-    local root = assert(query.reporoot(filepath))
+    local root = assert(get_repo_root(filepath))
 
     local labels, lang
     if vim.bo.filetype == 'please' then
@@ -479,7 +490,7 @@ please.action_history = function()
 
   logging.log_errors('Failed to show action history', function()
     local cwd = get_filepath() or assert(vim.loop.cwd())
-    local root = assert(query.reporoot(cwd))
+    local root = assert(get_repo_root(cwd))
 
     local history = read_action_history()
     if not history[root] then

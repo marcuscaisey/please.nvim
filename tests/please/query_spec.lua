@@ -1,56 +1,6 @@
 local temptree = require('tests.utils.temptree')
 local query = require('please.query')
 
-describe('reporoot', function()
-  it('should return root when path is a directory inside a plz repo', function()
-    local temp_root, teardown_tree = temptree.create({
-      '.plzconfig',
-      'foo/',
-    })
-    local path = temp_root .. '/foo'
-
-    local root, err = query.reporoot(path)
-
-    assert.is_nil(err, 'expected no error')
-    assert.are.equal(temp_root, root, 'incorrect root')
-
-    teardown_tree()
-  end)
-
-  it('should return root when path is a file inside a plz repo', function()
-    local temp_root, teardown_tree = temptree.create({
-      '.plzconfig',
-      ['foo/'] = {
-        'foo.go',
-      },
-    })
-    local path = temp_root .. '/foo/foo.go'
-
-    local root, err = query.reporoot(path)
-
-    assert.is_nil(err, 'expected no error')
-    assert.are.equal(temp_root, root, 'incorrect root')
-
-    teardown_tree()
-  end)
-
-  it('should return error when path is outside of a plz repo', function()
-    local temp_root, teardown_tree = temptree.create({
-      ['repo/'] = {
-        '.plzconfig',
-      },
-    })
-
-    local root, err = query.reporoot(temp_root)
-
-    assert.is_nil(root, 'expected no root')
-    assert.is_not_nil(err, 'expected error')
-    assert.are.equal('string', type(err), 'expected error to be string')
-
-    teardown_tree()
-  end)
-end)
-
 describe('whatinputs', function()
   it('should return target when filepath is relative', function()
     local repo_root, teardown_tree = temptree.create({
