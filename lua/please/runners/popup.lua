@@ -46,10 +46,11 @@ local ansi = {
 ---The output of the command is automatically scrolled through.
 ---The popup can be exited with q or by focusing on another window.
 ---@param cmd string: Command to run.
----@param args string[]: Args to pass to the command.
+---@param args string[]?: Args to pass to the command.
 ---@param opts table?
 ---  * {on_success} (function): callback which is called if the command is successful
 popup.run = function(cmd, args, opts)
+  args = args or {}
   opts = opts or {}
 
   logging.log_call('popup.run')
