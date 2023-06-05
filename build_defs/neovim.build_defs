@@ -2,7 +2,7 @@
 
 subinclude("///shell//build_defs:shell")
 
-def neovim_toolchain(name:str, version:str, hashes:list = [], visibility:list = ["PUBLIC"]):
+def neovim_toolchain(name: str, version: str, hashes: list = [], visibility: list = ["PUBLIC"]):
     """
     Downloads Neovim from GitHub and exposes the nvim binary as the entry point :<name>|nvim.
 
@@ -41,14 +41,14 @@ def neovim_toolchain(name:str, version:str, hashes:list = [], visibility:list = 
         ],
         outs = [name],
         entry_points = {
-            "nvim": f"{name}/bin/nvim"
+            "nvim": f"{name}/bin/nvim",
         },
         binary = True,
         visibility = visibility,
         building_description = "Installing...",
     )
 
-def neovim_plugin(name:str, srcs:list = [], deps:list = [], help_srcs:list = [], help_opts:list = [], visibility:list = ["PUBLIC"]):
+def neovim_plugin(name: str, srcs: list = [], deps: list = [], help_srcs: list = [], help_opts: list = [], visibility: list = ["PUBLIC"]):
     """
     Defines two Neovim plugin targets:
         1. <name> which collects the plugin's files for use by dependent neovim_lua_module and neovim_test targets.
@@ -100,7 +100,7 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], help_srcs:list = [],
             name = f"{name}_help_gen_check",
             deps = [help_file_rule],
             cmd = " ".join([
-                f'diff --unified --color=always {help_file_path} $(out_location {help_file_rule})',
+                f"diff --unified --color=always {help_file_path} $(out_location {help_file_rule})",
                 f'&& echo "\033[32;1m{help_file_path} is up to date." && exit 0',
                 f'|| echo "\n\033[31;1m{help_file_path} needs to be regenerated with \\"plz run //{help_gen}\\"" && exit 1',
             ]),
@@ -113,7 +113,7 @@ def neovim_plugin(name:str, srcs:list = [], deps:list = [], help_srcs:list = [],
         visibility = visibility,
     )
 
-def neovim_lua_module(name:str, srcs:list, deps:list = [], visibility:list = ["PUBLIC"]):
+def neovim_lua_module(name: str, srcs: list, deps: list = [], visibility: list = ["PUBLIC"]):
     """
     Defines a Lua module target which collects Lua files for use by dependent neovim_lua_module, neovim_plugin, and
     neovim_test targets.
@@ -132,7 +132,7 @@ def neovim_lua_module(name:str, srcs:list, deps:list = [], visibility:list = ["P
         visibility = visibility,
     )
 
-def neovim_test(name:str, test_file:str, deps:list = [], labels:list = [], data:list|dict = None, env:dict = None, nvim:str = None):
+def neovim_test(name: str, test_file: str, deps: list = [], labels: list = [], data: list | dict = None, env: dict = None, nvim: str = None):
     """
     Defines a Neovim test target which runs a test file inside Neovim using plenary
     (https://github.com/nvim-lua/plenary.nvim).
@@ -201,12 +201,12 @@ def neovim_test(name:str, test_file:str, deps:list = [], labels:list = [], data:
             '''echo '#!/bin/bash' >> "$TMPDIR"/_preamble.txt''',
             'echo "set -euo pipefail" >> "$TMPDIR"/_preamble.txt',
             # Unzip the dependencies from the script.
-            'echo "unzip -qo \\\$0" >> "$TMPDIR"/_preamble.txt',
+            "echo \"unzip -qo \\\\$0\" >> \"$TMPDIR\"/_preamble.txt",
             # Third party dependencies (neovim_github_plugin targets) generate a *.runtimepath file containing the
             # path to the plugin root directory. This way, we can find all of the paths which need to be added to
             # Neovim's runtimepath by concatenating the contents of all of the *.runtimepath files in the build
             # directory (which were unzipped from the script). The tr and sed are just joining the paths with commas.
-            '''runtimepaths="$(find . -name '*.runtimepath' | xargs cat | grep -v '^\.$' | tr '\\n' ',' | sed 's/,$//g')"''',
+            """runtimepaths="$(find . -name '*.runtimepath' | xargs cat | grep -v '^\\.$' | tr '\\n' ',' | sed 's/,$//g')\"""",
             # Run the test file, passing in the runtimepaths which the previous command returned.
             'echo "$TOOLS_NVIM --clean --headless --cmd \\"set runtimepath+=.,$runtimepaths\\" -c \\"PlenaryBustedFile $SRC\\"" >> "$TMPDIR"/_preamble.txt',
             # Exit so that we don't try to execute the ZIP file at the end of the script.
@@ -232,7 +232,7 @@ def neovim_test(name:str, test_file:str, deps:list = [], labels:list = [], data:
         env = env,
     )
 
-def neovim_github_plugin(name:str, repo:str, revision:str, hashes:list = [], visibility:list = ["PUBLIC"]):
+def neovim_github_plugin(name: str, repo: str, revision: str, hashes: list = [], visibility: list = ["PUBLIC"]):
     """
     Downloads a Neovim plugin from GitHub for use by dependent neovim_lua_module and neovim_test targets.
 
@@ -243,11 +243,11 @@ def neovim_github_plugin(name:str, repo:str, revision:str, hashes:list = [], vis
         hashes: List of hashes to verify the rule with.
         visibility: Visibility specification. Defaults to public.
     """
-    org, _, repo = repo.partition('/')
+    org, _, repo = repo.partition("/")
     assert repo, "Must pass a valid GitHub repo argument, e.g. marcuscaisey/please.nvim"
     download = remote_file(
         name = tag(name, "download"),
-        url = f'https://github.com/{org}/{repo}/archive/{revision}.zip',
+        url = f"https://github.com/{org}/{repo}/archive/{revision}.zip",
         hashes = hashes,
         extract = True,
     )
@@ -266,7 +266,7 @@ def neovim_github_plugin(name:str, repo:str, revision:str, hashes:list = [], vis
         visibility = visibility,
     )
 
-def neovim_github_tree_sitter_parser(name:str, lang:str, repo:str, revision:str, hashes:list = [], visibility:list = ['PUBLIC']):
+def neovim_github_tree_sitter_parser(name: str, lang: str, repo: str, revision: str, hashes: list = [], visibility: list = ["PUBLIC"]):
     """
     Downloads a tree sitter parser from GitHub and compiles it for use by dependent neovim_lua_module and neovim_test targets.
 
@@ -311,7 +311,7 @@ cc_shared_object(
 )
         """,
     )
-    subrepo_name = tag(name, 'subrepo')
+    subrepo_name = tag(name, "subrepo")
     github_repo(
         name = subrepo_name,
         repo = repo,
@@ -320,19 +320,19 @@ cc_shared_object(
         hashes = hashes,
     )
 
-    parser_target = '///' + join_path(package_name(), subrepo_name) + '//:parser'
+    parser_target = "///" + join_path(package_name(), subrepo_name) + "//:parser"
     shared_object = genrule(
-        name = tag(name, 'shared_object'),
+        name = tag(name, "shared_object"),
         srcs = [parser_target],
         outs = [name],
-        cmd = f'mkdir -p {name}/parser && cp $SRC {name}/parser/{lang}.so'
+        cmd = f"mkdir -p {name}/parser && cp $SRC {name}/parser/{lang}.so",
     )
 
     runtimepath = genrule(
-        name = tag(name, 'runtimepath'),
+        name = tag(name, "runtimepath"),
         srcs = [shared_object],
-        out = f'{name}.runtimepath',
-        cmd = f'echo $SRC > $OUT',
+        out = f"{name}.runtimepath",
+        cmd = f"echo $SRC > $OUT",
     )
 
     return filegroup(
@@ -344,7 +344,7 @@ cc_shared_object(
         visibility = visibility,
     )
 
-def neovim_lemmy_help(name:str, version:str, hashes:list = [], visibility:list = ["PUBLIC"]):
+def neovim_lemmy_help(name: str, version: str, hashes: list = [], visibility: list = ["PUBLIC"]):
     """
     Downloads lemmy-help from GitHub.
 

@@ -64,8 +64,8 @@ neovim_lua_module(
     srcs = ["query.lua"],
     deps = [
         ":logging",
-        ":utils",
         ":plz",
+        ":utils",
         "//third_party/neovim:plenary",
     ],
 )

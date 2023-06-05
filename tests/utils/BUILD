@@ -2,8 +2,8 @@ neovim_lua_module(
     name = "mock",
     srcs = ["mock.lua"],
     deps = [
-        "//lua/please/runners",
         "//lua/please:plz",
+        "//lua/please/runners",
         "//third_party/neovim:plenary",
     ],
 )
