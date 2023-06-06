@@ -16,7 +16,7 @@ jobs:
       - name: Install Please
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Run tests
-        run: plz test --exclude //experimental/...
+        run: plz test
   docs:
     name: Docs
     runs-on: ubuntu-latest

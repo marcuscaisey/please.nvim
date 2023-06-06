@@ -1,6 +1,7 @@
 python_test(
     name = "pythonpkg_test",
     srcs = ["pythonpkg_test.py"],
+    labels = ["manual"],
 )
 
 python_binary(
