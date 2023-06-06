@@ -1,5 +1,6 @@
 local popup = require('please.runners.popup')
 local cursor = require('please.cursor')
+local temptree = require('tests.utils.temptree')
 
 ---@generic T
 ---@param t1 T[]
@@ -107,6 +108,16 @@ local wait_for_win = function(winid)
     return current_win_correct
   end)
   assert(current_win_correct, string.format('expected current window to be %d, was %d', winid, current_winid))
+end
+
+---@param expected_cursor_pos please.cursor.Position
+local wait_for_cursor = function(expected_cursor_pos)
+  local actual_cursor_pos
+  vim.wait(500, function()
+    actual_cursor_pos = cursor.get()
+    return actual_cursor_pos.row == expected_cursor_pos.row and actual_cursor_pos.col == expected_cursor_pos.col
+  end)
+  assert.are.same(expected_cursor_pos, actual_cursor_pos, 'incorrect cursor position')
 end
 
 local close_all_windows_but_one = function()
@@ -304,6 +315,37 @@ describe('run', function()
 
     wait_for_win(start_winid)
   end)
+
+  -- TODO: This is passing, even when the functionality is not implemented. I think it might be because the tests are
+  -- run in a headless nvim but I have no basis for this claim.
+  pending('should restore cursor to previous split after popup is closed', function()
+    local root, teardown_tree = temptree.create({
+      file1 = [[
+        line 1
+        line 2
+        line 3
+      ]],
+      file2 = [[
+        line 1
+        line 2
+        line 3
+      ]],
+    })
+    vim.cmd.edit(root .. '/file1')
+    vim.cmd.vsplit(root .. '/file2')
+    cursor.set({ row = 2, col = 2 })
+    local split_winid = vim.api.nvim_get_current_win()
+    popup.run('ls')
+    local popup_winid = wait_for_new_win(split_winid)
+
+    vim.api.nvim_feedkeys('q', 'x', false)
+    local current_winid = wait_for_new_win(popup_winid)
+
+    assert.are.equal(split_winid, current_winid, 'expected current window to be the split window')
+    wait_for_cursor({ row = 2, col = 2 })
+
+    teardown_tree()
+  end)
 end)
 
 ---@param cmd string
@@ -322,16 +364,6 @@ end
 local quit_popup = function(start_winid)
   vim.api.nvim_set_current_win(start_winid)
   wait_for_win(start_winid)
-end
-
----@param expected_cursor_pos please.cursor.Position
-local wait_for_cursor = function(expected_cursor_pos)
-  local actual_cursor_pos
-  vim.wait(500, function()
-    actual_cursor_pos = cursor.get()
-    return actual_cursor_pos.row == expected_cursor_pos.row and actual_cursor_pos.col == expected_cursor_pos.col
-  end)
-  assert.are.same(expected_cursor_pos, actual_cursor_pos, 'incorrect cursor position')
 end
 
 describe('restore', function()

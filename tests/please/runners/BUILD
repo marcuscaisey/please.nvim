@@ -4,5 +4,6 @@ neovim_test(
     deps = [
         "//lua/please:cursor",
         "//lua/please/runners:popup",
+        "//tests/utils:temptree",
     ],
 )

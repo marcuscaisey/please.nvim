@@ -24,6 +24,9 @@ local cached_popup = {
   cursor = {},
 }
 
+local prev_winid ---@type number
+local prev_cursor ---@type please.cursor.Position
+
 local ansi = {
   bold = '\x1b[1m',
   italic = '\x1b[3m',
@@ -75,6 +78,8 @@ popup.run = function(cmd, args, opts)
     minheight = term_win_opts.minheight + 2,
   }
 
+  prev_winid = vim.api.nvim_get_current_win()
+  prev_cursor = cursor.get()
   local bg_winid = plenary_popup.create({}, bg_win_opts)
   local term_winid = plenary_popup.create({}, term_win_opts)
   local term_bufnr = vim.fn.winbufnr(term_winid)
@@ -144,6 +149,8 @@ popup.run = function(cmd, args, opts)
   local close_windows = function()
     close_win(term_winid)
     close_win(bg_winid)
+    vim.api.nvim_set_current_win(prev_winid)
+    cursor.set(prev_cursor)
   end
 
   local job = Job:new({
@@ -218,6 +225,8 @@ popup.restore = function()
     minheight = term_win_opts.minheight + 2,
   }
 
+  prev_winid = vim.api.nvim_get_current_win()
+  prev_cursor = cursor.get()
   local bg_winid = plenary_popup.create({}, bg_win_opts)
   local term_winid = plenary_popup.create({}, term_win_opts)
   local term_bufnr = vim.fn.winbufnr(term_winid)
@@ -239,6 +248,8 @@ popup.restore = function()
     cached_popup.cursor = cursor.get()
     close_win(term_winid)
     close_win(bg_winid)
+    vim.api.nvim_set_current_win(prev_winid)
+    cursor.set(prev_cursor)
   end
   -- close popup on q
   vim.keymap.set('n', 'q', close, { buffer = term_bufnr })

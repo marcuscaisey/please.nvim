@@ -52,7 +52,7 @@ end
 
 ---Creates a file tree in a temporary directory. The tree should be provided as a table in the following format:
 ---@param tree table: the file tree to create provided in the following format:
----create {
+---{
 ---  'empty_file',
 ---  ['file'] = 'contents',
 ---  'empty_dir/',
