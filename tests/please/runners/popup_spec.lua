@@ -124,25 +124,25 @@ local close_all_windows_but_one = function()
   -- Close all floating windows first
   while true do
     -- List the windows everytime because closing one floating window might cause another to be closed as well
-    local wins = vim.api.nvim_list_wins()
-    local floating_win
-    for _, win in ipairs(wins) do
-      local config = vim.api.nvim_win_get_config(win)
+    local float_winids = vim.api.nvim_list_wins()
+    local float_winid
+    for _, winid in ipairs(float_winids) do
+      local config = vim.api.nvim_win_get_config(winid)
       if config.relative ~= '' then
-        floating_win = win
+        float_winid = winid
         break
       end
     end
-    if floating_win then
-      vim.api.nvim_win_close(floating_win, true)
+    if float_winid then
+      vim.api.nvim_win_close(float_winid, true)
     else
       break
     end
   end
   -- Close all but one of the remaining windows
-  local remaining_wins = vim.api.nvim_list_wins()
-  for i = 1, #remaining_wins - 1 do
-    vim.api.nvim_win_close(remaining_wins[i], true)
+  local remaining_winids = vim.api.nvim_list_wins()
+  for i = 1, #remaining_winids - 1 do
+    vim.api.nvim_win_close(remaining_winids[i], true)
   end
 end
 

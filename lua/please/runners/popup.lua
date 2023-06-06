@@ -149,8 +149,11 @@ popup.run = function(cmd, args, opts)
   local close_windows = function()
     close_win(term_winid)
     close_win(bg_winid)
-    vim.api.nvim_set_current_win(prev_winid)
-    cursor.set(prev_cursor)
+    -- It's possible that the previous window doesn't exist anymore
+    if pcall(vim.api.nvim_set_current_win, prev_winid) then
+      -- It's also possible that if it did exist, it doesn't by the time that we attempt to set the cursor
+      pcall(cursor.set, prev_cursor)
+    end
   end
 
   local job = Job:new({
@@ -248,8 +251,11 @@ popup.restore = function()
     cached_popup.cursor = cursor.get()
     close_win(term_winid)
     close_win(bg_winid)
-    vim.api.nvim_set_current_win(prev_winid)
-    cursor.set(prev_cursor)
+    -- It's possible that the previous window doesn't exist anymore
+    if pcall(vim.api.nvim_set_current_win, prev_winid) then
+      -- It's also possible that if it did exist, it doesn't by the time that we attempt to set the cursor
+      pcall(cursor.set, prev_cursor)
+    end
   end
   -- close popup on q
   vim.keymap.set('n', 'q', close, { buffer = term_bufnr })
