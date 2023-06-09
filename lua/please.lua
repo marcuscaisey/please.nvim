@@ -353,7 +353,7 @@ please.test = function(opts)
         run_and_save_action(root, {
           name = 'test_selector',
           args = { root, label, test.selector },
-          description = string.format('Test %s (%s)', label, test.name),
+          description = string.format('Test %s %s', label, test.name),
         })
       end)
     elseif opts.failed then

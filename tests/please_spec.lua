@@ -343,9 +343,9 @@ describe('test', function()
         please.action_history()
         -- THEN we're prompted to pick an action to run again
         mock_select:assert_prompt('Pick action to run again')
-        mock_select:assert_items({ 'Test //foo:foo1_and_foo2_test (TestFails)' })
+        mock_select:assert_items({ 'Test //foo:foo1_and_foo2_test TestFails' })
         -- WHEN we select the test action
-        mock_select:choose_item('Test //foo:foo1_and_foo2_test (TestFails)')
+        mock_select:choose_item('Test //foo:foo1_and_foo2_test TestFails')
         -- THEN the test is run again
         mock_plz_popup:assert_called_with({ 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
 
