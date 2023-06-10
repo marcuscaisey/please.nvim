@@ -112,17 +112,20 @@ end
 ---@field children please.parsing.Test[]
 local Test = {}
 
----@param test {name: string, selector: string, node: TSNode, children: please.parsing.Test[]}
+---@param name string
+---@param selector string
+---@param node TSNode
+---@param children please.parsing.Test[]?
 ---@return please.parsing.Test
-function Test:new(test)
+function Test:new(name, selector, node, children)
   self.__index = self
-  local start_row, start_col, end_row, end_col = test.node:range()
+  local start_row, start_col, end_row, end_col = node:range()
   return setmetatable({
-    name = test.name,
-    selector = test.selector,
+    name = name,
+    selector = selector,
     start = { row = start_row + 1, col = start_col + 1 },
     end_ = { row = end_row + 1, col = end_col },
-    children = test.children or {},
+    children = children or {},
   }, self)
 end
 
@@ -355,15 +358,8 @@ parse_go_subtests = function(parent_name, parent_selector, receiver, parent_body
       local subtest_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
       local name = parent_name .. '/' .. subtest_name
       local selector = parent_selector .. '/^' .. subtest_name .. '$'
-      table.insert(
-        subtests,
-        Test:new({
-          name = name,
-          selector = selector,
-          node = captures.subtest,
-          children = parse_go_subtests(name, selector, subtest_receiver, captures.body),
-        })
-      )
+      local children = parse_go_subtests(name, selector, subtest_receiver, captures.body)
+      table.insert(subtests, Test:new(name, selector, captures.subtest, children))
     end
   end
 
@@ -379,14 +375,7 @@ parse_go_subtests = function(parent_name, parent_selector, receiver, parent_body
       local test_case_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
       local name = parent_name .. '/' .. test_case_name
       local selector = parent_selector .. '/^' .. test_case_name .. '$'
-      table.insert(
-        subtests,
-        Test:new({
-          name = name,
-          selector = selector,
-          node = captures.test_case,
-        })
-      )
+      table.insert(subtests, Test:new(name, selector, captures.test_case))
     end
   end
 
@@ -397,16 +386,11 @@ end
 ---@return please.parsing.Test?
 local parse_go_test_func = function(root_node)
   for captures in iter_match_captures(queries.go.test_func, root_node) do
-    local parent_name = vim.treesitter.get_node_text(captures.name, 0)
-    local parent_selector = '^' .. parent_name .. '$'
+    local name = vim.treesitter.get_node_text(captures.name, 0)
+    local selector = '^' .. name .. '$'
     local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
-    local parent_body = captures.body
-    return Test:new({
-      name = parent_name,
-      selector = parent_selector,
-      node = captures.test,
-      children = parse_go_subtests(parent_name, parent_selector, receiver, parent_body),
-    })
+    local children = parse_go_subtests(name, selector, receiver, captures.body)
+    return Test:new(name, selector, captures.test, children)
   end
 end
 
@@ -414,11 +398,10 @@ end
 ---@return please.parsing.Test?
 local parse_go_test_suite_method = function(root_node)
   for captures in iter_match_captures(queries.go.test_suite_method, root_node) do
-    local parent_name = vim.treesitter.get_node_text(captures.name, 0)
-    local parent_selector = '/^' .. parent_name .. '$'
+    local name = vim.treesitter.get_node_text(captures.name, 0)
+    local selector = '/^' .. name .. '$'
     local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
     local receiver_type = vim.treesitter.get_node_text(captures.receiver_type, 0)
-    local parent_body = captures.body
 
     local tree = vim.treesitter.get_parser(0, vim.bo.filetype):parse()[1]
     local suite_names = {}
@@ -432,16 +415,11 @@ local parse_go_test_suite_method = function(root_node)
     -- that both suites are included by the Go test runner.
     if #suite_names == 1 then
       local suite_name = suite_names[1]
-      parent_name = suite_name .. '/' .. parent_name
-      parent_selector = '^' .. suite_name .. '$' .. parent_selector
+      name = suite_name .. '/' .. name
+      selector = '^' .. suite_name .. '$' .. selector
     end
-
-    return Test:new({
-      name = parent_name,
-      selector = parent_selector,
-      node = captures.test,
-      children = parse_go_subtests(parent_name, parent_selector, receiver, parent_body),
-    })
+    local children = parse_go_subtests(name, selector, receiver, captures.body)
+    return Test:new(name, selector, captures.test, children)
   end
 end
 
@@ -452,21 +430,10 @@ local parse_python_unittest_methods = function(root_node)
   for captures in iter_match_captures(queries.python.unittest_methods, root_node) do
     local class_name = vim.treesitter.get_node_text(captures.class_name, 0)
     if not test then
-      test = Test:new({
-        name = class_name,
-        selector = class_name,
-        node = captures.class,
-      })
+      test = Test:new(class_name, class_name, captures.class)
     end
     local name = class_name .. '.' .. vim.treesitter.get_node_text(captures.name, 0)
-    table.insert(
-      test.children,
-      Test:new({
-        name = name,
-        selector = name,
-        node = captures.test,
-      })
-    )
+    table.insert(test.children, Test:new(name, name, captures.test))
   end
   return test
 end
