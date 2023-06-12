@@ -1,4 +1,4 @@
-local Job = require('plenary.job')
+local system = require('please.system')
 local logging = require('please.logging')
 local utils = require('please.utils')
 local plz = require('please.plz')
@@ -19,18 +19,12 @@ end
 ---@return string[]: stdout lines
 ---@return string|nil: error if any
 local exec_plz = function(args, cwd)
-  local job_opts = {
-    command = plz,
-    args = args,
-  }
-  if cwd then
-    job_opts.cwd = cwd
-  end
-  local job = Job:new(job_opts)
-  local stdout_lines, code = job:sync()
+  local result = system({ plz, unpack(args) }, { cwd = cwd }):wait()
 
-  if code ~= 0 then
-    return stdout_lines, strip_and_join_stderr(job:stderr_result())
+  local stdout_lines = vim.split(result.stdout, '\n', { trimempty = true })
+  if result.code ~= 0 then
+    local stderr_lines = vim.split(result.stderr, '\n', { trimempty = true })
+    return stdout_lines, strip_and_join_stderr(stderr_lines)
   end
 
   return stdout_lines, nil

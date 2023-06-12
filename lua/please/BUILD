@@ -65,9 +65,14 @@ neovim_lua_module(
     deps = [
         ":logging",
         ":plz",
+        ":system",
         ":utils",
-        "//third_party/neovim:plenary",
     ],
+)
+
+neovim_lua_module(
+    name = "system",
+    srcs = ["system.lua"],
 )
 
 neovim_lua_module(

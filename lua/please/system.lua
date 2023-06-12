@@ -2,7 +2,7 @@
 -- Everything else was taken from runtime/lua/vim/_system.lua
 -- TODO: unvendor vim.system when minimum nvim version is 0.10
 
-local uv = vim.uv
+local uv = vim.uv or vim.loop
 
 ---@private
 ---@param state SystemState
