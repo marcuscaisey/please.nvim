@@ -1,7 +1,6 @@
 ---@mod please.runners.popup POPUP COMMANDS
 
 local Job = require('plenary.job')
-local plenary_popup = require('plenary.popup')
 local logging = require('please.logging')
 local cursor = require('please.cursor')
 
@@ -44,6 +43,48 @@ local ansi = {
   erase_in_display = '\x1b[J',
 }
 
+---@return number bufnr
+---@return number fg_winid
+---@return number bg_winid
+local function open_float()
+  local width_pct = 0.8
+  local height_pct = 0.8
+
+  local bg_bufnr = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_set_option_value('bufhidden', 'wipe', { buf = bg_bufnr })
+  local bg_width = math.floor(width_pct * vim.o.columns)
+  local bg_height = math.floor(height_pct * vim.o.lines)
+  local bg_config = {
+    relative = 'editor',
+    width = bg_width,
+    height = bg_height,
+    row = math.floor((vim.o.lines - bg_height) / 2),
+    col = math.floor((vim.o.columns - bg_width) / 2),
+    focusable = false,
+    style = 'minimal',
+    noautocmd = true,
+  }
+  local bg_winid = vim.api.nvim_open_win(bg_bufnr, false, bg_config)
+
+  local fg_bufnr = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_set_option_value('bufhidden', 'wipe', { buf = fg_bufnr })
+  local fg_width = bg_width - 8
+  local fg_height = bg_height - 2
+  local fg_config = {
+    relative = 'editor',
+    width = fg_width,
+    height = fg_height,
+    row = math.floor((vim.o.lines - fg_height) / 2),
+    col = math.floor((vim.o.columns - fg_width) / 2),
+    focusable = true,
+    style = 'minimal',
+    noautocmd = true,
+  }
+  local fg_winid = vim.api.nvim_open_win(fg_bufnr, true, fg_config)
+
+  return fg_bufnr, fg_winid, bg_winid
+end
+
 ---@private
 ---Runs a command with the given args in a terminal in a popup.
 ---The output of the command is automatically scrolled through.
@@ -66,23 +107,9 @@ popup.run = function(cmd, args, opts)
     cursor = {},
   }
 
-  local width = 0.8
-  local height = 0.8
-  local term_win_opts = {
-    minwidth = math.ceil(vim.o.columns * width),
-    minheight = math.ceil(vim.o.lines * height),
-    focusable = true,
-  }
-  local bg_win_opts = {
-    minwidth = term_win_opts.minwidth + 8,
-    minheight = term_win_opts.minheight + 2,
-  }
-
   prev_winid = vim.api.nvim_get_current_win()
   prev_cursor = cursor.get()
-  local bg_winid = plenary_popup.create({}, bg_win_opts)
-  local term_winid = plenary_popup.create({}, term_win_opts)
-  local term_bufnr = vim.fn.winbufnr(term_winid)
+  local term_bufnr, term_winid, bg_winid = open_float()
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
   -- we can still be outputting from the command after it's been shut down, so we need to check this before we send on a
@@ -216,23 +243,9 @@ popup.restore = function()
     return
   end
 
-  local width = 0.8
-  local height = 0.8
-  local term_win_opts = {
-    minwidth = math.ceil(vim.o.columns * width),
-    minheight = math.ceil(vim.o.lines * height),
-    focusable = true,
-  }
-  local bg_win_opts = {
-    minwidth = term_win_opts.minwidth + 8,
-    minheight = term_win_opts.minheight + 2,
-  }
-
   prev_winid = vim.api.nvim_get_current_win()
   prev_cursor = cursor.get()
-  local bg_winid = plenary_popup.create({}, bg_win_opts)
-  local term_winid = plenary_popup.create({}, term_win_opts)
-  local term_bufnr = vim.fn.winbufnr(term_winid)
+  local term_bufnr, term_winid, bg_winid = open_float()
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
   vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup.lines))
