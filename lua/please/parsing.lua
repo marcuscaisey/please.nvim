@@ -534,10 +534,10 @@ parsing.get_test_at_cursor = function()
 end
 
 local build_label = function(root, build_file, target)
-  local pkg = Path:new(build_file):parent():make_relative(root)
-  if pkg == '.' then
-    pkg = ''
-  end
+  local dir = vim.fs.dirname(build_file)
+  local normalized_root = vim.fs.normalize(root)
+  local normalized_dir = vim.fs.normalize(dir)
+  local pkg = normalized_dir:gsub('^' .. normalized_root .. '/?', '')
   return string.format('//%s:%s', pkg, target)
 end
 
