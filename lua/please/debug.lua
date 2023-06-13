@@ -1,4 +1,3 @@
-local Path = require('plenary.path')
 local Job = require('plenary.job')
 local dap = require('dap')
 local repl = require('dap.repl')
@@ -91,13 +90,16 @@ M.setup = function()
   dap.defaults.plz.exception_breakpoints = { 'uncaught' }
 end
 
-local join_paths = function(...)
-  return Path:new(...).filename
+---TODO: remove when minimum nvim version is 0.10
+---@param ... string
+---@return string
+local joinpath = vim.fs.joinpath or function(...)
+  return (table.concat({ ... }, '/'):gsub('//+', '/'))
 end
 
 local target_debug_directory = function(root, label)
   local pkg = label:match('//(.+):.+')
-  return join_paths(root, 'plz-out/debug', pkg)
+  return joinpath(root, 'plz-out/debug', pkg)
 end
 
 local launch_delve = function(root, label)
@@ -105,7 +107,7 @@ local launch_delve = function(root, label)
 
   local substitutePath = {
     {
-      from = join_paths(target_debug_directory(root, label), 'third_party'),
+      from = joinpath(target_debug_directory(root, label), 'third_party'),
       to = 'third_party',
     },
   }
@@ -126,7 +128,7 @@ local launch_delve = function(root, label)
   local children = vim.fn.systemlist('ls ' .. root)
   for _, path in ipairs(children) do
     table.insert(substitutePath, {
-      from = join_paths(root, path),
+      from = joinpath(root, path),
       to = path,
     })
   end
@@ -146,8 +148,8 @@ local launch_debugpy = function(root, label)
   logging.log_call('launch_debugpy')
 
   local relative_sandbox_location = '.cache/pex/pex-debug'
-  local local_explode_location = join_paths(target_debug_directory(root, label), relative_sandbox_location)
-  local sandbox_explode_location = join_paths('/tmp/plz_sandbox', relative_sandbox_location)
+  local local_explode_location = joinpath(target_debug_directory(root, label), relative_sandbox_location)
+  local sandbox_explode_location = joinpath('/tmp/plz_sandbox', relative_sandbox_location)
 
   local pathMappings
 
@@ -160,12 +162,12 @@ local launch_debugpy = function(root, label)
   if (vim.loop.os_uname().sysname == 'Linux') and is_target_sandboxed() then
     pathMappings = {
       {
-        localRoot = join_paths(local_explode_location, '.bootstrap'),
-        remoteRoot = join_paths(sandbox_explode_location, '.bootstrap'),
+        localRoot = joinpath(local_explode_location, '.bootstrap'),
+        remoteRoot = joinpath(sandbox_explode_location, '.bootstrap'),
       },
       {
-        localRoot = join_paths(local_explode_location, 'third_party'),
-        remoteRoot = join_paths(sandbox_explode_location, 'third_party'),
+        localRoot = joinpath(local_explode_location, 'third_party'),
+        remoteRoot = joinpath(sandbox_explode_location, 'third_party'),
       },
       {
         localRoot = root,
@@ -175,12 +177,12 @@ local launch_debugpy = function(root, label)
   else
     pathMappings = {
       {
-        localRoot = join_paths(local_explode_location, '.bootstrap'),
-        remoteRoot = join_paths(local_explode_location, '.bootstrap'),
+        localRoot = joinpath(local_explode_location, '.bootstrap'),
+        remoteRoot = joinpath(local_explode_location, '.bootstrap'),
       },
       {
-        localRoot = join_paths(local_explode_location, 'third_party'),
-        remoteRoot = join_paths(local_explode_location, 'third_party'),
+        localRoot = joinpath(local_explode_location, 'third_party'),
+        remoteRoot = joinpath(local_explode_location, 'third_party'),
       },
       {
         localRoot = root,
