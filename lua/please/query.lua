@@ -1,4 +1,3 @@
-local Path = require('plenary.path')
 local Job = require('plenary.job')
 local logging = require('please.logging')
 local utils = require('please.utils')
@@ -45,9 +44,11 @@ end
 query.whatinputs = function(root, filepath)
   logging.log_call('query.whatinputs')
 
-  filepath = Path:new(filepath):make_relative(root)
+  local normalized_root = vim.fs.normalize(root)
+  local normalized_filepath = vim.fs.normalize(filepath)
+  local relative_filepath = normalized_filepath:gsub('^' .. normalized_root .. '/', '')
 
-  local output, err = exec_plz({ 'query', 'whatinputs', '--repo_root', root, filepath })
+  local output, err = exec_plz({ 'query', 'whatinputs', '--repo_root', root, relative_filepath })
   if err then
     return nil, err
   end
