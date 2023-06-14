@@ -1,9 +1,9 @@
-local Job = require('plenary.job')
 local dap = require('dap')
 local repl = require('dap.repl')
 local logging = require('please.logging')
 local utils = require('please.utils')
 local query = require('please.query')
+local system = require('please.system')
 local plz = require('please.plz')
 
 local M = {}
@@ -33,48 +33,41 @@ M.setup = function()
 
     local port = get_free_port()
 
-    local command = plz
-    local args = { '--repo_root', config.root, 'debug', '--port', port, config.label, unpack(config.extra_args or {}) }
+    local cmd =
+      { plz, '--repo_root', config.root, 'debug', '--port', port, config.label, unpack(config.extra_args or {}) }
 
-    local on_stdout = function(err, chunk)
+    local stdout = function(err, data)
       if err then
         logging.warn('error reading stdout from plz debug: %s', err)
       end
-      if chunk then
+      if data then
         vim.schedule(function()
-          repl.append(chunk)
+          repl.append(data)
         end)
       end
     end
 
     local stderr_lines = {}
-    local on_stderr = function(err, chunk)
+    local stderr = function(err, data)
       if err then
         logging.warn('error reading stderr from plz debug: %s', err)
       end
-      if chunk then
-        local stripped_line = utils.strip_plz_log_prefix(chunk:gsub('%s+$', ''))
+      if data then
+        local stripped_line = utils.strip_plz_log_prefix(data:gsub('%s+$', ''))
         table.insert(stderr_lines, stripped_line)
         vim.schedule(function()
-          repl.append(chunk)
+          repl.append(data)
         end)
       end
     end
 
-    local on_exit = function(_, code)
-      if code ~= 0 then
-        logging.info('plz debug exited with code %d\n%s', code, table.concat(stderr_lines, '\n'))
+    local on_exit = function(obj)
+      if obj.code ~= 0 then
+        logging.info('plz debug exited with code %d\n%s', obj.code, table.concat(stderr_lines, '\n'))
       end
     end
 
-    local job = Job:new({
-      command = command,
-      args = args,
-      on_stdout = on_stdout,
-      on_stderr = on_stderr,
-      on_exit = on_exit,
-    })
-    job:start()
+    system(cmd, { stdout = stdout, stderr = stderr }, on_exit)
 
     callback({
       type = 'server',

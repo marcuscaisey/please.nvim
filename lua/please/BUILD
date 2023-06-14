@@ -20,7 +20,6 @@ neovim_lua_module(
         ":query",
         ":utils",
         "//third_party/neovim:nvim_dap",
-        "//third_party/neovim:plenary",
     ],
 )
 
