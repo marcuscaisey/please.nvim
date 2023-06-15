@@ -60,7 +60,7 @@ local user_command = function(cmds)
 
     local cmd = cmds[cmd_name]
     if not cmd then
-      logging.error("'%s' is not a Please command", cmd)
+      logging.error("'%s' is not a Please command", cmd_name)
       return
     end
 
