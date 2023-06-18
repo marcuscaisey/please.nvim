@@ -471,11 +471,7 @@ parsing.get_test_at_cursor = function()
   end
 
   local current_pos = cursor.get()
-  -- vim.treesitter.get_node_at_pos is deprecated since nvim 0.9
-  -- TODO: remove when minimum nvim version is 0.10
-  local root_node = vim.treesitter.get_node and vim.treesitter.get_node()
-    ---@diagnostic disable-next-line: deprecated
-    or vim.treesitter.get_node_at_pos(0, current_pos.row - 1, current_pos.col - 1, {})
+  local root_node = future.vim.treesitter.get_node()
   while root_node and not parsers_by_root_node_type[root_node:type()] do
     root_node = root_node:parent()
   end
