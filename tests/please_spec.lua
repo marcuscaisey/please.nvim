@@ -16,7 +16,7 @@ vim.g.clipboard = {
     ['*'] = function(lines)
       clipboard_lines = lines
     end,
-    ['+'] = function(lines, regtype)
+    ['+'] = function(lines)
       clipboard_lines = lines
     end,
   },
