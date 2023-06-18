@@ -48,7 +48,7 @@ end
 
 -- make sure that the python parser is installed and configure it be used for please files
 local configure_treesitter = function()
-  require('nvim-treesitter.install').ensure_installed({ 'python' })
+  require('nvim-treesitter.install').ensure_installed({ 'python', 'go' })
   -- This method is only available in nvim 0.9+
   if vim.treesitter.language.register then
     vim.treesitter.language.register('python', 'please')
