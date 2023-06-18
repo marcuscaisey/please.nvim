@@ -15,7 +15,7 @@ neovim_lua_module(
     deps = [
         "//lua/please:cursor",
         "//lua/please:logging",
-        "//third_party/neovim:plenary",
+        "//lua/please:system",
     ],
 )
 

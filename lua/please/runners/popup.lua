@@ -1,8 +1,8 @@
 ---@mod please.runners.popup POPUP COMMANDS
 
-local Job = require('plenary.job')
 local logging = require('please.logging')
 local cursor = require('please.cursor')
+local system = require('please.system')
 
 local popup = {}
 
@@ -103,7 +103,7 @@ popup.run = function(cmd, args, opts)
   -- restore the output from the popup run previous to this one
   cached_popup = {
     valid = false,
-    lines = {},
+    output = '',
     cursor = {},
   }
 
@@ -119,59 +119,13 @@ popup.run = function(cmd, args, opts)
   -- we need to track if the command completes so that we only cache the popup if this is the case
   local is_complete = false
 
-  local output_lines = {}
-  local output_line = function(line, o)
-    line = line or ''
-    o = o or { new_line = true }
-    if o.new_line then
-      line = line .. '\r\n'
-    end
-    table.insert(output_lines, line)
-    vim.api.nvim_chan_send(term_chan_id, line)
+  local output_data = function(data)
+    data = data:gsub('\n', '\r\n')
+    cached_popup.output = cached_popup.output .. data
+    vim.schedule(function()
+      vim.api.nvim_chan_send(term_chan_id, data)
+    end)
   end
-
-  local first_stdout_line_written = false
-  local on_stdout = vim.schedule_wrap(function(_, line)
-    if not is_shutdown and line then
-      if not first_stdout_line_written then
-        first_stdout_line_written = true
-        -- please usually outputs these control sequences to reset the text style and clear the screen before printing
-        -- stdout, but they either:
-        -- - don't seem to be getting output
-        -- - don't seem to have any effect
-        line = ansi.reset .. ansi.move_cursor_home .. ansi.erase_in_display .. line
-      end
-      output_line(line)
-    end
-  end)
-
-  local on_stderr = vim.schedule_wrap(function(_, line)
-    if not is_shutdown and line then
-      output_line(line)
-    end
-  end)
-
-  local on_exit = vim.schedule_wrap(function()
-    if not is_shutdown then
-      output_line()
-      output_line(ansi.italic .. ansi.yellow .. cmd .. ' ' .. table.concat(args, ' '))
-      output_line()
-      output_line(ansi.default .. 'Press ' .. ansi.magenta .. 'q' .. ansi.default .. ' to quit')
-      output_line(
-        'Call '
-          .. ansi.magenta
-          .. 'Please restore_popup'
-          .. ansi.default
-          .. ' or '
-          .. ansi.magenta
-          .. [[require('please.runners.popup').restore()]]
-          .. ansi.default
-          .. ' to restore',
-        { new_line = false }
-      )
-      is_complete = true
-    end
-  end)
 
   local close_windows = function()
     close_win(term_winid)
@@ -183,19 +137,38 @@ popup.run = function(cmd, args, opts)
     end
   end
 
-  local job = Job:new({
-    command = cmd,
-    args = args,
-    on_stdout = on_stdout,
-    on_stderr = on_stderr,
-    on_exit = on_exit,
-  })
+  local on_exit = vim.schedule_wrap(function(obj)
+    if not is_shutdown then
+      output_data('\n')
+      output_data(ansi.italic .. ansi.yellow .. cmd .. ' ' .. table.concat(args, ' ') .. '\n')
+      output_data('\n')
+      output_data(ansi.default .. 'Press ' .. ansi.magenta .. 'q' .. ansi.default .. ' to quit' .. '\n')
+      output_data(
+        'Call '
+          .. ansi.magenta
+          .. 'Please restore_popup'
+          .. ansi.default
+          .. ' or '
+          .. ansi.magenta
+          .. [[require('please.runners.popup').restore()]]
+          .. ansi.default
+          .. ' to restore'
+      )
+      is_complete = true
+      cached_popup.valid = true
+    end
 
-  if opts.on_success then
-    job:after_success(vim.schedule_wrap(function()
+    if opts.on_success and obj.code == 0 then
       opts.on_success(close_windows)
-    end))
+    end
+  end)
+
+  local on_output = function(_, data)
+    if not is_shutdown and data then
+      output_data(data)
+    end
   end
+  local system_obj = system({ cmd, unpack(args) }, { stdout = on_output, stderr = on_output }, on_exit)
 
   -- move the cursor to the last line so that the output automatically scrolls
   vim.api.nvim_feedkeys('G', 'n', false)
@@ -206,17 +179,11 @@ popup.run = function(cmd, args, opts)
 
   local close = function()
     if is_complete and not is_shutdown then
-      -- we cache the popup on closing rather than when the command completes so that we can save the current cursor
-      -- position
-      cached_popup = {
-        valid = true,
-        lines = output_lines,
-        cursor = cursor.get(),
-      }
+      cached_popup.cursor = cursor.get()
     end
     is_shutdown = true
     close_windows()
-    job:shutdown()
+    system_obj:kill(15) -- SIGTERM
   end
   -- close popup on q
   vim.keymap.set('n', 'q', close, { buffer = term_bufnr })
@@ -228,8 +195,6 @@ popup.run = function(cmd, args, opts)
     callback = close,
     once = true,
   })
-
-  job:start()
 end
 
 ---Shows the output from a previous popup in a new popup, restoring the
@@ -248,7 +213,7 @@ popup.restore = function()
   local term_bufnr, term_winid, bg_winid = open_float()
   local term_chan_id = vim.api.nvim_open_term(term_bufnr, {})
 
-  vim.api.nvim_chan_send(term_chan_id, table.concat(cached_popup.lines))
+  vim.api.nvim_chan_send(term_chan_id, cached_popup.output)
 
   -- we have to wait for the character which the cursor was previously on to be populated in the terminal buffer before
   -- we can move the cursor back to it
