@@ -1,4 +1,3 @@
-local Path = require('plenary.path')
 local treesitter = require('vim.treesitter')
 local ts_utils = require('nvim-treesitter.ts_utils')
 local logging = require('please.logging')
@@ -46,14 +45,13 @@ local build_file_names = { 'BUILD', 'BUILD.plz' }
 parsing.locate_build_target = function(root, label)
   logging.log_call('parsing.locate_build_target')
 
-  local root_obj = Path:new(root)
-
   local pkg, target = label:match('^//([^:]*):([^/]+)$')
-  local pkg_path = root_obj:joinpath(pkg)
+  local pkg_path = future.vim.fs.joinpath(root, pkg)
   for _, build_file_name in ipairs(build_file_names) do
-    local build_path = pkg_path:joinpath(build_file_name)
-    if build_path:exists() and build_path:is_file() then
-      local filepath = vim.fn.simplify(build_path.filename)
+    local build_path = future.vim.fs.joinpath(pkg_path, build_file_name)
+    local stat = future.vim.uv.fs_stat(build_path)
+    if stat and stat.type == "file" then
+      local filepath = vim.fn.simplify(build_path)
 
       ---@diagnostic disable-next-line: param-type-mismatch
       local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
