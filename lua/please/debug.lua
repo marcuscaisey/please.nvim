@@ -4,7 +4,6 @@ local future = require('please.future')
 local logging = require('please.logging')
 local utils = require('please.utils')
 local query = require('please.query')
-local system = require('please.system')
 local plz = require('please.plz')
 
 local M = {}
@@ -68,7 +67,7 @@ M.setup = function()
       end
     end
 
-    system(cmd, { stdout = stdout, stderr = stderr }, on_exit)
+    future.vim.system(cmd, { stdout = stdout, stderr = stderr }, on_exit)
 
     callback({
       type = 'server',

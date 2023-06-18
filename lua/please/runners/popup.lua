@@ -2,7 +2,7 @@
 
 local logging = require('please.logging')
 local cursor = require('please.cursor')
-local system = require('please.system')
+local future = require('please.future')
 
 local popup = {}
 
@@ -168,7 +168,7 @@ popup.run = function(cmd, args, opts)
       output_data(data)
     end
   end
-  local system_obj = system({ cmd, unpack(args) }, { stdout = on_output, stderr = on_output }, on_exit)
+  local system_obj = future.vim.system({ cmd, unpack(args) }, { stdout = on_output, stderr = on_output }, on_exit)
 
   -- move the cursor to the last line so that the output automatically scrolls
   vim.api.nvim_feedkeys('G', 'n', false)

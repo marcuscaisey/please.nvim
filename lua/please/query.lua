@@ -1,4 +1,4 @@
-local system = require('please.system')
+local future = require('please.future')
 local logging = require('please.logging')
 local utils = require('please.utils')
 local plz = require('please.plz')
@@ -19,7 +19,7 @@ end
 ---@return string[]: stdout lines
 ---@return string|nil: error if any
 local exec_plz = function(args, cwd)
-  local result = system({ plz, unpack(args) }, { cwd = cwd }):wait()
+  local result = future.vim.system({ plz, unpack(args) }, { cwd = cwd }):wait()
 
   local stdout_lines = vim.split(result.stdout, '\n', { trimempty = true })
   if result.code ~= 0 then

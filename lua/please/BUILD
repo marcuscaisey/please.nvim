@@ -15,6 +15,7 @@ neovim_lua_module(
     name = "debug",
     srcs = ["debug.lua"],
     deps = [
+        ":future",
         ":logging",
         ":plz",
         ":query",
@@ -68,16 +69,11 @@ neovim_lua_module(
     name = "query",
     srcs = ["query.lua"],
     deps = [
+        ":future",
         ":logging",
         ":plz",
-        ":system",
         ":utils",
     ],
-)
-
-neovim_lua_module(
-    name = "system",
-    srcs = ["system.lua"],
 )
 
 neovim_lua_module(
