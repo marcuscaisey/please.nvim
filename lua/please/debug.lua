@@ -1,5 +1,6 @@
 local dap = require('dap')
 local repl = require('dap.repl')
+local future = require('please.future')
 local logging = require('please.logging')
 local utils = require('please.utils')
 local query = require('please.query')
@@ -83,16 +84,9 @@ M.setup = function()
   dap.defaults.plz.exception_breakpoints = { 'uncaught' }
 end
 
----TODO: remove when minimum nvim version is 0.10
----@param ... string
----@return string
-local joinpath = vim.fs.joinpath or function(...)
-  return (table.concat({ ... }, '/'):gsub('//+', '/'))
-end
-
 local target_debug_directory = function(root, label)
   local pkg = label:match('//(.+):.+')
-  return joinpath(root, 'plz-out/debug', pkg)
+  return future.vim.fs.joinpath(root, 'plz-out/debug', pkg)
 end
 
 local launch_delve = function(root, label)
@@ -100,7 +94,7 @@ local launch_delve = function(root, label)
 
   local substitutePath = {
     {
-      from = joinpath(target_debug_directory(root, label), 'third_party'),
+      from = future.vim.fs.joinpath(target_debug_directory(root, label), 'third_party'),
       to = 'third_party',
     },
   }
@@ -121,7 +115,7 @@ local launch_delve = function(root, label)
   local children = vim.fn.systemlist('ls ' .. root)
   for _, path in ipairs(children) do
     table.insert(substitutePath, {
-      from = joinpath(root, path),
+      from = future.vim.fs.joinpath(root, path),
       to = path,
     })
   end
@@ -141,8 +135,8 @@ local launch_debugpy = function(root, label)
   logging.log_call('launch_debugpy')
 
   local relative_sandbox_location = '.cache/pex/pex-debug'
-  local local_explode_location = joinpath(target_debug_directory(root, label), relative_sandbox_location)
-  local sandbox_explode_location = joinpath('/tmp/plz_sandbox', relative_sandbox_location)
+  local local_explode_location = future.vim.fs.joinpath(target_debug_directory(root, label), relative_sandbox_location)
+  local sandbox_explode_location = future.vim.fs.joinpath('/tmp/plz_sandbox', relative_sandbox_location)
 
   local pathMappings
 
@@ -155,12 +149,12 @@ local launch_debugpy = function(root, label)
   if (vim.loop.os_uname().sysname == 'Linux') and is_target_sandboxed() then
     pathMappings = {
       {
-        localRoot = joinpath(local_explode_location, '.bootstrap'),
-        remoteRoot = joinpath(sandbox_explode_location, '.bootstrap'),
+        localRoot = future.vim.fs.joinpath(local_explode_location, '.bootstrap'),
+        remoteRoot = future.vim.fs.joinpath(sandbox_explode_location, '.bootstrap'),
       },
       {
-        localRoot = joinpath(local_explode_location, 'third_party'),
-        remoteRoot = joinpath(sandbox_explode_location, 'third_party'),
+        localRoot = future.vim.fs.joinpath(local_explode_location, 'third_party'),
+        remoteRoot = future.vim.fs.joinpath(sandbox_explode_location, 'third_party'),
       },
       {
         localRoot = root,
@@ -170,12 +164,12 @@ local launch_debugpy = function(root, label)
   else
     pathMappings = {
       {
-        localRoot = joinpath(local_explode_location, '.bootstrap'),
-        remoteRoot = joinpath(local_explode_location, '.bootstrap'),
+        localRoot = future.vim.fs.joinpath(local_explode_location, '.bootstrap'),
+        remoteRoot = future.vim.fs.joinpath(local_explode_location, '.bootstrap'),
       },
       {
-        localRoot = joinpath(local_explode_location, 'third_party'),
-        remoteRoot = joinpath(local_explode_location, 'third_party'),
+        localRoot = future.vim.fs.joinpath(local_explode_location, 'third_party'),
+        remoteRoot = future.vim.fs.joinpath(local_explode_location, 'third_party'),
       },
       {
         localRoot = root,
