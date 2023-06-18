@@ -150,10 +150,14 @@ end
 ---Wrapper around TSNode:iter_matches which returns the captures for each match.
 ---@param query Query
 ---@param node TSNode
+---@param opts table|nil Options:
+---   - max_start_depth (integer) if non-zero, sets the maximum start depth
+---     for each match. This is used to prevent traversing too deep into a tree.
+---     Requires treesitter >= 0.20.9.
 ---@return fun(): table<string, TSNode>?
-local iter_match_captures = function(query, node)
+local iter_match_captures = function(query, node, opts)
   ---@diagnostic disable-next-line: param-type-mismatch
-  local iter = query:iter_matches(node, 0, nil, nil, { max_start_depth = 1 })
+  local iter = query:iter_matches(node, 0, nil, nil, opts)
   return function()
     local _, match = iter()
     if not match then
@@ -346,10 +350,10 @@ local parse_go_subtests
 parse_go_subtests = function(parent_name, parent_selector, receiver, parent_body)
   local subtests = {} ---@type please.parsing.Test[]
 
-  for captures in iter_match_captures(queries.go.subtest, parent_body) do
+  for captures in iter_match_captures(queries.go.subtest, parent_body, { max_start_depth = 1 }) do
     -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
-    -- will be picked up by recursive calls of parse_test_method_subtests. Passing max_start_depth = 1 to iter_matches
-    -- achieves the same thing but is not released yet, so we do both for now.
+    -- will be picked up by recursive calls of parse_go_subtests. Passing max_start_depth = 1 to iter_matches achieves
+    -- the same thing but is not released yet, so we do both for now.
     -- TODO: remove the extra check when minimum nvim version is 0.10
     local subtest_receiver = vim.treesitter.get_node_text(captures.receiver, 0)
     if captures.subtest:parent():id() == parent_body:id() and subtest_receiver == receiver then
@@ -363,10 +367,10 @@ parse_go_subtests = function(parent_name, parent_selector, receiver, parent_body
     end
   end
 
-  for captures in iter_match_captures(queries.go.table_test, parent_body) do
-    -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
-    -- will be picked up by recursive calls of parse_test_method_subtests. Passing max_start_depth = 1 to iter_matches
-    -- achieves the same thing but is not released yet, so we do both for now.
+  for captures in iter_match_captures(queries.go.table_test, parent_body, { max_start_depth = 1 }) do
+    -- We make sure that the table test is a direct child of parent_body so that we don't pick up any nested table
+    -- tests. Passing max_start_depth = 1 to iter_matches achieves the same thing but is not released yet, so we do both
+    -- for now.
     -- TODO: remove the extra check when minimum nvim version is 0.10
     local subtest_receiver = vim.treesitter.get_node_text(captures.receiver, 0)
     if captures.for_loop:parent():id() == parent_body:id() and subtest_receiver == receiver then
