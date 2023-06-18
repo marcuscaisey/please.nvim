@@ -1,14 +1,9 @@
 local Path = require('plenary.path')
 local treesitter = require('vim.treesitter')
-local treesitter_query = require('vim.treesitter.query')
 local ts_utils = require('nvim-treesitter.ts_utils')
 local logging = require('please.logging')
 local cursor = require('please.cursor')
-
--- vim.treesitter.query.parse_query is deprecated since nvim 0.9
--- TODO: remove when minimum nvim version is 0.10
----@diagnostic disable-next-line: deprecated
-local parse_query = vim.treesitter.query.parse or treesitter_query.parse_query
+local future = require('please.future')
 
 local parsing = {}
 
@@ -64,7 +59,7 @@ parsing.locate_build_target = function(root, label)
       local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
       local parser = treesitter.get_parser(bufnr, 'python')
       local tree = parser:parse()[1]
-      local query = parse_query('python', make_build_target_query(target))
+      local query = future.vim.treesitter.query.parse('python', make_build_target_query(target))
 
       ---@diagnostic disable-next-line: param-type-mismatch
       for id, node in query:iter_captures(tree:root(), bufnr, nil, nil) do
@@ -174,7 +169,7 @@ end
 
 local queries = {
   go = {
-    test_func = parse_query(
+    test_func = future.vim.treesitter.query.parse(
       'go',
       [[
         (function_declaration
@@ -188,7 +183,7 @@ local queries = {
           body: (block) @body) @test
       ]]
     ),
-    test_suite_method = parse_query(
+    test_suite_method = future.vim.treesitter.query.parse(
       'go',
       [[
         (method_declaration
@@ -204,7 +199,7 @@ local queries = {
           body: (block) @body) @test
       ]]
     ),
-    test_suite = parse_query(
+    test_suite = future.vim.treesitter.query.parse(
       'go',
       [[
         (function_declaration
@@ -235,7 +230,7 @@ local queries = {
                 ]))))
       ]]
     ),
-    subtest = parse_query(
+    subtest = future.vim.treesitter.query.parse(
       'go',
       [[
         (call_expression
@@ -249,7 +244,7 @@ local queries = {
               body: (block) @body))) @subtest
       ]]
     ),
-    table_test = parse_query(
+    table_test = future.vim.treesitter.query.parse(
       'go',
       [[
         (
@@ -321,7 +316,7 @@ local queries = {
     ),
   },
   python = {
-    unittest_methods = parse_query(
+    unittest_methods = future.vim.treesitter.query.parse(
       'python',
       [[
         (class_definition
@@ -522,7 +517,7 @@ parsing.get_target_at_cursor = function(root)
   logging.log_call('parsing.get_target_at_cursor')
 
   local tree = treesitter.get_parser(0, 'python'):parse()[1]
-  local query = parse_query('python', make_build_target_query())
+  local query = future.vim.treesitter.query.parse('python', make_build_target_query())
 
   ---@diagnostic disable-next-line: param-type-mismatch
   for _, match in query:iter_matches(tree:root(), 0, nil, nil) do

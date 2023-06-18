@@ -24,6 +24,11 @@ neovim_lua_module(
 )
 
 neovim_lua_module(
+    name = "future",
+    srcs = ["future.lua"],
+)
+
+neovim_lua_module(
     name = "logging",
     srcs = ["logging.lua"],
 )
@@ -33,6 +38,7 @@ neovim_lua_module(
     srcs = ["parsing.lua"],
     deps = [
         ":cursor",
+        ":future",
         ":logging",
         "//third_party/neovim:go_tree_sitter_parser",
         "//third_party/neovim:nvim_treesitter",
