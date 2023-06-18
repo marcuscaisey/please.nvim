@@ -50,7 +50,7 @@ parsing.locate_build_target = function(root, label)
   for _, build_file_name in ipairs(build_file_names) do
     local build_path = future.vim.fs.joinpath(pkg_path, build_file_name)
     local stat = future.vim.uv.fs_stat(build_path)
-    if stat and stat.type == "file" then
+    if stat and stat.type == 'file' then
       local filepath = vim.fn.simplify(build_path)
 
       ---@diagnostic disable-next-line: param-type-mismatch
