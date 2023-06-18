@@ -9,7 +9,7 @@ local plz = require('please.plz')
 local M = {}
 
 local get_free_port = function()
-  local tcp = vim.loop.new_tcp()
+  local tcp = future.vim.uv.new_tcp()
   -- binding to port 0 lets the OS assign an ephemeral port which we can lookup with getsocketname
   tcp:bind('127.0.0.1', 0)
   local port = tcp:getsockname().port
@@ -145,7 +145,7 @@ local launch_debugpy = function(root, label)
     return target_sandboxed
   end
 
-  if (vim.loop.os_uname().sysname == 'Linux') and is_target_sandboxed() then
+  if (future.vim.uv.os_uname().sysname == 'Linux') and is_target_sandboxed() then
     pathMappings = {
       {
         localRoot = future.vim.fs.joinpath(local_explode_location, '.bootstrap'),

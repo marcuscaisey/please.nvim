@@ -22,6 +22,8 @@ local joinpath = vim.fs.joinpath or function(...)
   return (table.concat({ ... }, '/'):gsub('//+', '/'))
 end
 
+-- vim.loop will be deprecated in nvim 0.10 and replaced with vim.uv
+-- TODO: remove when minimum nvim version is 0.10
 local uv = vim.uv or vim.loop
 
 ---@private
@@ -407,5 +409,6 @@ return {
       joinpath = joinpath,
     },
     system = system,
+    uv = uv,
   },
 }
