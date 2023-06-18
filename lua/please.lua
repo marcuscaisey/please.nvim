@@ -410,6 +410,9 @@ please.run = function()
 
     select_if_many(labels, { prompt = 'Select target to run' }, function(label)
       vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
+        if not input then
+          return
+        end
         local args = {}
         -- vim.ui.input passes empty input as an empty string instead of nil, I think this is a bug so just check for both to be safe.
         if input and input ~= '' then
