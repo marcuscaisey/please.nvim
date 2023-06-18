@@ -1,4 +1,3 @@
-local treesitter = require('vim.treesitter')
 local ts_utils = require('nvim-treesitter.ts_utils')
 local logging = require('please.logging')
 local cursor = require('please.cursor')
@@ -55,7 +54,7 @@ parsing.locate_build_target = function(root, label)
 
       ---@diagnostic disable-next-line: param-type-mismatch
       local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
-      local parser = treesitter.get_parser(bufnr, 'python')
+      local parser = vim.treesitter.get_parser(bufnr, 'python')
       local tree = parser:parse()[1]
       local query = future.vim.treesitter.query.parse('python', make_build_target_query(target))
 
@@ -510,7 +509,7 @@ end
 parsing.get_target_at_cursor = function(root)
   logging.log_call('parsing.get_target_at_cursor')
 
-  local tree = treesitter.get_parser(0, 'python'):parse()[1]
+  local tree = vim.treesitter.get_parser(0, 'python'):parse()[1]
   local query = future.vim.treesitter.query.parse('python', make_build_target_query())
 
   ---@diagnostic disable-next-line: param-type-mismatch
