@@ -83,7 +83,6 @@
 
 ---@mod please PLEASE COMMANDS
 
-local Path = require('plenary.path')
 local query = require('please.query')
 local parsing = require('please.parsing')
 local runners = require('please.runners')
@@ -148,18 +147,30 @@ local actions = {
   end,
 }
 
-local data_path = Path:new(vim.fn.stdpath('data'))
-local action_history_path = data_path / 'please-history.json'
+---@diagnostic disable-next-line: assign-type-mismatch
+local data_path = vim.fn.stdpath('data') ---@type string
+local action_history_path = future.vim.fs.joinpath(data_path, 'please-history.json')
 
+---@return table<string, any>
 local read_action_history = function()
-  return action_history_path:exists() and vim.json.decode(action_history_path:read()) or {}
+  if not future.vim.uv.fs_stat(action_history_path) then
+    return {}
+  end
+  local f = assert(io.open(action_history_path))
+  local history_text = assert(f:read('*a'))
+  local history = vim.json.decode(history_text) or {}
+  assert(f:close())
+  return history
 end
 
+---@param history table<string, any>
 local write_action_history = function(history)
-  if not data_path:exists() then
-    data_path:mkdir({ parents = true })
+  if not future.vim.uv.fs_stat(data_path) then
+    vim.fn.mkdir(data_path, 'p')
   end
-  action_history_path:write(vim.json.encode(history), 'w')
+  local f = assert(io.open(action_history_path, 'w'))
+  assert(f:write(vim.json.encode(history)))
+  assert(f:close())
 end
 
 ---@private

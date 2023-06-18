@@ -10,6 +10,5 @@ neovim_lua_module(
         "//lua/please:plz",
         "//lua/please:query",
         "//lua/please/runners",
-        "//third_party/neovim:plenary",
     ],
 )

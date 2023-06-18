@@ -35,7 +35,6 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 use({
   'marcuscaisey/please.nvim',
   requires = {
-    'nvim-lua/plenary.nvim',
     'nvim-treesitter/nvim-treesitter',
     'mfussenegger/nvim-dap',
   },
@@ -45,7 +44,6 @@ use({
 Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```viml
 Plug 'nvim-treesitter/nvim-treesitter'
-Plug 'nvim-lua/plenary.nvim'
 Plug 'mfussenegger/nvim-dap'
 Plug 'marcuscaisey/please.nvim'
 ```
@@ -53,7 +51,6 @@ Plug 'marcuscaisey/please.nvim'
 Using [dein](https://github.com/Shougo/dein.vim)
 ```viml
 call dein#add('nvim-treesitter/nvim-treesitter')
-call dein#add('nvim-lua/plenary.nvim')
 call dein#add('mfussenegger/nvim-dap')
 call dein#add('marcuscaisey/please.nvim')
 ```
