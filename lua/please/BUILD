@@ -42,7 +42,6 @@ neovim_lua_module(
         ":future",
         ":logging",
         "//third_party/neovim:go_tree_sitter_parser",
-        "//third_party/neovim:nvim_treesitter",
         "//third_party/neovim:python_tree_sitter_parser",
     ],
 )
@@ -56,6 +55,7 @@ neovim_lua_module(
         ":logging",
         "//lua",
         "//lua/please/runners:popup",
+        "//third_party/neovim:nvim_treesitter",
     ],
 )
 

@@ -1,4 +1,3 @@
-local ts_utils = require('nvim-treesitter.ts_utils')
 local logging = require('please.logging')
 local cursor = require('please.cursor')
 local future = require('please.future')
@@ -62,8 +61,8 @@ parsing.locate_build_target = function(root, label)
       for id, node in query:iter_captures(tree:root(), bufnr, nil, nil) do
         local name = query.captures[id]
         if name == 'target' then
-          local start_row, start_col = ts_utils.get_vim_range({ node:range() }, bufnr)
-          return filepath, { start_row, start_col }
+          local ts_start_row, ts_start_col = node:range()
+          return filepath, { ts_start_row + 1, ts_start_col + 1 }
         end
       end
 
@@ -86,12 +85,8 @@ end
 
 -- checks if the cursor is in a given treesitter node's range (inclusive ends)
 local cursor_in_node_range = function(node)
-  local cursor_pos = cursor.get()
-  local row, col = cursor_pos.row, cursor_pos.col
-  local start_row, start_col, end_row, end_col = ts_utils.get_vim_range({ node:range() })
-  return (row == start_row and col >= start_col)
-    or (start_row < row and row < end_row)
-    or (row == end_row and col <= end_col)
+  local pos = vim.api.nvim_win_get_cursor(0)
+  return vim.treesitter.is_in_node_range(node, pos[1] - 1, pos[2])
 end
 
 ---Language agnostic representation of a test and its children. A Test along with its children forms a tree of Tests.
