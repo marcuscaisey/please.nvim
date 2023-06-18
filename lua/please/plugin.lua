@@ -1,5 +1,6 @@
 local please = require('please')
 local command = require('please.command')
+local future = require('please.future')
 local logging = require('please.logging')
 local popup = require('please.runners.popup')
 local debug = require('please.debug')
@@ -49,12 +50,7 @@ end
 -- make sure that the python parser is installed and configure it be used for please files
 local configure_treesitter = function()
   require('nvim-treesitter.install').ensure_installed({ 'python', 'go' })
-  -- This method is only available in nvim 0.9+
-  if vim.treesitter.language.register then
-    vim.treesitter.language.register('python', 'please')
-  else
-    require('nvim-treesitter.parsers').filetype_to_parsername.please = 'python'
-  end
+  future.vim.treesitter.language.register('python', 'please')
 end
 
 M.load = function()

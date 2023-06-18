@@ -397,18 +397,28 @@ local function system(cmd, opts, on_exit)
   return run(cmd, opts, on_exit)
 end
 
+-- vim.treesitter.language.register will be available in nvim 0.9
+-- TODO: remove when minimum nvim version is 0.9
+local register = vim.treesitter.language.register
+  or function(lang, filetype)
+    require('nvim-treesitter.parsers').filetype_to_parsername[filetype] = lang
+  end
+
 return {
   vim = {
-    treesitter = {
-      query = {
-        parse = parse,
-      },
-      get_node = get_node,
-    },
     fs = {
       joinpath = joinpath,
     },
     system = system,
+    treesitter = {
+      get_node = get_node,
+      language = {
+        register = register,
+      },
+      query = {
+        parse = parse,
+      },
+    },
     uv = uv,
   },
 }
