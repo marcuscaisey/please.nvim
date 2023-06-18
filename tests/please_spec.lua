@@ -5,6 +5,31 @@ local mock = require('tests.utils.mock')
 
 -- require('please.logging').toggle_debug()
 
+-- When this test file is run multiple times in parallel (in a non-sandboxed environment), at least one of the runs
+-- usually fails because some functionality being tested relies on use of the clipboard which is being shared between
+-- all of the runs. We override the default clipboard provider so that each run uses its own in memory clipboard instead
+-- of the system one.
+local clipboard_lines
+vim.g.clipboard = {
+  name = 'fake',
+  copy = {
+    ['*'] = function(lines)
+      clipboard_lines = lines
+    end,
+    ['+'] = function(lines, regtype)
+      clipboard_lines = lines
+    end,
+  },
+  paste = {
+    ['*'] = function()
+      return clipboard_lines
+    end,
+    ['+'] = function()
+      return clipboard_lines
+    end,
+  },
+}
+
 describe('jump_to_target', function()
   local create_temp_tree = function()
     return temptree.create({
