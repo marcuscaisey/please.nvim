@@ -196,34 +196,36 @@ local queries = {
             type: (pointer_type) @_t_param_type)
             (#eq? @_t_param_type "*testing.T"))
         body: (block
-          (call_expression
-            function: (selector_expression
-              field: (field_identifier) @_run_field
-              (#eq? @_run_field "Run"))
-            arguments: (argument_list
-              (identifier) @_run_t_arg
-              (#eq? @_run_t_arg @_t_param)
-              [
-                (unary_expression
-                  operand: (composite_literal
-                    type: (type_identifier) @suite_type))
-                (call_expression
-                  function: (identifier) @_new_func
-                  (#eq? @_new_func "new")
-                  arguments: (argument_list
-                    (type_identifier) @suite_type))
-              ]))))
+          (expression_statement
+            (call_expression
+              function: (selector_expression
+                field: (field_identifier) @_run_field
+                (#eq? @_run_field "Run"))
+              arguments: (argument_list
+                (identifier) @_run_t_arg
+                (#eq? @_run_t_arg @_t_param)
+                [
+                  (unary_expression
+                    operand: (composite_literal
+                      type: (type_identifier) @suite_type))
+                  (call_expression
+                    function: (identifier) @_new_func
+                    (#eq? @_new_func "new")
+                    arguments: (argument_list
+                      (type_identifier) @suite_type))
+                ])))))
     ]],
     subtest = [[
-      (call_expression
-        function: (selector_expression
-          operand: (identifier) @receiver
-          field: (field_identifier) @_run_field)
-          (#eq? @_run_field "Run")
-        arguments: (argument_list
-          (interpreted_string_literal) @name
-          (func_literal
-            body: (block) @body))) @subtest
+      (expression_statement
+        (call_expression
+          function: (selector_expression
+            operand: (identifier) @receiver
+            field: (field_identifier) @_run_field)
+            (#eq? @_run_field "Run")
+          arguments: (argument_list
+            (interpreted_string_literal) @name
+            (func_literal
+              body: (block) @body)))) @subtest
     ]],
     table_test = [[
       (
@@ -278,19 +280,20 @@ local queries = {
             right: (identifier) @_test_cases_loop_range_var)
           (#eq? @_test_cases_loop_range_var @_test_cases_var)
           body: (block
-            (call_expression
-              function: (selector_expression
-                operand: (identifier) @receiver
-                field: (field_identifier) @_run_field)
-              (#eq? @_run_field "Run")
-              arguments: (argument_list
-                (selector_expression
-                  operand: (identifier) @_name_arg_operand
-                  field: (field_identifier) @_name_arg_field)
-                (#eq? @_name_arg_operand @_test_cases_loop_var)
-                (#eq? @_name_arg_field @_test_case_struct_name_field)
-                (func_literal
-                  body: (block)))))) @for_loop)
+            (expression_statement
+              (call_expression
+                function: (selector_expression
+                  operand: (identifier) @receiver
+                  field: (field_identifier) @_run_field)
+                (#eq? @_run_field "Run")
+                arguments: (argument_list
+                  (selector_expression
+                    operand: (identifier) @_name_arg_operand
+                    field: (field_identifier) @_name_arg_field)
+                  (#eq? @_name_arg_operand @_test_cases_loop_var)
+                  (#eq? @_name_arg_field @_test_case_struct_name_field)
+                  (func_literal
+                    body: (block))))))) @for_loop)
     ]],
   },
   python = {
