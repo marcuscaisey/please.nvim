@@ -183,6 +183,7 @@ local queries = {
               (type_identifier) @receiver_type
             ]))
         name: (field_identifier) @name
+        (#match? @name "^Test.+")
         body: (block) @body) @test
     ]],
     test_suite = [[
