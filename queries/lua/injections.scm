@@ -23,5 +23,5 @@
   ]
   .
   (comment
-    content: ("comment_content") @injection.language (#offset! @injection.language 0 1 0 0))
+    content: (comment_content) @injection.language (#offset! @injection.language 0 1 0 0))
 )
