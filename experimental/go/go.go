@@ -1,4 +1,4 @@
-package gopkg
+package go
 
 import (
 	"golang.org/x/exp/slices"

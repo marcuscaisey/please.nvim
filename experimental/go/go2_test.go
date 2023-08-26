@@ -1,4 +1,4 @@
-package gopkg_test
+package go_test
 
 import (
 	"testing"

@@ -1,6 +1,6 @@
 python_test(
-    name = "pythonpkg_test",
-    srcs = ["pythonpkg_test.py"],
+    name = "python_test",
+    srcs = ["python_test.py"],
     labels = ["manual"],
 )
 

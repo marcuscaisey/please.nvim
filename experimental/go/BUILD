@@ -1,10 +1,10 @@
 go_library(
-    name = "gopkg",
+    name = "go",
     srcs = glob(
         ["*.go"],
         exclude = ["*_test.go"],
     ),
-    visibility = ["//gopkg/..."],
+    visibility = ["//go/..."],
     deps = ["//third_party/go:exp"],
 )
 
