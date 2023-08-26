@@ -1,5 +1,5 @@
 [Please]
-version = 17.0.0
+version = 17.3.0
 
 [Parse]
 preloadsubincludes = //build_defs:neovim
