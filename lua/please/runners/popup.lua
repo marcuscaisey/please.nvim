@@ -159,13 +159,10 @@ popup.run = function(cmd, args, opts)
     end
 
     if opts.on_success and obj.code == 0 then
-      opts.on_success(vim.schedule_wrap(function()
-        -- We schedule this so that it gets queued after all of the other scheduled vim.api.nvim_chan_send calls which
-        -- send data to the terminal buffer. If we don't do so, we'll get a "Can't send data to closed stream" error
-        -- from each scheduled vim.api.nvim_chan_send call which gets executed after the terminal window has been
-        -- closed.
-        close_windows()
-      end))
+      -- We schedule close_windows so that it gets queued after all of the other scheduled vim.api.nvim_chan_send calls
+      -- which send data to the terminal buffer. If we don't do so, we'll get a "Can't send data to closed stream" error
+      -- from each scheduled vim.api.nvim_chan_send call which gets executed after the terminal window has been closed.
+      opts.on_success(vim.schedule_wrap(close_windows))
     end
   end)
 
