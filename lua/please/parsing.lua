@@ -6,7 +6,7 @@ local parsing = {}
 
 -- makes a query which selects build targets, accepting an optional name arg which filters for build targets with the
 -- given name
-local make_build_target_query = function(name)
+local function make_build_target_query(name)
   local query = [[
     (call
       function: (identifier) @rule
@@ -40,7 +40,7 @@ local build_file_names = { 'BUILD', 'BUILD.plz' }
 ---@return string?: an absolute path to the BUILD file
 ---@return number[]?: the position that the build target definition starts as a (1, 1)-indexed (line, col) tuple
 ---@return string|nil: error if any, this should be checked before using the other return values
-parsing.locate_build_target = function(root, label)
+function parsing.locate_build_target(root, label)
   logging.log_call('parsing.locate_build_target')
 
   local pkg, target = label:match('^//([^:]*):([^/]+)$')
@@ -74,7 +74,7 @@ parsing.locate_build_target = function(root, label)
 end
 
 -- extracts the captured nodes from a match returned from Query:iter_matches
-local extract_captures_from_match = function(match, query)
+local function extract_captures_from_match(match, query)
   local captured_nodes = {}
   for id, node in pairs(match) do
     local name = query.captures[id]
@@ -84,7 +84,7 @@ local extract_captures_from_match = function(match, query)
 end
 
 -- checks if the cursor is in a given treesitter node's range (inclusive ends)
-local cursor_in_node_range = function(node)
+local function cursor_in_node_range(node)
   local pos = vim.api.nvim_win_get_cursor(0)
   return vim.treesitter.is_in_node_range(node, pos[1] - 1, pos[2])
 end
@@ -142,7 +142,7 @@ end
 ---     for each match. This is used to prevent traversing too deep into a tree.
 ---     Requires treesitter >= 0.20.9.
 ---@return fun(): table<string, TSNode>?
-local iter_match_captures = function(query, node, opts)
+local function iter_match_captures(query, node, opts)
   ---@diagnostic disable-next-line: param-type-mismatch
   local iter = query:iter_matches(node, 0, nil, nil, opts)
   return function()
@@ -320,7 +320,7 @@ local parse_go_subtests
 ---@param receiver string
 ---@param parent_body TSNode
 ---@return please.parsing.Test[]
-parse_go_subtests = function(parent_name, parent_selector, receiver, parent_body)
+function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
   local subtests = {} ---@type please.parsing.Test[]
 
   local subtest_query = future.vim.treesitter.query.parse('go', queries.go.subtest)
@@ -363,7 +363,7 @@ end
 
 ---@param root_node TSNode
 ---@return please.parsing.Test?
-local parse_go_test_func = function(root_node)
+local function parse_go_test_func(root_node)
   local test_func_query = future.vim.treesitter.query.parse('go', queries.go.test_func)
   for captures in iter_match_captures(test_func_query, root_node) do
     local name = vim.treesitter.get_node_text(captures.name, 0)
@@ -376,7 +376,7 @@ end
 
 ---@param root_node TSNode
 ---@return please.parsing.Test?
-local parse_go_test_suite_method = function(root_node)
+local function parse_go_test_suite_method(root_node)
   local test_suite_method_query = future.vim.treesitter.query.parse('go', queries.go.test_suite_method)
   for captures in iter_match_captures(test_suite_method_query, root_node) do
     local name = vim.treesitter.get_node_text(captures.name, 0)
@@ -407,7 +407,7 @@ end
 
 ---@param root_node TSNode
 ---@return please.parsing.Test?
-local parse_python_unittest_methods = function(root_node)
+local function parse_python_unittest_methods(root_node)
   local test ---@type please.parsing.Test
   local unittest_methods_query = future.vim.treesitter.query.parse('python', queries.python.unittest_methods)
   for captures in iter_match_captures(unittest_methods_query, root_node) do
@@ -446,7 +446,7 @@ local parsers_by_root_node_type_by_filetype = {
 ---  - unittest test methods
 ---@return {name:string, selector:string}? tests
 ---@return string? error if any, this should be checked before using the tests
-parsing.get_test_at_cursor = function()
+function parsing.get_test_at_cursor()
   logging.log_call('please.parsing.get_test_at_cursor')
 
   local parsers_by_root_node_type = parsers_by_root_node_type_by_filetype[vim.bo.filetype]
@@ -479,7 +479,7 @@ parsing.get_test_at_cursor = function()
   return { name = test.name, selector = test.selector }
 end
 
-local build_label = function(root, build_file, target)
+local function build_label(root, build_file, target)
   local dir = vim.fs.dirname(build_file)
   local normalized_root = vim.fs.normalize(root)
   local normalized_dir = vim.fs.normalize(dir)
@@ -493,7 +493,7 @@ end
 ---@return string?: a build rule
 ---@return string|nil: error if any, this should be checked before using the label and rule
 -- TODO: return a table instead of multiple values
-parsing.get_target_at_cursor = function(root)
+function parsing.get_target_at_cursor(root)
   logging.log_call('parsing.get_target_at_cursor')
 
   local tree = vim.treesitter.get_parser(0, 'python'):parse()[1]

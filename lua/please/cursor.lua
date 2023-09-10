@@ -9,14 +9,14 @@ local M = {}
 
 ---Get the cursor position.
 ---@return please.cursor.Position
-M.get = function()
+function M.get()
   local nvim_row, nvim_col = unpack(vim.api.nvim_win_get_cursor(0))
   return { row = nvim_row, col = nvim_col + 1 }
 end
 
 ---Set the cursor position.
 ---@param pos please.cursor.Position
-M.set = function(pos)
+function M.set(pos)
   vim.api.nvim_win_set_cursor(0, { pos.row, pos.col - 1 })
 end
 

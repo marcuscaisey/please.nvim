@@ -119,7 +119,7 @@ describe('whatinputs', function()
 end)
 
 describe('is_target_sandboxed', function()
-  local run_tests = function(opts)
+  local function run_tests(opts)
     local test_cases = {
       { rule_sandbox = nil, config_sandbox = nil, expected = false },
       { rule_sandbox = nil, config_sandbox = false, expected = false },

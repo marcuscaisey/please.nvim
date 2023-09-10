@@ -8,7 +8,7 @@ local tmux = {}
 ---@param opts table
 ---@field tmux_pre string[]: prefix to the tmux command (e.g. for setting options).
 ---@field tmux_args string[]: Args to pass to tmux.
-tmux.run = function(cmd, args, opts)
+function tmux.run(cmd, args, opts)
   logging.log_call('tmux.run')
 
   local tmux_env = os.getenv('TMUX')

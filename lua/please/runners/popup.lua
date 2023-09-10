@@ -8,7 +8,7 @@ local popup = {}
 
 local group = vim.api.nvim_create_augroup('please.nvim', { clear = true })
 
-local close_win = function(winid)
+local function close_win(winid)
   -- If we close multiple windows by calling this function multiple times, then sometimes the ones after the first are
   -- invalid by the time we get to calling nvim_win_close. I'm not sure why this is but telescope.nvim does it as well
   -- which is good enough for me.
@@ -98,7 +98,7 @@ end
 ---@param args string[]?: Args to pass to the command.
 ---@param opts table?
 ---  * {on_success} (function): callback which is called if the command is successful
-popup.run = function(cmd, args, opts)
+function popup.run(cmd, args, opts)
   args = args or {}
   opts = opts or {}
 
@@ -124,7 +124,7 @@ popup.run = function(cmd, args, opts)
   -- we need to track if the command completes so that we only cache the popup if this is the case
   local is_complete = false
 
-  local output_data = function(data)
+  local function output_data(data)
     data = data:gsub('\n', '\r\n')
     cached_popup.output = cached_popup.output .. data
     vim.schedule(function()
@@ -132,7 +132,7 @@ popup.run = function(cmd, args, opts)
     end)
   end
 
-  local close_windows = function()
+  local function close_windows()
     close_win(term_winid)
     close_win(bg_winid)
     -- It's possible that the previous window doesn't exist anymore
@@ -171,7 +171,7 @@ popup.run = function(cmd, args, opts)
     end
   end)
 
-  local on_output = function(_, data)
+  local function on_output(_, data)
     if not is_shutdown and data then
       output_data(data)
     end
@@ -185,7 +185,7 @@ popup.run = function(cmd, args, opts)
   -- need to press <c-\><c-n> to get out
   vim.keymap.set('n', 'i', '<nop>', { buffer = term_bufnr })
 
-  local close = function()
+  local function close()
     if is_complete and not is_shutdown then
       cached_popup.cursor = cursor.get()
     end
@@ -208,7 +208,7 @@ end
 ---Shows the output from a previous popup in a new popup, restoring the
 ---previous cursor position as well. Only popups who's command ran to
 ---completion can be restored, otherwise no popup will be opened.
-popup.restore = function()
+function popup.restore()
   logging.log_call('runners.restore')
 
   if not cached_popup.valid then
@@ -233,7 +233,7 @@ popup.restore = function()
   end)
   cursor.set(cached_popup.cursor)
 
-  local close = function()
+  local function close()
     cached_popup.cursor = cursor.get()
     close_win(term_winid)
     close_win(bg_winid)

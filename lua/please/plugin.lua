@@ -8,7 +8,7 @@ local debug = require('please.debug')
 local M = {}
 
 -- configure all of the file names / extensions which should correspond to the please filetype
-local configure_filetype = function()
+local function configure_filetype()
   vim.g.do_filetype_lua = 1 -- enable Lua filetype detection
   vim.filetype.add({
     extension = {
@@ -27,7 +27,7 @@ local configure_filetype = function()
 end
 
 -- create the Please user command
-local create_user_command = function()
+local function create_user_command()
   local cmds = {
     jump_to_target = please.jump_to_target,
     build = please.build,
@@ -48,19 +48,19 @@ local create_user_command = function()
 end
 
 -- make sure that the python parser is installed and configure it be used for please files
-local configure_treesitter = function()
+local function configure_treesitter()
   require('nvim-treesitter.install').ensure_installed({ 'python', 'go' })
   future.vim.treesitter.language.register('python', 'please')
 end
 
-M.load = function()
+function M.load()
   configure_filetype()
   configure_treesitter()
   create_user_command()
   debug.setup()
 end
 
-M.reload = function()
+function M.reload()
   for pkg, _ in pairs(package.loaded) do
     if vim.startswith(pkg, 'please') then
       package.loaded[pkg] = nil

@@ -334,7 +334,7 @@ end
 --- Examples:
 --- <pre>lua
 ---
----   local on_exit = function(obj)
+---   local function on_exit(obj)
 ---     print(obj.code)
 ---     print(obj.signal)
 ---     print(obj.stdout)

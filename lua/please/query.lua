@@ -5,7 +5,7 @@ local plz = require('please.plz')
 
 local query = {}
 
-local strip_and_join_stderr = function(lines)
+local function strip_and_join_stderr(lines)
   -- If there's only one line, then strip off the prefix since the line is probably an error message. Otherwise, don't
   -- strip the lines since the prefixes (log level and time) might be useful for debugging.
   if #lines == 1 then
@@ -18,7 +18,7 @@ end
 ---@param cwd string?
 ---@return string[]: stdout lines
 ---@return string|nil: error if any
-local exec_plz = function(args, cwd)
+local function exec_plz(args, cwd)
   local result = future.vim.system({ plz, unpack(args) }, { cwd = cwd }):wait()
 
   local stdout_lines = vim.split(result.stdout, '\n', { trimempty = true })
@@ -35,7 +35,7 @@ end
 ---@param filepath string: an absolute path or path relative to the repo root
 ---@return string[]?: build target labels
 ---@return string|nil: error if any, this should be checked before using the labels
-query.whatinputs = function(root, filepath)
+function query.whatinputs(root, filepath)
   logging.log_call('query.whatinputs')
 
   local normalized_root = vim.fs.normalize(root)
@@ -55,7 +55,7 @@ query.whatinputs = function(root, filepath)
   return output, nil
 end
 
-local target_value = function(root, label, field)
+local function target_value(root, label, field)
   local output, err = exec_plz({ '--repo_root', root, 'query', 'print', label, '--field', field })
   if err then
     return nil, err
@@ -68,7 +68,7 @@ end
 ---@param label string: a build label
 ---@return boolean?
 ---@return string?: error if any, this should be checked before using the result
-query.is_target_sandboxed = function(root, label)
+function query.is_target_sandboxed(root, label)
   logging.log_call('query.is_target_sandboxed')
 
   local test_value, err = target_value(root, label, 'test')

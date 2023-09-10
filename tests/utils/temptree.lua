@@ -69,10 +69,10 @@ end
 ---File contents are written with common leading whitespace and blank final lines removed.
 ---@return string: the root of the temporary file tree
 ---@return function: a function which tears down the file tree when called
-M.create = function(tree)
+function M.create(tree)
   local temp_dir = get_temp_dir()
   create_file_tree(temp_dir, tree)
-  local teardown_func = function()
+  local function teardown_func()
     temp_dir:rm({ recursive = true })
   end
   -- resolve to remove any symlinks (on macOS /tmp is linked to /private/tmp)

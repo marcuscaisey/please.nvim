@@ -31,7 +31,7 @@ vim.g.clipboard = {
 }
 
 describe('jump_to_target', function()
-  local create_temp_tree = function()
+  local function create_temp_tree()
     return temptree.create({
       '.plzconfig',
       BUILD = [[
@@ -115,7 +115,7 @@ describe('jump_to_target', function()
 end)
 
 describe('build', function()
-  local create_temp_tree = function()
+  local function create_temp_tree()
     return temptree.create({
       '.plzconfig',
       BUILD = [[
@@ -235,7 +235,7 @@ describe('build', function()
 end)
 
 describe('test', function()
-  local create_temp_tree = function()
+  local function create_temp_tree()
     return temptree.create({
       '.plzconfig',
       ['foo/'] = {
@@ -478,7 +478,7 @@ describe('test', function()
 end)
 
 describe('run', function()
-  local create_temp_tree = function()
+  local function create_temp_tree()
     return temptree.create({
       '.plzconfig',
       BUILD = [[
@@ -636,7 +636,7 @@ describe('run', function()
 end)
 
 describe('yank', function()
-  local create_temp_tree = function()
+  local function create_temp_tree()
     return temptree.create({
       '.plzconfig',
       BUILD = [[
@@ -764,7 +764,7 @@ describe('yank', function()
 end)
 
 describe('action_history', function()
-  local create_temp_tree = function()
+  local function create_temp_tree()
     return temptree.create({
       '.plzconfig',
       BUILD = [[

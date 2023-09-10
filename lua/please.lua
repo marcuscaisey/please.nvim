@@ -94,11 +94,14 @@ local plz = require('please.plz')
 
 local please = {}
 
-local run_plz_cmd = function(root, args, opts)
+local function run_plz_cmd(root, args, opts)
   local cmd_args = { '--repo_root', root, '--interactive_output', '--colour', unpack(args) }
   runners.popup(plz, cmd_args, opts)
 end
 
+-- TODO: There must be a better way of organising these. It's quite annoying how the action logic for each command is
+-- not directly referenced in each function, only indirectly through run_and_save_action. Maybe we should just extract
+-- out each action and reference them from both this table and the associated command function.
 local actions = {
   jump_to_target = function(filepath, position)
     vim.cmd('edit ' .. filepath)
@@ -152,7 +155,7 @@ local data_path = vim.fn.stdpath('data') ---@type string
 local action_history_path = future.vim.fs.joinpath(data_path, 'please-history.json')
 
 ---@return table<string, any>
-local read_action_history = function()
+local function read_action_history()
   if not future.vim.uv.fs_stat(action_history_path) then
     return {}
   end
@@ -164,7 +167,7 @@ local read_action_history = function()
 end
 
 ---@param history table<string, any>
-local write_action_history = function(history)
+local function write_action_history(history)
   if not future.vim.uv.fs_stat(data_path) then
     vim.fn.mkdir(data_path, 'p')
   end
@@ -183,7 +186,7 @@ end
 ---description is already in the action history for the given root, then it will moved to the top.
 ---@param root string: an absolute path to the repo root
 ---@param action Action: the action to run
-local run_and_save_action = function(root, action)
+local function run_and_save_action(root, action)
   local history = read_action_history()
   if history[root] then
     history[root] = vim.tbl_filter(function(history_item)
@@ -201,7 +204,7 @@ end
 ---- sets a width for the telescope popup which will fit all of the provided items
 ---- handles input cancellation
 ---- wraps on_choice in logging.log_errors
-local select = function(items, opts, on_choice)
+local function select(items, opts, on_choice)
   local max_item_length = 0
   local format_item = opts.format_item or tostring
   for _, item in ipairs(items) do
@@ -227,7 +230,7 @@ local select = function(items, opts, on_choice)
 end
 
 ---Call select if there is more than one item, otherwise call on_choice with the singular item.
-local select_if_many = function(items, opts, on_choice)
+local function select_if_many(items, opts, on_choice)
   if #items > 1 then
     select(items, opts, on_choice)
   else
@@ -238,7 +241,7 @@ end
 ---Validate that all opts are:
 ---- one of valid_opts
 ---- boolean
-local validate_opts = function(opts, valid_opts)
+local function validate_opts(opts, valid_opts)
   for opt, value in pairs(opts) do
     if not vim.tbl_contains(valid_opts, opt) then
       return false, string.format("'%s' is not a valid opt", opt)
@@ -251,7 +254,7 @@ local validate_opts = function(opts, valid_opts)
   return true
 end
 
-local get_filepath = function()
+local function get_filepath()
   local filepath = vim.fn.expand('%:p')
   if filepath == '' then
     return nil, 'no file open'
@@ -262,7 +265,7 @@ end
 ---@param path string
 ---@return string?
 ---@return string?
-local get_repo_root = function(path)
+local function get_repo_root(path)
   local plzconfig_path = vim.fs.find('.plzconfig', { upward = true, path = path, type = 'file' })[1]
   if plzconfig_path then
     return vim.fs.dirname(plzconfig_path)
@@ -276,7 +279,7 @@ end
 ---The cursor will be moved to where the build target is created if it can be
 ---found which should be the case for all targets except for those with names
 ---which are generated when the `BUILD` file is executed.
-please.jump_to_target = function()
+function please.jump_to_target()
   logging.log_call('please.jump_to_target')
 
   logging.log_errors('Failed to jump to target', function()
@@ -298,7 +301,7 @@ end
 ---If the current file is a `BUILD` file, builds the target which is under
 ---the cursor. Otherwise, builds the target which takes the current file as
 ---an input.
-please.build = function()
+function please.build()
   logging.log_call('please.build')
 
   logging.log_errors('Failed to build', function()
@@ -344,7 +347,7 @@ end
 ---  * {under_cursor} (boolean): run the test under the cursor
 ---  * {failed} (boolean): run just the test cases which failed from the
 ---    immediately previous run
-please.test = function(opts)
+function please.test(opts)
   logging.log_call('please.test')
 
   logging.log_errors('Failed to test', function()
@@ -393,7 +396,7 @@ end
 ---If the current file is a `BUILD` file, run the target which is under the
 ---cursor. Otherwise, run the target which takes the current file as an
 ---input.
-please.run = function()
+function please.run()
   logging.log_call('please.run')
 
   logging.log_errors('Failed to run', function()
@@ -435,7 +438,7 @@ end
 ---If the current file is a `BUILD` file, yank the label of the target which is
 ---under the cursor. Otherwise, yank the label of the target which takes the
 ---current file as an input.
-please.yank = function()
+function please.yank()
   logging.log_call('please.yank')
 
   logging.log_errors('Failed to yank', function()
@@ -468,7 +471,7 @@ end
 ---This is supported for the following languages:
 ---- Go (Delve)
 ---- Python (debugpy)
-please.debug = function()
+function please.debug()
   logging.log_call('please.debug')
 
   logging.log_errors('Failed to debug', function()
@@ -497,7 +500,7 @@ end
 
 ---Display a history of previous actions. Selecting one of them will run it
 ---again.
-please.action_history = function()
+function please.action_history()
   logging.log_call('please.action_history')
 
   logging.log_errors('Failed to show action history', function()
@@ -510,7 +513,7 @@ please.action_history = function()
       return
     end
 
-    local get_description = function(history_item)
+    local function get_description(history_item)
       return history_item.description
     end
     select(history[root], { prompt = 'Pick action to run again', format_item = get_description }, function(history_item)

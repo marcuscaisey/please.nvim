@@ -8,7 +8,7 @@ local plz = require('please.plz')
 
 local M = {}
 
-local get_free_port = function()
+local function get_free_port()
   local tcp = future.vim.uv.new_tcp()
   -- binding to port 0 lets the OS assign an ephemeral port which we can lookup with getsocketname
   tcp:bind('127.0.0.1', 0)
@@ -24,7 +24,7 @@ end
 ---@field label string The label of the target to debug.
 ---@field extra_args string[]? Any extra arguments to pass to plz debug.
 
-M.setup = function()
+function M.setup()
   logging.debug('setting up plz debug adapter')
 
   ---@type fun(callback: fun(adapter: Adapter), config: DapConfiguration)
@@ -36,7 +36,7 @@ M.setup = function()
     local cmd =
       { plz, '--repo_root', config.root, 'debug', '--port', port, config.label, unpack(config.extra_args or {}) }
 
-    local stdout = function(err, data)
+    local function stdout(err, data)
       if err then
         logging.warn('error reading stdout from plz debug: %s', err)
       end
@@ -48,7 +48,7 @@ M.setup = function()
     end
 
     local stderr_lines = {}
-    local stderr = function(err, data)
+    local function stderr(err, data)
       if err then
         logging.warn('error reading stderr from plz debug: %s', err)
       end
@@ -61,7 +61,7 @@ M.setup = function()
       end
     end
 
-    local on_exit = function(obj)
+    local function on_exit(obj)
       if obj.code ~= 0 then
         logging.info('plz debug exited with code %d\n%s', obj.code, table.concat(stderr_lines, '\n'))
       end
@@ -83,12 +83,12 @@ M.setup = function()
   dap.defaults.plz.exception_breakpoints = { 'uncaught' }
 end
 
-local target_debug_directory = function(root, label)
+local function target_debug_directory(root, label)
   local pkg = label:match('//(.+):.+')
   return future.vim.fs.joinpath(root, 'plz-out/debug', pkg)
 end
 
-local launch_delve = function(root, label)
+local function launch_delve(root, label)
   logging.log_call('launch_delve')
 
   local substitutePath = {
@@ -130,7 +130,7 @@ local launch_delve = function(root, label)
   })
 end
 
-local launch_debugpy = function(root, label)
+local function launch_debugpy(root, label)
   logging.log_call('launch_debugpy')
 
   local relative_sandbox_location = '.cache/pex/pex-debug'
@@ -139,7 +139,7 @@ local launch_debugpy = function(root, label)
 
   local pathMappings
 
-  local is_target_sandboxed = function()
+  local function is_target_sandboxed()
     local target_sandboxed, err = query.is_target_sandboxed(root, label)
     assert(not err, err)
     return target_sandboxed

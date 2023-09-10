@@ -172,7 +172,7 @@ end)
 describe('get_test_at_cursor', function()
   ---@alias test_case {name:string, filetype:string, file:string, cursor:please.cursor.Position, expected_test:{name:string, selector:string}}
   ---@param test_cases test_case[]
-  local run_tests = function(test_cases)
+  local function run_tests(test_cases)
     for _, tc in ipairs(test_cases) do
       it(tc.name, function()
         local root, teardown_tree = temptree.create({
@@ -1212,7 +1212,7 @@ describe('get_test_at_cursor', function()
 end)
 
 describe('get_target_at_cursor', function()
-  local run_test = function(case)
+  local function run_test(case)
     local root, teardown_tree = temptree.create(case.tree)
 
     vim.cmd('edit ' .. root .. '/' .. case.file)

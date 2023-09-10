@@ -7,7 +7,7 @@ local debug_enabled = false
 ---Toggles debug logs containing which functions are being called with which
 ---arguments. This should provide enough information to debug most issues. To
 ---toggle debug logs from the command line, use `:Please toggle_debug_logs`
-logging.toggle_debug = function()
+function logging.toggle_debug()
   if debug_enabled then
     logging.info('debug logs disabled')
     debug_enabled = false
@@ -17,7 +17,7 @@ logging.toggle_debug = function()
   end
 end
 
-local log = function(msg, level, ...)
+local function log(msg, level, ...)
   local formatted_msg = string.format(msg, ...)
   formatted_msg = string.format('[please.nvim]: %s', formatted_msg)
   if vim.in_fast_event() then
@@ -30,24 +30,24 @@ local log = function(msg, level, ...)
 end
 
 ---@private
-logging.debug = function(msg, ...)
+function logging.debug(msg, ...)
   if debug_enabled then
     log(msg, vim.log.levels.DEBUG, ...)
   end
 end
 
 ---@private
-logging.info = function(msg, ...)
+function logging.info(msg, ...)
   log(msg, vim.log.levels.INFO, ...)
 end
 
 ---@private
-logging.warn = function(msg, ...)
+function logging.warn(msg, ...)
   log(msg, vim.log.levels.WARN, ...)
 end
 
 ---@private
-logging.error = function(msg, ...)
+function logging.error(msg, ...)
   log(msg, vim.log.levels.ERROR, ...)
 end
 
@@ -58,7 +58,7 @@ end
 ---
 ---*Before*
 ---```
----local print_baz = function(foo)
+---local function print_baz(foo)
 ---  local bar, err = get_bar(foo)
 ---  if err then
 ---    logging.error('failed to print baz: %s', err)
@@ -75,7 +75,7 @@ end
 ---
 ---*After*
 ---```
----local get_baz = function(foo)
+---local function get_baz(foo)
 ---  logging.log_errors('failed to get baz', function()
 ---    local bar = assert(get_bar(foo))
 ---    local baz = assert(get_baz(bar))
@@ -85,7 +85,7 @@ end
 ---```
 ---@param err_msg string
 ---@param f function
-logging.log_errors = function(err_msg, f)
+function logging.log_errors(err_msg, f)
   local ok, err = pcall(f)
   if not ok then
     if debug_enabled then
@@ -108,7 +108,7 @@ end
 ---@private
 ---Logs the args passed to a func at debug level.
 ---@param func_name string the name of the called function (this can't be consistently introspected)
-logging.log_call = function(func_name)
+function logging.log_call(func_name)
   if not debug_enabled then
     return
   end

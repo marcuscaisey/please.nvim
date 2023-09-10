@@ -10,7 +10,7 @@ local M = {}
 -- return all args from available_args which:
 -- - start with arg_lead
 -- - are not contained in exclude
-local complete_arg = function(arg_lead, available_args, exclude)
+local function complete_arg(arg_lead, available_args, exclude)
   exclude = exclude or {}
   return vim.tbl_filter(function(arg)
     return vim.startswith(arg, arg_lead) and not vim.tbl_contains(exclude, arg)
@@ -18,7 +18,7 @@ local complete_arg = function(arg_lead, available_args, exclude)
 end
 
 -- complete args to the Please command
-local complete = function(cmd_names, cmd_name_to_opts)
+local function complete(cmd_names, cmd_name_to_opts)
   -- sort all of the commands and opts here so that we only have to do it once (assumes that complete_arg doesn't mess
   -- with the order)
   cmd_names = vim.fn.sort(cmd_names)
@@ -52,7 +52,7 @@ local complete = function(cmd_names, cmd_name_to_opts)
 end
 
 -- run a please.nvim command
-local user_command = function(cmds)
+local function user_command(cmds)
   -- See :help nvim_create_user_command for detailed description of opts. We only use fargs anyway which is just the
   -- list of args passed to the command.
   return function(opts)
@@ -73,7 +73,7 @@ local user_command = function(cmds)
   end
 end
 
-M.create_user_command = function(cmds, cmd_name_to_opts)
+function M.create_user_command(cmds, cmd_name_to_opts)
   local cmd_names = vim.tbl_keys(cmds)
   vim.api.nvim_create_user_command('Please', user_command(cmds), {
     nargs = '+',
