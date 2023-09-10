@@ -8,7 +8,6 @@ INTRODUCTION ·································�
 USAGE ··························································· |please-usage|
 MAPPINGS ····················································· |please-mappings|
 PLEASE COMMANDS ······················································· |please|
-POPUP COMMANDS ·········································· |please.runners.popup|
 LOGGING COMMANDS ·············································· |please.logging|
 
 ==============================================================================
@@ -84,7 +83,7 @@ command to get you started.
   vim.keymap.set('n', '<leader>py', require('please').yank)
   vim.keymap.set('n', '<leader>pd', require('please').debug)
   vim.keymap.set('n', '<leader>pa', require('please').action_history)
-  vim.keymap.set('n', '<leader>pp', require('please.runners.popup').restore)
+  vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
 <
 
 ==============================================================================
@@ -159,13 +158,8 @@ please.action_history()                                  *please.action_history*
     again.
 
 
-==============================================================================
-POPUP COMMANDS                                            *please.runners.popup*
-
-popup.restore()                                   *please.runners.popup.restore*
-    Shows the output from a previous popup in a new popup, restoring the
-    previous cursor position as well. Only popups who's command ran to
-    completion can be restored, otherwise no popup will be opened.
+please.maximise_popup()                                  *please.maximise_popup*
+    Maximises the popup which was most recently quit or minimised.
 
 
 ==============================================================================

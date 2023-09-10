@@ -6,7 +6,6 @@ neovim_plugin(
     ],
     help_srcs = [
         "//lua:lua",
-        "//lua/please/runners:popup",
         "//lua/please:logging",
     ],
     deps = [

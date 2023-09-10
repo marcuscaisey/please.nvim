@@ -50,7 +50,6 @@ neovim_lua_module(
         ":logging",
         "//lua",
         "//lua/please/future",
-        "//lua/please/runners:popup",
         "//third_party/neovim:nvim_treesitter",
     ],
 )
@@ -67,6 +66,15 @@ neovim_lua_module(
         ":logging",
         ":plz",
         ":utils",
+        "//lua/please/future",
+    ],
+)
+
+neovim_lua_module(
+    name = "runner",
+    srcs = ["Runner.lua"],
+    deps = [
+        ":logging",
         "//lua/please/future",
     ],
 )

@@ -77,7 +77,7 @@
 ---  vim.keymap.set('n', '<leader>py', require('please').yank)
 ---  vim.keymap.set('n', '<leader>pd', require('please').debug)
 ---  vim.keymap.set('n', '<leader>pa', require('please').action_history)
----  vim.keymap.set('n', '<leader>pp', require('please.runners.popup').restore)
+---  vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
 ---<
 ---@brief ]]
 
@@ -85,18 +85,23 @@
 
 local query = require('please.query')
 local parsing = require('please.parsing')
-local runners = require('please.runners')
+local Runner = require('please.Runner')
 local logging = require('please.logging')
 local future = require('please.future')
 local cursor = require('please.cursor')
 local debug = require('please.debug')
-local plz = require('please.plz')
 
 local please = {}
 
-local function run_plz_cmd(root, args, opts)
-  local cmd_args = { '--repo_root', root, '--interactive_output', '--colour', unpack(args) }
-  runners.popup(plz, cmd_args, opts)
+local current_runner ---@type please.Runner?
+
+local function new_runner(root, args)
+  local runner = Runner:new(root, args)
+  if current_runner then
+    current_runner:stop()
+  end
+  current_runner = runner
+  return runner
 end
 
 -- TODO: There must be a better way of organising these. It's quite annoying how the action logic for each command is
@@ -108,19 +113,19 @@ local actions = {
     cursor.set(position)
   end,
   build = function(root, label)
-    run_plz_cmd(root, { 'build', label })
+    new_runner(root, { 'build', label }):start()
   end,
   test = function(root, label)
-    run_plz_cmd(root, { 'test', label })
+    new_runner(root, { 'test', label }):start()
   end,
   test_selector = function(root, label, test_selector)
-    run_plz_cmd(root, { 'test', label, test_selector })
+    new_runner(root, { 'test', label, test_selector }):start()
   end,
   test_failed = function(root)
-    run_plz_cmd(root, { 'test', '--failed' })
+    new_runner(root, { 'test', '--failed' }):start()
   end,
   run = function(root, label, args)
-    run_plz_cmd(root, { 'run', label, '--', unpack(args) })
+    new_runner(root, { 'run', label, '--', unpack(args) }):start()
   end,
   yank = function(txt)
     local registers = {
@@ -141,12 +146,12 @@ local actions = {
   end,
   debug = function(root, label, lang)
     local launcher = debug.launchers[lang] -- FIXME: error if this is nil
-    run_plz_cmd(root, { 'build', '--config', 'dbg', label }, {
-      on_success = function(close)
-        close()
-        launcher(root, label)
-      end,
-    })
+    local runner = new_runner(root, { 'build', '--config', 'dbg', label })
+    runner:on_success(function()
+      runner:minimise()
+      launcher(root, label)
+    end)
+    runner:start()
   end,
 }
 
@@ -520,6 +525,16 @@ function please.action_history()
       run_and_save_action(root, history_item)
     end)
   end)
+end
+
+---Maximises the popup which was most recently quit or minimised.
+function please.maximise_popup()
+  logging.log_call('please.maximise_popup')
+  if current_runner then
+    current_runner:maximise()
+  else
+    logging.error('no popup to maximise')
+  end
 end
 
 return please

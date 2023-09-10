@@ -11,7 +11,6 @@ neovim_test(
     deps = [
         "//:please",
         "//lua/please:cursor",
-        "//tests/utils:mock",
         "//tests/utils:temptree",
     ],
 )
@@ -29,7 +28,6 @@ neovim_test(
     deps = [
         "//:please",
         "//lua/please:cursor",
-        "//tests/utils:mock",
         "//tests/utils:temptree",
     ],
 )

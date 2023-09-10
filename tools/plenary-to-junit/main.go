@@ -216,14 +216,14 @@ func main() {
 			}
 
 			if suite.Failures == 0 {
-				printErrorSuiteAndExit(lines, suite.Name, "unexpected line %d: %q", i+4, trimmedLine)
+				printErrorSuiteAndExit(lines, suite.Name, "unexpected line %d: %q", i+4, lines[i+4])
 			}
 
 			assertLineIs(lines, i+4, "Tests Failed. Exit: 1", lastDottedPart(suite.Name))
 			if len(lines) == i+5 {
 				break
 			}
-			printErrorSuiteAndExit(lines, suite.Name, "unexpected line %d: %q", i+5, trimmedLine)
+			printErrorSuiteAndExit(lines, suite.Name, "unexpected line %d: %q", i+5, lines[i+5])
 
 		} else if strings.HasPrefix(lines[i], failureIndent) && len(suite.TestCases) > 0 && suite.TestCases[len(suite.TestCases)-1].Failure != nil {
 			currentFailure := suite.TestCases[len(suite.TestCases)-1].Failure

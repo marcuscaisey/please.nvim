@@ -2,8 +2,8 @@ local please = require('please')
 local command = require('please.command')
 local future = require('please.future')
 local logging = require('please.logging')
-local popup = require('please.runners.popup')
 local debug = require('please.debug')
+local popup = require('please.runners.popup')
 
 local M = {}
 
@@ -36,6 +36,7 @@ local function create_user_command()
     debug = please.debug,
     yank = please.yank,
     action_history = please.action_history,
+    maximise_popup = please.maximise_popup,
     restore_popup = popup.restore,
     reload = M.reload,
     toggle_debug_logs = logging.toggle_debug,
