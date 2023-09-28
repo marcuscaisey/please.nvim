@@ -30,6 +30,12 @@ local exec_plz = function(args, cwd)
   return stdout_lines, nil
 end
 
+---Escapes all magic characters from a string.
+---@param s string
+local function escape_magic(s)
+  return s:gsub('[%(%)%.%%%+%-%*%?%[%^%$%]]', '%%%1')
+end
+
 ---Wrapper around plz query whatinputs which returns the labels of the build targets which filepath is an input for.
 ---@param root string: an absolute path to the repo root
 ---@param filepath string: an absolute path or path relative to the repo root
@@ -40,7 +46,7 @@ query.whatinputs = function(root, filepath)
 
   local normalized_root = vim.fs.normalize(root)
   local normalized_filepath = vim.fs.normalize(filepath)
-  local relative_filepath = normalized_filepath:gsub('^' .. normalized_root .. '/', '')
+  local relative_filepath = normalized_filepath:gsub('^' .. escape_magic(normalized_root) .. '/', '')
 
   local output, err = exec_plz({ 'query', 'whatinputs', '--repo_root', root, relative_filepath })
   if err then
