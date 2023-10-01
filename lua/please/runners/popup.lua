@@ -52,14 +52,19 @@ local function open_float()
 
   local bg_bufnr = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_set_option_value('bufhidden', 'wipe', { buf = bg_bufnr })
-  local bg_width = math.floor(width_pct * vim.o.columns)
-  local bg_height = math.floor(height_pct * vim.o.lines)
+  local full_width = vim.o.columns
+  local full_height = vim.o.lines - vim.o.cmdheight
+  if vim.o.laststatus > 0 then
+    full_height = full_height - 1
+  end
+  local bg_width = math.floor(width_pct * full_width)
+  local bg_height = math.floor(height_pct * full_height)
   local bg_config = {
     relative = 'editor',
     width = bg_width,
     height = bg_height,
-    row = math.floor((vim.o.lines - bg_height) / 2),
-    col = math.floor((vim.o.columns - bg_width) / 2),
+    row = math.floor((full_height - bg_height) / 2),
+    col = math.floor((full_width - bg_width) / 2),
     focusable = false,
     style = 'minimal',
     noautocmd = true,
@@ -74,8 +79,8 @@ local function open_float()
     relative = 'editor',
     width = fg_width,
     height = fg_height,
-    row = math.floor((vim.o.lines - fg_height) / 2),
-    col = math.floor((vim.o.columns - fg_width) / 2),
+    row = math.floor((full_height - fg_height) / 2),
+    col = math.floor((full_width - fg_width) / 2),
     focusable = true,
     style = 'minimal',
     noautocmd = true,
