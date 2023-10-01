@@ -73,7 +73,7 @@ local function open_float()
 
   local fg_bufnr = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_set_option_value('bufhidden', 'wipe', { buf = fg_bufnr })
-  local fg_width = bg_width - 8
+  local fg_width = bg_width - 6
   local fg_height = bg_height - 2
   local fg_config = {
     relative = 'editor',
