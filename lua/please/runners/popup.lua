@@ -47,8 +47,8 @@ local ansi = {
 ---@return number fg_winid
 ---@return number bg_winid
 local function open_float()
-  local width_pct = 0.8
-  local height_pct = 0.8
+  local width_pct = 0.9
+  local height_pct = 0.9
 
   local bg_bufnr = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_set_option_value('bufhidden', 'wipe', { buf = bg_bufnr })
