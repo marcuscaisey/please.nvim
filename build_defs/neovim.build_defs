@@ -21,14 +21,14 @@ def neovim_toolchain(name: str, version: str, hashes: list = [], visibility: lis
         "darwin": f"https://github.com/neovim/neovim/releases/download/v{version}/nvim-macos.tar.gz",
         "linux": f"https://github.com/neovim/neovim/releases/download/v{version}/nvim-linux64.tar.gz",
     }
-    if CONFIG.OS not in urls_by_os:
-        fail(f'neovim_toolchain rule is not supported on OS: "{CONFIG.OS}"')
+    if CONFIG.HOSTOS not in urls_by_os:
+        fail(f'neovim_toolchain rule is not supported on OS: "{CONFIG.HOSTOS}"')
 
     download = remote_file(
         name = tag(name, "download"),
-        url = urls_by_os[CONFIG.OS],
+        url = urls_by_os[CONFIG.HOSTOS],
         hashes = hashes,
-        out = f"nvim_{CONFIG.OS}_{version}.tar.gz",
+        out = f"nvim_{CONFIG.HOSTOS}_{version}.tar.gz",
     )
 
     return genrule(
@@ -363,12 +363,12 @@ def neovim_lemmy_help(name: str, version: str, hashes: list = [], visibility: li
         "darwin": f"https://github.com/numToStr/lemmy-help/releases/download/v{version}/lemmy-help-x86_64-apple-darwin.tar.gz",
         "linux": f"https://github.com/numToStr/lemmy-help/releases/download/v{version}/lemmy-help-x86_64-unknown-linux-gnu.tar.gz",
     }
-    if CONFIG.OS not in urls_by_os:
-        fail(f'neovim_lemmy_help rule is not supported on OS: "{CONFIG.OS}"')
+    if CONFIG.HOSTOS not in urls_by_os:
+        fail(f'neovim_lemmy_help rule is not supported on OS: "{CONFIG.HOSTOS}"')
 
     return remote_file(
         name = name,
-        url = urls_by_os[CONFIG.OS],
+        url = urls_by_os[CONFIG.HOSTOS],
         extract = True,
         exported_files = ["lemmy-help"],
         binary = True,
