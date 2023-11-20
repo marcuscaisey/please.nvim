@@ -483,7 +483,7 @@ local function build_label(root, build_file, target)
   local dir = vim.fs.dirname(build_file)
   local normalized_root = vim.fs.normalize(root)
   local normalized_dir = vim.fs.normalize(dir)
-  local pkg = normalized_dir:gsub('^' .. normalized_root .. '/?', '')
+  local pkg = normalized_dir:gsub('^' .. vim.pesc(normalized_root) .. '/?', '')
   return string.format('//%s:%s', pkg, target)
 end
 
