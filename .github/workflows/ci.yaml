@@ -17,8 +17,8 @@ jobs:
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Run tests
         run: plz test
-  docs:
-    name: Docs
+  lint-docs:
+    name: Lint Docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
@@ -27,8 +27,8 @@ jobs:
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Check if help file needs regenerating
         run: plz run //:please_help_gen_check
-  lint:
-    name: Lint
+  lint-lua:
+    name: Lint Lua
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
@@ -39,3 +39,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: 0.14.1
           args: --check --color always .
+  lint-build:
+    name: Lint BUILD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v3
+      - name: Install Please
+        run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
+      - name: Lint with plz format
+        run: |
+          plz format --write
+          if ! git diff --quiet; then
+              echo 'The following files need to be formatted with "plz format --write"':
+              git --no-pager diff --name-only
+              exit 1
+          fi
