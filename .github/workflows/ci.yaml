@@ -53,5 +53,5 @@ jobs:
           if ! git diff --quiet; then
               echo 'The following files require formatting with "plz format --write"':
               git --no-pager diff --name-only
-              exit 1
+              exit 2
           fi
