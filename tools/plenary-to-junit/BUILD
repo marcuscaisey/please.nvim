@@ -60,3 +60,8 @@ plenary_to_junit_test(
     name = "test_nvim_startup",
     test_target = "//tools/plenary-to-junit/testdata:nvim_startup_spec",
 )
+
+plenary_to_junit_test(
+    name = "test_nvim_log",
+    test_target = "//tools/plenary-to-junit/testdata:nvim_log_spec",
+)
