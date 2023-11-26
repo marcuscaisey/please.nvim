@@ -19,7 +19,7 @@ describe('whatinputs', function()
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
-    assert.are.same({ '//foo:bar' }, labels, 'incorrect labels')
+    assert.are.same({ '//foo:foo' }, labels, 'incorrect labels')
 
     teardown_tree()
   end)
