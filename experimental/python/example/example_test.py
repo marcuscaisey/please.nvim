@@ -6,7 +6,6 @@ def decorator(f):
 
 
 def decorator_with_params(x):
-
     def decorator(f):
         return f
 
@@ -14,7 +13,6 @@ def decorator_with_params(x):
 
 
 class TestCase(unittest.TestCase):
-
     def test_method_1(self):
         self.fail("oh no")
 

@@ -1,4 +1,4 @@
-package go_test
+package example_test
 
 import (
 	"testing"
