@@ -17,8 +17,8 @@ jobs:
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Run tests
         run: plz test
-  docs:
-    name: Docs
+  lint-docs:
+    name: Lint Docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
