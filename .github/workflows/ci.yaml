@@ -51,7 +51,7 @@ jobs:
         run: |
           plz format --write
           if ! git diff --quiet; then
-              echo '::error file=BUILD::The following files need to be formatted with "plz format --write"':
+              echo '::error::The following files need to be formatted with "plz format --write"':
               git --no-pager diff --name-only
               exit 1
           fi
