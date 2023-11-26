@@ -32,7 +32,7 @@ def neovim_test_and_snapshot(name, test_file, deps = None):
 
 sh_cmd(
     name = "generate_snapshots",
-    cmd = "plz run parallel //tools/plenary-to-junit/testdata/... --include generate_snapshot",
+    cmd = "unset VIM VIMRUNTIME && plz run parallel //tools/plenary-to-junit/testdata/... --include generate_snapshot",
 )
 
 neovim_test_and_snapshot(
