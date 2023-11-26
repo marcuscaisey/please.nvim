@@ -16,7 +16,8 @@ lemmy-help-tool = //third_party/neovim:lemmy_help
 [Plugin "go"]
 Target = //plugins:go
 GoTool = //third_party/go:toolchain|go
-DelveTool = //third_party/go:dlv
+DelveTool = ///third_party/go/github.com_go-delve_delve//cmd/dlv
+ModFile = //:gomod
 
 [Plugin "python"]
 Target = //plugins:python

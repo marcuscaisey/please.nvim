@@ -5,5 +5,5 @@ go_test(
         "suite_in_another_file_test.go",
     ],
     external = True,
-    deps = ["//third_party/go:testify"],
+    deps = ["///third_party/go/github.com_stretchr_testify//suite"],
 )

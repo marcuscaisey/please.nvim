@@ -14,3 +14,9 @@ neovim_plugin(
         "//plugin",
     ],
 )
+
+export_file(
+    name = "gomod",
+    src = "go.mod",
+    visibility = ["PUBLIC"],
+)
