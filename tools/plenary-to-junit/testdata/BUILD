@@ -1,4 +1,4 @@
-def neovim_test_and_snapshot(name, test_file, deps = None):
+def neovim_test_and_snapshot(name, test_file, deps=None):
     test_rule = neovim_test(
         name = name,
         labels = ["manual"],

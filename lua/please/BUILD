@@ -52,8 +52,8 @@ neovim_lua_module(
     deps = [
         ":command",
         ":debug",
-        ":logging",
         ":future",
+        ":logging",
         "//lua",
         "//lua/please/runners:popup",
         "//third_party/neovim:nvim_treesitter",
