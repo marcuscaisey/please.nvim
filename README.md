@@ -1,4 +1,4 @@
-# please.nvim
+# please.nvim [![CI Checks](https://github.com/marcuscaisey/please.nvim/actions/workflows/ci-checks.yaml/badge.svg)](https://github.com/marcuscaisey/please.nvim/actions/workflows/ci-checks.yaml)
 please.nvim is a plugin which allows you interact with your Please repository from the comfort of Neovim. The aim is to remove the need to switch from your editor to the shell when performing routine actions.
 
 ## Features
