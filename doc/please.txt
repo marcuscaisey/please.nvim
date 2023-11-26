@@ -4,7 +4,7 @@ A plugin to make you more productive in Neovim when using Please.
 ==============================================================================
 Table of Contents                                              *please-contents*
 
-INTRODUCTION ··················································· |please-intro|
+INTRODUCTION ···················································· |please-intro|
 USAGE ··························································· |please-usage|
 MAPPINGS ····················································· |please-mappings|
 PLEASE COMMANDS ······················································· |please|
