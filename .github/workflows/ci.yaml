@@ -28,7 +28,7 @@ jobs:
       - name: Check if help file needs regenerating
         run: plz run //:please_help_gen_check
   lint-lua:
-    name: Lint Lua files
+    name: Lint Lua
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
@@ -40,7 +40,7 @@ jobs:
           version: 0.14.1
           args: --check --color always .
   lint-build:
-    name: Lint BUILD files
+    name: Lint BUILD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
