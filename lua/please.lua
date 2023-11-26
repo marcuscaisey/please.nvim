@@ -96,7 +96,7 @@ local please = {}
 
 local function run_plz_cmd(root, args, opts)
   local cmd_args = { '--repo_root', root, '--interactive_output', '--colour', unpack(args) }
-  runners.popup(plz, cmd_args, opts)
+  runners.popup(plz, cmd_args, opts )
 end
 
 -- TODO: There must be a better way of organising these. It's quite annoying how the action logic for each command is
