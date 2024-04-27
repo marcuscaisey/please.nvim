@@ -14,7 +14,7 @@ neovim_lua_module(
     srcs = ["popup.lua"],
     deps = [
         "//lua/please:cursor",
-        "//lua/please:future",
+        "//lua/please/future",
         "//lua/please:logging",
     ],
 )

@@ -4,11 +4,11 @@ neovim_lua_module(
     deps = [
         "//lua/please:cursor",
         "//lua/please:debug",
-        "//lua/please:future",
         "//lua/please:logging",
         "//lua/please:parsing",
         "//lua/please:plz",
         "//lua/please:query",
+        "//lua/please/future",
         "//lua/please/runners",
     ],
 )
