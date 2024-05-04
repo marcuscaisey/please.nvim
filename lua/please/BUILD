@@ -50,6 +50,7 @@ neovim_lua_module(
         ":logging",
         "//lua",
         "//lua/please/future",
+        "//lua/please/runners:popup",
         "//third_party/neovim:nvim_treesitter",
     ],
 )
