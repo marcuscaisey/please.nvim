@@ -125,7 +125,10 @@ local actions = {
     new_runner(root, { 'test', '--failed' }):start()
   end,
   run = function(root, label, args)
-    new_runner(root, { 'run', label, '--', unpack(args) }):start()
+    if #args > 0 then
+      args = { '--', unpack(args) }
+    end
+    new_runner(root, { 'run', label, unpack(args) }):start()
   end,
   yank = function(txt)
     local registers = {
