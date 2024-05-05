@@ -562,43 +562,6 @@ describe('test', function()
       teardown_tree()
     end)
   end)
-
-  describe('with failed=true', function()
-    it('should run test with --failed', function()
-      local root, teardown_tree = create_temp_tree()
-      local runner_spy = RunnerSpy:new()
-
-      -- GIVEN we're editing a file
-      vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
-      -- WHEN we call test with failed=true
-      please.test({ failed = true })
-      -- THEN test is run with --failed
-      runner_spy:assert_called_with(root, { 'test', '--failed' })
-
-      teardown_tree()
-    end)
-
-    it('should add entry to action history', function()
-      local root, teardown_tree = create_temp_tree()
-      local runner_spy = RunnerSpy:new()
-      local select_fake = SelectFake:new()
-
-      -- GIVEN we've run the failed tests
-      vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
-      please.test({ failed = true })
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Run previously failed tests' })
-      -- WHEN we select the test action
-      select_fake:choose_item('Run previously failed tests')
-      -- THEN test is run with --failed again
-      runner_spy:assert_called_with(root, { 'test', '--failed' })
-
-      teardown_tree()
-    end)
-  end)
 end)
 
 describe('run', function()

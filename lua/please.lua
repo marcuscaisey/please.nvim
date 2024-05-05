@@ -69,9 +69,6 @@
 ---  vim.keymap.set('n', '<leader>pct', function()
 ---    require('please').test({ under_cursor = true })
 ---  end)
----  vim.keymap.set('n', '<leader>pft', function()
----    require('please').test({ failed = true })
----  end)
 ---  vim.keymap.set('n', '<leader>pr', require('please').run)
 ---  vim.keymap.set('n', '<leader>py', require('please').yank)
 ---  vim.keymap.set('n', '<leader>pd', require('please').debug)
@@ -119,9 +116,6 @@ local actions = {
   end,
   test_selector = function(root, label, test_selector)
     new_runner(root, { 'test', label, test_selector }):start()
-  end,
-  test_failed = function(root)
-    new_runner(root, { 'test', '--failed' }):start()
   end,
   run = function(root, label, args)
     if #args > 0 then
@@ -352,15 +346,13 @@ end
 ---  - unittest test methods
 ---@param opts table|nil available options
 ---  * {under_cursor} (boolean): run the test under the cursor
----  * {failed} (boolean): run just the test cases which failed from the
----    immediately previous run
 function please.test(opts)
   logging.log_call('please.test')
 
   logging.log_errors('Failed to test', function()
     opts = opts or {}
 
-    assert(validate_opts(opts, { 'under_cursor', 'failed' }))
+    assert(validate_opts(opts, { 'under_cursor' }))
 
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
@@ -375,12 +367,6 @@ function please.test(opts)
           description = string.format('Test %s %s', label, test.name),
         })
       end)
-    elseif opts.failed then
-      run_and_save_action(root, {
-        name = 'test_failed',
-        args = { root },
-        description = 'Run previously failed tests',
-      })
     else
       local labels
       if vim.bo.filetype == 'please' then
