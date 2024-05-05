@@ -48,13 +48,8 @@ local function create_user_command()
   command.create_user_command(cmds, cmd_name_to_opts)
 end
 
-local function configure_treesitter()
-  future.vim.treesitter.language.register('python', 'please')
-end
-
 function M.load()
   configure_filetype()
-  configure_treesitter()
   create_user_command()
   debug.setup()
 end

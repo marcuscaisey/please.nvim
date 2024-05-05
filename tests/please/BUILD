@@ -16,6 +16,7 @@ neovim_test(
     deps = [
         "//lua/please:cursor",
         "//lua/please:parsing",
+        "//lua/please/future",
         "//tests/utils:temptree",
     ],
 )

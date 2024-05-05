@@ -2,6 +2,8 @@ local logging = require('please.logging')
 local cursor = require('please.cursor')
 local future = require('please.future')
 
+future.vim.treesitter.language.register('python', 'please')
+
 local parsing = {}
 
 ---Checks if the parser for the given filetype is installed and if not prompts the user to install it.
