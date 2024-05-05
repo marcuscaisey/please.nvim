@@ -48,9 +48,7 @@ local function create_user_command()
   command.create_user_command(cmds, cmd_name_to_opts)
 end
 
--- make sure that the python parser is installed and configure it be used for please files
 local function configure_treesitter()
-  -- require('nvim-treesitter.install').ensure_installed({ 'python', 'go' })
   future.vim.treesitter.language.register('python', 'please')
 end
 

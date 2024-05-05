@@ -4,6 +4,33 @@ local future = require('please.future')
 
 local parsing = {}
 
+---Checks if the parser for the given filetype is installed and if not prompts the user to install it.
+---@param filetype string
+local function check_parser_installed(filetype)
+  local lang = vim.treesitter.language.get_lang(filetype)
+  if not lang then
+    error(string.format('no tree-sitter parser registered for %s files', filetype))
+  end
+
+  if pcall(vim.treesitter.language.add, lang) then
+    return
+  end
+
+  local err_msg = string.format(
+    'tree-sitter parser for %s%sis not installed.',
+    lang,
+    lang ~= filetype and string.format(' (used for %s files) ', filetype) or ' '
+  )
+  if
+    vim.fn.exists(':TSInstallSync') == 2
+    and vim.fn.confirm(err_msg .. ' Install now?', '&yes\n&no', 2, 'Question') == 1
+  then
+    vim.cmd.TSInstallSync(lang)
+  else
+    error(err_msg .. ' See :help treesitter-parsers')
+  end
+end
+
 -- makes a query which selects build targets, accepting an optional name arg which filters for build targets with the
 -- given name
 local function make_build_target_query(name)
@@ -42,6 +69,8 @@ local build_file_names = { 'BUILD', 'BUILD.plz' }
 ---@return string|nil: error if any, this should be checked before using the other return values
 function parsing.locate_build_target(root, label)
   logging.log_call('parsing.locate_build_target')
+
+  check_parser_installed('please')
 
   local pkg, target = label:match('^//([^:]*):([^/]+)$')
   local pkg_path = future.vim.fs.joinpath(root, pkg)
@@ -454,6 +483,8 @@ function parsing.get_test_at_cursor()
     return nil, string.format('finding tests is not supported for %s files', vim.bo.filetype)
   end
 
+  check_parser_installed(vim.bo.filetype)
+
   local current_pos = cursor.get()
   local root_node = future.vim.treesitter.get_node()
   while root_node and not parsers_by_root_node_type[root_node:type()] do
@@ -495,6 +526,8 @@ end
 -- TODO: return a table instead of multiple values
 function parsing.get_target_at_cursor(root)
   logging.log_call('parsing.get_target_at_cursor')
+
+  check_parser_installed('please')
 
   local tree = vim.treesitter.get_parser(0, 'python'):parse()[1]
   local query = future.vim.treesitter.query.parse('python', make_build_target_query())
