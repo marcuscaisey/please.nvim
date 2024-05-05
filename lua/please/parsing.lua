@@ -7,10 +7,7 @@ local parsing = {}
 ---Checks if the parser for the given filetype is installed and if not prompts the user to install it.
 ---@param filetype string
 local function check_parser_installed(filetype)
-  local lang = vim.treesitter.language.get_lang(filetype)
-  if not lang then
-    error(string.format('no tree-sitter parser registered for %s files', filetype))
-  end
+  local lang = vim.treesitter.language.get_lang(filetype) or filetype
 
   if pcall(vim.treesitter.language.add, lang) then
     return
