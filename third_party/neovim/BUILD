@@ -1,23 +1,12 @@
 neovim_toolchain(
-    name = "toolchain_0_8_0",
-    version = "0.8.0",
-)
-
-neovim_toolchain(
-    name = "toolchain_0_9_1",
-    version = "0.9.1",
+    name = "toolchain",
+    version = "0.9.5",
 )
 
 neovim_github_plugin(
     name = "plenary",
     repo = "nvim-lua/plenary.nvim",
     revision = "69d0a92d4cddd847fec10b29d7366e423df62eb8",
-)
-
-neovim_github_plugin(
-    name = "nvim_treesitter",
-    repo = "nvim-treesitter/nvim-treesitter",
-    revision = "12453e0e3d2e82a4ae813f1540315c7cf2df2363",
 )
 
 neovim_github_plugin(

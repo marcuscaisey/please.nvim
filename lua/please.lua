@@ -24,9 +24,8 @@
 ---    * `*.build`
 ---  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
 ---    syntax highlighting
----  * `nvim-treesitter` configured to use the Python parser for `please` files
----    to enable better syntax highlighting and use of all treesitter features in
----    build files
+---  * Python tree-sitter parser configured to be used for please files to enable better syntax highlighting and use of
+---    all treesitter features in build files
 ---@brief ]]
 
 ---@mod please-usage USAGE

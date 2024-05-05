@@ -2,7 +2,7 @@ local logging = require('please.logging')
 local cursor = require('please.cursor')
 local future = require('please.future')
 
-future.vim.treesitter.language.register('python', 'please')
+vim.treesitter.language.register('python', 'please')
 
 local parsing = {}
 
@@ -83,7 +83,7 @@ function parsing.locate_build_target(root, label)
       local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
       local parser = vim.treesitter.get_parser(bufnr, 'python')
       local tree = parser:parse()[1]
-      local query = future.vim.treesitter.query.parse('python', make_build_target_query(target))
+      local query = vim.treesitter.query.parse('python', make_build_target_query(target))
 
       ---@diagnostic disable-next-line: param-type-mismatch
       for id, node in query:iter_captures(tree:root(), bufnr, nil, nil) do
@@ -351,7 +351,7 @@ local parse_go_subtests
 function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
   local subtests = {} ---@type please.parsing.Test[]
 
-  local subtest_query = future.vim.treesitter.query.parse('go', queries.go.subtest)
+  local subtest_query = vim.treesitter.query.parse('go', queries.go.subtest)
   for captures in iter_match_captures(subtest_query, parent_body, { max_start_depth = 1 }) do
     -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
     -- will be picked up by recursive calls of parse_go_subtests. Passing max_start_depth = 1 to iter_matches achieves
@@ -369,7 +369,7 @@ function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
     end
   end
 
-  local table_test_query = future.vim.treesitter.query.parse('go', queries.go.table_test)
+  local table_test_query = vim.treesitter.query.parse('go', queries.go.table_test)
   for captures in iter_match_captures(table_test_query, parent_body, { max_start_depth = 1 }) do
     -- We make sure that the table test is a direct child of parent_body so that we don't pick up any nested table
     -- tests. Passing max_start_depth = 1 to iter_matches achieves the same thing but is not released yet, so we do both
@@ -392,7 +392,7 @@ end
 ---@param root_node TSNode
 ---@return please.parsing.Test?
 local function parse_go_test_func(root_node)
-  local test_func_query = future.vim.treesitter.query.parse('go', queries.go.test_func)
+  local test_func_query = vim.treesitter.query.parse('go', queries.go.test_func)
   for captures in iter_match_captures(test_func_query, root_node) do
     local name = vim.treesitter.get_node_text(captures.name, 0)
     local selector = '^' .. name .. '$'
@@ -405,7 +405,7 @@ end
 ---@param root_node TSNode
 ---@return please.parsing.Test?
 local function parse_go_test_suite_method(root_node)
-  local test_suite_method_query = future.vim.treesitter.query.parse('go', queries.go.test_suite_method)
+  local test_suite_method_query = vim.treesitter.query.parse('go', queries.go.test_suite_method)
   for captures in iter_match_captures(test_suite_method_query, root_node) do
     local name = vim.treesitter.get_node_text(captures.name, 0)
     local selector = '/^' .. name .. '$'
@@ -414,7 +414,7 @@ local function parse_go_test_suite_method(root_node)
 
     local tree = vim.treesitter.get_parser(0, vim.bo.filetype):parse()[1]
     local suite_names = {}
-    local test_suite_query = future.vim.treesitter.query.parse('go', queries.go.test_suite)
+    local test_suite_query = vim.treesitter.query.parse('go', queries.go.test_suite)
     for test_suite_captures in iter_match_captures(test_suite_query, tree:root()) do
       if vim.treesitter.get_node_text(test_suite_captures.suite_type, 0) == receiver_type then
         table.insert(suite_names, vim.treesitter.get_node_text(test_suite_captures.name, 0))
@@ -437,7 +437,7 @@ end
 ---@return please.parsing.Test?
 local function parse_python_unittest_methods(root_node)
   local test ---@type please.parsing.Test
-  local unittest_methods_query = future.vim.treesitter.query.parse('python', queries.python.unittest_methods)
+  local unittest_methods_query = vim.treesitter.query.parse('python', queries.python.unittest_methods)
   for captures in iter_match_captures(unittest_methods_query, root_node) do
     local class_name = vim.treesitter.get_node_text(captures.class_name, 0)
     if not test then
@@ -485,7 +485,7 @@ function parsing.get_test_at_cursor()
   check_parser_installed(vim.bo.filetype)
 
   local current_pos = cursor.get()
-  local root_node = future.vim.treesitter.get_node()
+  local root_node = vim.treesitter.get_node()
   while root_node and not parsers_by_root_node_type[root_node:type()] do
     root_node = root_node:parent()
   end
@@ -529,7 +529,7 @@ function parsing.get_target_at_cursor(root)
   check_parser_installed('please')
 
   local tree = vim.treesitter.get_parser(0, 'python'):parse()[1]
-  local query = future.vim.treesitter.query.parse('python', make_build_target_query())
+  local query = vim.treesitter.query.parse('python', make_build_target_query())
 
   ---@diagnostic disable-next-line: param-type-mismatch
   for _, match in query:iter_matches(tree:root(), 0, nil, nil) do

@@ -13,7 +13,8 @@ please.nvim is a plugin which allows you interact with your Please repository fr
     * `*.build_defs`
     * `*.build`
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
-  * `nvim-treesitter` configured to use the Python parser for `please` files to enable better syntax highlighting and use of all treesitter features in build files
+  * Python tree-sitter parser configured to be used for please files to enable better syntax
+    highlighting and use of all treesitter features in build files
 
 ## Demo
 https://user-images.githubusercontent.com/34950778/205456279-665ddfe8-de77-4f36-a337-85768bb06a37.mov
@@ -28,14 +29,13 @@ Detailed documentation can be in [doc/please.txt](doc/please.txt) or by running 
 
 ## Getting started
 ### Installation
-> :information_source: Neovim >= 0.8 is required to use please.nvim
+> :information_source: Neovim >= 0.9 is required to use please.nvim
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
 use({
   'marcuscaisey/please.nvim',
   requires = {
-    'nvim-treesitter/nvim-treesitter',
     'mfussenegger/nvim-dap',
   },
 })
@@ -43,14 +43,12 @@ use({
 
 Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```viml
-Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'mfussenegger/nvim-dap'
 Plug 'marcuscaisey/please.nvim'
 ```
 
 Using [dein](https://github.com/Shougo/dein.vim)
 ```viml
-call dein#add('nvim-treesitter/nvim-treesitter')
 call dein#add('mfussenegger/nvim-dap')
 call dein#add('marcuscaisey/please.nvim')
 ```
@@ -62,10 +60,10 @@ call dein#add('marcuscaisey/please.nvim')
 - [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for nvim-dap
 
 ### `nvim-treesitter` configuration
-`please.nvim` configures [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter) so
-that the Python parser is used for files with the `please` filetype. It doesn't, however, configure
-anything else to do with [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter), so
-it's recommended to at least enable syntax highlighting like so:
+`please.nvim` configures the Python tree-sitter parser to be used for please files. It doesn't,
+however, configure anything else to do with
+[`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter), so it's recommended to at
+least enable syntax highlighting like so:
 ```lua
 require('nvim-treesitter.configs').setup({
   highlight = {
