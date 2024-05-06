@@ -75,9 +75,6 @@ command to get you started.
   vim.keymap.set('n', '<leader>pct', function()
     require('please').test({ under_cursor = true })
   end)
-  vim.keymap.set('n', '<leader>pft', function()
-    require('please').test({ failed = true })
-  end)
   vim.keymap.set('n', '<leader>pr', require('please').run)
   vim.keymap.set('n', '<leader>py', require('please').yank)
   vim.keymap.set('n', '<leader>pd', require('please').debug)
@@ -125,8 +122,6 @@ please.test({opts})                                                *please.test*
     Parameters: ~
         {opts} (table|nil) available options
           * {under_cursor} (boolean): run the test under the cursor
-          * {failed} (boolean): run just the test cases which failed from the
-            immediately previous run
 
 
 please.run()                                                        *please.run*
