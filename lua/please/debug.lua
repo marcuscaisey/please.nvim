@@ -111,8 +111,7 @@ local function launch_delve(root, label)
   -- then we'll add the following entries to substitutePath:
   --   - { from = 'root/foo', to = 'foo' }
   --   - { from = 'root/bar.go', to = 'bar.go' }
-  local children = vim.fn.systemlist('ls ' .. root)
-  for _, path in ipairs(children) do
+  for path in vim.fs.dir(root) do
     table.insert(substitutePath, {
       from = future.vim.fs.joinpath(root, path),
       to = path,

@@ -77,7 +77,7 @@ function parsing.locate_build_target(root, label)
     local build_path = future.vim.fs.joinpath(pkg_path, build_file_name)
     local stat = future.vim.uv.fs_stat(build_path)
     if stat and stat.type == 'file' then
-      local filepath = vim.fn.simplify(build_path)
+      local filepath = vim.fs.normalize(build_path)
 
       ---@diagnostic disable-next-line: param-type-mismatch
       local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
@@ -543,7 +543,7 @@ function parsing.get_target_at_cursor(root)
         name = name:match("^'(.+)'$")
       end
       local rule = vim.treesitter.get_node_text(captures.rule, 0)
-      local build_file = vim.fn.expand('%:p')
+      local build_file = vim.api.nvim_buf_get_name(0)
       return build_label(root, build_file, name), rule, nil
     end
   end

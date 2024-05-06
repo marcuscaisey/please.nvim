@@ -256,7 +256,7 @@ local function validate_opts(opts, valid_opts)
 end
 
 local function get_filepath()
-  local filepath = vim.fn.expand('%:p')
+  local filepath = vim.api.nvim_buf_get_name(0)
   if filepath == '' then
     return nil, 'no file open'
   end

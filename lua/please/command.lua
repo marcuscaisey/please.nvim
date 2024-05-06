@@ -21,9 +21,9 @@ end
 local function complete(cmd_names, cmd_name_to_opts)
   -- sort all of the commands and opts here so that we only have to do it once (assumes that complete_arg doesn't mess
   -- with the order)
-  cmd_names = vim.fn.sort(cmd_names)
-  for cmd_name, opts in pairs(cmd_name_to_opts) do
-    cmd_name_to_opts[cmd_name] = vim.fn.sort(opts)
+  table.sort(cmd_names)
+  for cmd_name in pairs(cmd_name_to_opts) do
+    table.sort(cmd_name_to_opts[cmd_name])
   end
 
   -- See :help :command-completion-customlist for detailed description of this func. arg_lead is the arg that we're
