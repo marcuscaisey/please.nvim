@@ -16,16 +16,13 @@
 ---  * Yank a target's label
 ---  * Jump from a source file to its build target definition
 ---  * Display history of previous actions and run any of them again
----  * `please` configured as the `filetype` for the following files:
----    * `BUILD`
----    * `*.plz`
----    * `*.build_def`
----    * `*.build_defs`
----    * `*.build`
+---  * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs`
+---    files
 ---  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
 ---    syntax highlighting
----  * Python tree-sitter parser configured to be used for please files to enable better syntax highlighting and use of
----    all treesitter features in build files
+---  * Python tree-sitter parser configured to be used for please files to enable
+---    better syntax highlighting and use of all treesitter features in build
+---    files
 ---@brief ]]
 
 ---@mod please-usage USAGE
@@ -266,9 +263,9 @@ end
 ---@return string?
 ---@return string?
 local function get_repo_root(path)
-  local plzconfig_path = vim.fs.find('.plzconfig', { upward = true, path = path, type = 'file' })[1]
-  if plzconfig_path then
-    return vim.fs.dirname(plzconfig_path)
+  local root = future.vim.fs.root(path, '.plzconfig')
+  if root then
+    return root
   end
   return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
 end

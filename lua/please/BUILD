@@ -43,6 +43,7 @@ neovim_lua_module(
         ":debug",
         ":logging",
         "//lua",
+        "//lua/please/future",
         "//lua/please/runners:popup",
     ],
 )

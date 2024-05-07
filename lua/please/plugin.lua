@@ -1,23 +1,26 @@
 local please = require('please')
 local command = require('please.command')
-local logging = require('please.logging')
 local debug = require('please.debug')
+local future = require('please.future')
+local logging = require('please.logging')
 local popup = require('please.runners.popup')
 
 local M = {}
 
 -- configure all of the file names / extensions which should correspond to the please filetype
 local function configure_filetype()
-  vim.g.do_filetype_lua = 1 -- enable Lua filetype detection
   vim.filetype.add({
     extension = {
       build_defs = 'please',
-      build_def = 'please',
-      build = 'please',
-      plz = 'please',
     },
     filename = {
-      ['BUILD'] = 'please',
+      BUILD = function(path)
+        if future.vim.fs.root(path, '.plzconfig') then
+          return 'please'
+        end
+        return 'bzl'
+      end,
+      ['BUILD.plz'] = 'please',
     },
     pattern = {
       ['%.plzconfig.*'] = 'dosini',

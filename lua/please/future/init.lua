@@ -7,14 +7,13 @@ local fs = require('please.future._vim.fs')
 return {
   vim = {
     fs = {
-      -- vim.fs.joinpath will available in nvim 0.10
       -- TODO: remove when minimum nvim version is 0.10
       joinpath = vim.fs.joinpath or fs.joinpath,
+      -- TODO: remove when minimum nvim version is 0.10
+      root = vim.fs.root or fs.root
     },
-    -- vim.system will be available in nvim 0.10
     -- TODO: remove when minimum nvim version is 0.10
     system = vim.system or _vim.system,
-    -- vim.loop will be deprecated in nvim 0.10 and replaced with vim.uv
     -- TODO: remove when minimum nvim version is 0.10
     uv = vim.uv or vim.loop,
   },
