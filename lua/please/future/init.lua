@@ -10,7 +10,7 @@ return {
       -- TODO: remove when minimum nvim version is 0.10
       joinpath = vim.fs.joinpath or fs.joinpath,
       -- TODO: remove when minimum nvim version is 0.10
-      root = vim.fs.root or fs.root
+      root = vim.fs.root or fs.root,
     },
     -- TODO: remove when minimum nvim version is 0.10
     system = vim.system or _vim.system,
