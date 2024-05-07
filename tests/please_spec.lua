@@ -59,8 +59,8 @@ function RunnerSpy:assert_called_with(root, args)
   if not self._called then
     error('Runner:new has not been called')
   end
-  assert.are.equal(root, self._root, 'incorrect root passed to Runner:new')
-  assert.are.same(args, self._args, 'incorrect args passed to Runner:new')
+  assert.equal(root, self._root, 'incorrect root passed to Runner:new')
+  assert.same(args, self._args, 'incorrect args passed to Runner:new')
 end
 
 function RunnerSpy:assert_started()
@@ -90,13 +90,13 @@ end
 
 function SelectFake:assert_items(items)
   self:assert_called()
-  assert.are.same(items, self._formatted_items, 'incorrect items passed to vim.ui.select')
+  assert.same(items, self._formatted_items, 'incorrect items passed to vim.ui.select')
 end
 
 function SelectFake:assert_prompt(prompt)
   self:assert_called()
   assert.not_nil(self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
-  assert.are.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
+  assert.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
 end
 
 function SelectFake:choose_item(item)
@@ -141,7 +141,7 @@ end
 function InputFake:assert_prompt(prompt)
   self:assert_called()
   assert.not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.input')
-  assert.are.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.input')
+  assert.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.input')
 end
 
 function InputFake:enter_input(input)
@@ -184,9 +184,9 @@ describe('jump_to_target', function()
     -- WHEN we call jump_to_target
     please.jump_to_target()
     -- THEN the BUILD file containing the build target for the file is opened
-    assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
+    assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
-    assert.are.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
+    assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
 
     teardown_tree()
   end)
@@ -208,9 +208,9 @@ describe('jump_to_target', function()
     -- WHEN we select the jump action
     select_fake:choose_item('Jump to //:foo1_and_foo2')
     -- THEN the BUILD file is opened again
-    assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
+    assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target again
-    assert.are.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
+    assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
 
     teardown_tree()
   end)
@@ -229,9 +229,9 @@ describe('jump_to_target', function()
     -- WHEN we select one of the targets
     select_fake:choose_item('//:foo1_and_foo2')
     -- THEN the BUILD file containing the chosen build target is opened
-    assert.are.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
+    assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
-    assert.are.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
+    assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
 
     teardown_tree()
   end)
@@ -753,8 +753,8 @@ describe('yank', function()
       -- WHEN we call yank
       please.yank()
       -- THEN the label of the target which the file is an input for is yanked into the " and * registers
-      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
-      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
+      assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
+      assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
 
       teardown_tree()
     end)
@@ -777,8 +777,8 @@ describe('yank', function()
       -- WHEN we select the yank action
       select_fake:choose_item('Yank //:foo1_and_foo2')
       -- THEN the label is yanked again
-      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
-      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
+      assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
+      assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
 
       teardown_tree()
     end)
@@ -797,8 +797,8 @@ describe('yank', function()
       -- WHEN we select one of the labels
       select_fake:choose_item('//:foo1_and_foo2')
       -- THEN the label is yanked into the " and * registers
-      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
-      assert.are.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
+      assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
+      assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
 
       teardown_tree()
     end)
@@ -816,8 +816,8 @@ describe('yank', function()
       -- THEN the target's label is yanked into the " and * register
       local unnamed = vim.fn.getreg('"')
       local star = vim.fn.getreg('*')
-      assert.are.equal('//:foo1', unnamed, 'incorrect value in " register')
-      assert.are.equal('//:foo1', star, 'incorrect value in * register')
+      assert.equal('//:foo1', unnamed, 'incorrect value in " register')
+      assert.equal('//:foo1', star, 'incorrect value in * register')
 
       teardown_tree()
     end)
@@ -841,8 +841,8 @@ describe('yank', function()
       -- WHEN we select the yank action
       select_fake:choose_item('Yank //:foo1')
       -- THEN the label is yanked again
-      assert.are.equal('//:foo1', vim.fn.getreg('"'), 'incorrect value in " register')
-      assert.are.equal('//:foo1', vim.fn.getreg('*'), 'incorrect value in * register')
+      assert.equal('//:foo1', vim.fn.getreg('"'), 'incorrect value in " register')
+      assert.equal('//:foo1', vim.fn.getreg('*'), 'incorrect value in * register')
 
       teardown_tree()
     end)

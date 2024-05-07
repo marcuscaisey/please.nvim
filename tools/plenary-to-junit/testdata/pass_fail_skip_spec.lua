@@ -6,11 +6,11 @@ describe('describe 1', function()
   end)
 
   it('asserts with no message', function()
-    assert.are.equal(1, 2)
+    assert.equal(1, 2)
   end)
 
   it('asserts with message', function()
-    assert.are.equal(1, 2, 'failure message')
+    assert.equal(1, 2, 'failure message')
   end)
 
   pending('skips', function()

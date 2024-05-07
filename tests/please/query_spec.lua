@@ -19,7 +19,7 @@ describe('whatinputs', function()
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
-    assert.are.same({ '//foo:foo' }, labels, 'incorrect labels')
+    assert.same({ '//foo:foo' }, labels, 'incorrect labels')
 
     teardown_tree()
   end)
@@ -41,7 +41,7 @@ describe('whatinputs', function()
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
-    assert.are.same({ '//foo:foo' }, labels, 'incorrect labels')
+    assert.same({ '//foo:foo' }, labels, 'incorrect labels')
 
     teardown_tree()
   end)
@@ -67,7 +67,7 @@ describe('whatinputs', function()
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(err, 'expected no error')
-    assert.are.same({ '//foo:foo1', '//foo:foo2' }, labels, 'incorrect labels')
+    assert.same({ '//foo:foo1', '//foo:foo2' }, labels, 'incorrect labels')
 
     teardown_tree()
   end)
@@ -86,8 +86,8 @@ describe('whatinputs', function()
     assert.is_nil(labels, 'expected no labels')
     assert.not_nil(err, 'expected error')
     -- TODO: should add test helpers for these checks
-    assert.are.equal('string', type(err), 'expected error to be string')
-    assert.is_truthy(
+    assert.equal('string', type(err), 'expected error to be string')
+    assert.truthy(
       ---@diagnostic disable-next-line: need-check-nil
       err:match("doesn't exist"),
       string.format([[expected error to contain "doesn't exist", got %s]], err)
@@ -110,9 +110,9 @@ describe('whatinputs', function()
 
     assert.is_nil(labels, 'expected no labels')
     assert.not_nil(err, 'expected error')
-    assert.are.equal('string', type(err), 'expected error to be string')
+    assert.equal('string', type(err), 'expected error to be string')
     ---@diagnostic disable-next-line: need-check-nil
-    assert.is_truthy(err:match('not a source'), string.format('expected error to contain "not a source", got %s', err))
+    assert.truthy(err:match('not a source'), string.format('expected error to contain "not a source", got %s', err))
 
     teardown_tree()
   end)
@@ -180,7 +180,7 @@ describe('is_target_sandboxed', function()
 
         assert.is_nil(err, 'expected no error')
         local msg = table.concat({ 'expected target to', tc.expected and 'be sandboxed ' or 'not be sandboxed' }, ' ')
-        assert.are.equal(tc.expected, actual, msg)
+        assert.equal(tc.expected, actual, msg)
       end)
     end
   end

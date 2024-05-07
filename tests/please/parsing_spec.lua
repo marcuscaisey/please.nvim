@@ -148,15 +148,15 @@ describe('locate_build_target', function()
       local filepath, position, err = parsing.locate_build_target(root, case.label)
 
       if case.expected_filepath then
-        assert.are.equal(root .. '/' .. case.expected_filepath, filepath, 'incorrect filepath')
+        assert.equal(root .. '/' .. case.expected_filepath, filepath, 'incorrect filepath')
       end
 
       if case.expected_position then
-        assert.are.same(case.expected_position, position, 'incorrect position')
+        assert.same(case.expected_position, position, 'incorrect position')
       end
 
       if case.expected_err then
-        assert.are.equal(case.expected_err, err, 'incorrect error')
+        assert.equal(case.expected_err, err, 'incorrect error')
         assert.is_nil(filepath, 'expected no filepath')
         assert.is_nil(position, 'expected no position')
       else
@@ -185,7 +185,7 @@ describe('get_test_at_cursor', function()
         local test, err = parsing.get_test_at_cursor()
 
         assert.is_nil(err, 'expected no error to be returned')
-        assert.are.same(tc.expected_test, test, 'incorrect test returned')
+        assert.same(tc.expected_test, test, 'incorrect test returned')
 
         teardown_tree()
       end)
@@ -1183,7 +1183,7 @@ describe('get_test_at_cursor', function()
 
     local tests, err = parsing.get_test_at_cursor()
 
-    assert.are.equal(err, 'finding tests is not supported for ruby files')
+    assert.equal(err, 'finding tests is not supported for ruby files')
     assert.is_nil(tests, 'expected no tests to be returned')
 
     teardown_tree()
@@ -1203,7 +1203,7 @@ describe('get_test_at_cursor', function()
 
     local tests, err = parsing.get_test_at_cursor()
 
-    assert.are.equal(err, 'cursor is not in a test')
+    assert.equal(err, 'cursor is not in a test')
     assert.is_nil(tests, 'expected no tests to be returned')
 
     teardown_tree()
@@ -1220,15 +1220,15 @@ describe('get_target_at_cursor', function()
     local label, rule, err = parsing.get_target_at_cursor(root)
 
     if case.expected_label then
-      assert.are.equal(case.expected_label, label, 'incorrect label')
+      assert.equal(case.expected_label, label, 'incorrect label')
     end
     if case.expected_rule then
-      assert.are.equal(case.expected_rule, rule, 'incorrect rule')
+      assert.equal(case.expected_rule, rule, 'incorrect rule')
     end
 
     if case.expected_err then
       assert.not_nil(err, 'expected error')
-      assert.are.equal(case.expected_err, err, 'incorrect error')
+      assert.equal(case.expected_err, err, 'incorrect error')
       assert.is_nil(label, 'expected no label')
       assert.is_nil(rule, 'expected no rule')
     else
