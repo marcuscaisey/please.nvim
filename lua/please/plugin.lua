@@ -45,6 +45,7 @@ local function create_user_command()
   }
   local cmd_name_to_opts = {
     test = { 'under_cursor' },
+    debug = { 'under_cursor' },
   }
 
   command.create_user_command(cmds, cmd_name_to_opts)

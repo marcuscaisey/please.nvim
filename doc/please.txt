@@ -75,6 +75,9 @@ command to get you started.
   vim.keymap.set('n', '<leader>pr', require('please').run)
   vim.keymap.set('n', '<leader>py', require('please').yank)
   vim.keymap.set('n', '<leader>pd', require('please').debug)
+  vim.keymap.set('n', '<leader>pcd', function()
+    require('please').debug({ under_cursor = true })
+  end)
   vim.keymap.set('n', '<leader>pa', require('please').action_history)
   vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
 <
@@ -133,7 +136,7 @@ please.yank()                                                      *please.yank*
     current file as an input.
 
 
-please.debug()                                                    *please.debug*
+please.debug({opts})                                              *please.debug*
     If the current file is a `BUILD` file, debug the target which is under the
     cursor. Otherwise, debug the target which takes the current file as an
     input.
@@ -142,6 +145,14 @@ please.debug()                                                    *please.debug*
     This is supported for the following languages:
     - Go (Delve)
     - Python (debugpy)
+
+    Optionally (when in a source file), you can debug only the test which is
+    under the cursor. The supported languages and test types are the same as
+    for the `please.test`.
+
+    Parameters: ~
+        {opts} (table|nil) available options
+          * {under_cursor} (boolean): debug the test under the cursor
 
 
 please.action_history()                                  *please.action_history*

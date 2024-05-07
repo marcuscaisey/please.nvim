@@ -88,7 +88,7 @@ local function target_debug_directory(root, label)
   return future.vim.fs.joinpath(root, 'plz-out/debug', pkg)
 end
 
-local function launch_delve(root, label)
+local function launch_delve(root, label, test_selector)
   logging.log_call('launch_delve')
 
   local substitutePath = {
@@ -118,6 +118,10 @@ local function launch_delve(root, label)
     })
   end
 
+  local extra_args = {}
+  if test_selector then
+    table.insert(extra_args, test_selector)
+  end
   dap.run({
     type = 'plz',
     name = 'Launch plz debug with Delve',
@@ -126,10 +130,11 @@ local function launch_delve(root, label)
     substitutePath = substitutePath,
     root = root,
     label = label,
+    extra_args = extra_args,
   })
 end
 
-local function launch_debugpy(root, label)
+local function launch_debugpy(root, label, test_selector)
   logging.log_call('launch_debugpy')
 
   local relative_sandbox_location = '.cache/pex/pex-debug'
@@ -176,6 +181,10 @@ local function launch_debugpy(root, label)
     }
   end
 
+  local extra_args = { '-o=python.debugger:debugpy' }
+  if test_selector then
+    table.insert(extra_args, test_selector)
+  end
   dap.run({
     type = 'plz',
     name = 'Launch plz debug with debugpy',
@@ -185,7 +194,7 @@ local function launch_debugpy(root, label)
     justMyCode = false,
     root = root,
     label = label,
-    extra_args = { '-o=python.debugger:debugpy' },
+    extra_args = extra_args,
   })
 end
 

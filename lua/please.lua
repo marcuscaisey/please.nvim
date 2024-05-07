@@ -69,6 +69,9 @@
 ---  vim.keymap.set('n', '<leader>pr', require('please').run)
 ---  vim.keymap.set('n', '<leader>py', require('please').yank)
 ---  vim.keymap.set('n', '<leader>pd', require('please').debug)
+---  vim.keymap.set('n', '<leader>pcd', function()
+---    require('please').debug({ under_cursor = true })
+---  end)
 ---  vim.keymap.set('n', '<leader>pa', require('please').action_history)
 ---  vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
 ---<
@@ -142,6 +145,15 @@ local actions = {
     runner:on_success(function()
       runner:minimise()
       launcher(root, label)
+    end)
+    runner:start()
+  end,
+  debug_selector = function(root, label, lang, test_selector)
+    local launcher = debug.launchers[lang] -- FIXME: error if this is nil
+    local runner = new_runner(root, { 'build', '--config', 'dbg', label })
+    runner:on_success(function()
+      runner:minimise()
+      launcher(root, label, test_selector)
     end)
     runner:start()
   end,
@@ -460,30 +472,51 @@ end
 ---This is supported for the following languages:
 ---- Go (Delve)
 ---- Python (debugpy)
-function please.debug()
+---
+---Optionally (when in a source file), you can debug only the test which is
+---under the cursor. The supported languages and test types are the same as
+---for the `please.test`.
+---@param opts table|nil available options
+---  * {under_cursor} (boolean): debug the test under the cursor
+function please.debug(opts)
   logging.log_call('please.debug')
 
   logging.log_errors('Failed to debug', function()
+    opts = opts or {}
+    assert(validate_opts(opts, { 'under_cursor' }))
+
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
 
-    local labels, lang
-    if vim.bo.filetype == 'please' then
-      local label, rule = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
-      lang = rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx which feels pretty safe
+    if opts.under_cursor then
+      local test = assert(parsing.get_test_at_cursor())
+      local labels = assert(query.whatinputs(root, filepath))
+      local lang = vim.bo.filetype
+      select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
+        run_and_save_action(root, {
+          name = 'debug_selector',
+          args = { root, label, lang, test.selector },
+          description = string.format('Debug %s %s', label, test.name),
+        })
+      end)
     else
-      labels = assert(query.whatinputs(root, filepath))
-      lang = vim.bo.filetype
+      local labels, lang
+      if vim.bo.filetype == 'please' then
+        local label, rule = assert(parsing.get_target_at_cursor(root))
+        labels = { label }
+        lang = rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx which feels pretty safe
+      else
+        labels = assert(query.whatinputs(root, filepath))
+        lang = vim.bo.filetype
+      end
+      select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
+        run_and_save_action(root, {
+          name = 'debug',
+          args = { root, label, lang },
+          description = 'Debug ' .. label,
+        })
+      end)
     end
-
-    select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
-      run_and_save_action(root, {
-        name = 'debug',
-        args = { root, label, lang },
-        description = 'Debug ' .. label,
-      })
-    end)
   end)
 end
 
