@@ -1,4 +1,3 @@
-local future = require('please.future')
 local logging = require('please.logging')
 local plz = require('please.plz')
 
@@ -13,8 +12,8 @@ vim.cmd.highlight('PleaseNvimRunnerBannerHelp guifg=Pink')
 ---@field private _bufnr integer?
 ---@field private _winid integer?
 ---@field private _stopped boolean
----@field private _cmd_system_obj vim.SystemObj?
----@field private _cmd_exited boolean
+---@field private _job_id integer?
+---@field private _job_exited boolean
 ---@field private _on_success fun()?
 ---@field private _minimised boolean
 ---@field private _prev_cursor integer[]
@@ -147,47 +146,46 @@ function Runner:start()
   self._winid = open_win(self._bufnr)
   local term_chan_id = vim.api.nvim_open_term(self._bufnr, {})
 
+  ---@param data string
   local function print_to_term(data)
-    if data then
-      vim.schedule(function()
-        local data = data:gsub('\n', '\r\n')
-        vim.api.nvim_chan_send(term_chan_id, data)
-      end)
-    end
+    vim.schedule(function()
+      vim.api.nvim_chan_send(term_chan_id, data)
+    end)
   end
 
   local cmd_string = table.concat({ plz, unpack(self._args) }, ' ')
   print_to_term(format('${BLUE}%s\n\n', cmd_string))
 
-  ---@param out vim.SystemCompleted
-  local function on_exit(out)
-    self._cmd_exited = true
-    if self._minimised and not self._stopped then
-      logging.info('%s exited with code %d', cmd_string, out.code)
-    end
-    local colour
-    if out.code == 0 then
-      colour = '${GREEN}'
-      if self._on_success then
-        vim.schedule(self._on_success)
+  self._job_id = vim.fn.jobstart({ plz, unpack({ '--repo_root', self._root, unpack(self._args) }) }, {
+    pty = true,
+    width = vim.api.nvim_win_get_width(self._winid),
+    height = vim.api.nvim_win_get_height(self._winid),
+    ---@param data string[]
+    on_stdout = function(_, data, _)
+      local eof = vim.deep_equal(data, { '' })
+      if eof then
+        return
       end
-    else
-      colour = '${RED}'
-    end
-    print_to_term(format('\n' .. colour .. 'Exited with code %d', out.code))
-  end
-  self._cmd_system_obj = future.vim.system(
-    { plz, unpack({ '--repo_root', self._root, '--interactive_output', '--colour', unpack(self._args) }) },
-    {
-      stdout = function(_, data)
-        print_to_term(data)
-      end,
-      stderr = function(_, data)
-        print_to_term(data)
-      end,
-    },
-    on_exit
-  )
+      print_to_term(table.concat(data, '\n'))
+    end,
+    ---@param code integer
+    on_exit = function(_, code, _)
+      self._job_exited = true
+      if self._minimised and not self._stopped then
+        logging.info('%s exited with code %d', cmd_string, code)
+      end
+      local colour
+      if code == 0 then
+        colour = '${GREEN}'
+        if self._on_success then
+          vim.schedule(self._on_success)
+        end
+      else
+        colour = '${RED}'
+      end
+      print_to_term(format('\n' .. colour .. 'Exited with code %d', code))
+    end,
+  })
 
   move_cursor_to_last_line()
 
@@ -224,11 +222,11 @@ end
 
 ---Stops the command.
 function Runner:stop()
-  if not self._cmd_system_obj then
+  if not self._job_id then
     error('stop called on Runner that has not been started')
   end
   self._stopped = true
-  self._cmd_system_obj:kill(15) -- SIGTERM
+  vim.fn.jobstop(self._job_id)
 end
 
 ---Minimises the floating window.
@@ -246,7 +244,7 @@ function Runner:maximise()
   end
   self._minimised = false
   self._winid = open_win(self._bufnr)
-  if self._cmd_exited then
+  if self._job_exited then
     vim.api.nvim_win_set_cursor(0, self._prev_cursor)
   else
     move_cursor_to_last_line()
