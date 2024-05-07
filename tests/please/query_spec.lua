@@ -87,11 +87,12 @@ describe('whatinputs', function()
     assert.not_nil(err, 'expected error')
     -- TODO: should add test helpers for these checks
     assert.equal('string', type(err), 'expected error to be string')
-    assert.truthy(
-      ---@diagnostic disable-next-line: need-check-nil
-      err:match("doesn't exist"),
-      string.format([[expected error to contain "doesn't exist", got %s]], err)
-    )
+    if err then
+      assert.truthy(
+        err:match("doesn't exist"),
+        string.format([[expected error to contain "doesn't exist", got %s]], err)
+      )
+    end
 
     teardown_tree()
   end)
@@ -111,8 +112,9 @@ describe('whatinputs', function()
     assert.is_nil(labels, 'expected no labels')
     assert.not_nil(err, 'expected error')
     assert.equal('string', type(err), 'expected error to be string')
-    ---@diagnostic disable-next-line: need-check-nil
-    assert.truthy(err:match('not a source'), string.format('expected error to contain "not a source", got %s', err))
+    if err then
+      assert.truthy(err:match('not a source'), string.format('expected error to contain "not a source", got %s', err))
+    end
 
     teardown_tree()
   end)

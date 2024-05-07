@@ -150,8 +150,8 @@ local actions = {
   end,
 }
 
----@diagnostic disable-next-line: assign-type-mismatch
-local data_path = vim.fn.stdpath('data') ---@type string
+local data_path = vim.fn.stdpath('data')
+---@cast data_path string
 local action_history_path = future.vim.fs.joinpath(data_path, 'please-history.json')
 
 ---@return table<string, any>

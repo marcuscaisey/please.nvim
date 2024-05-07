@@ -84,13 +84,11 @@ function parsing.locate_build_target(root, label)
     if stat and stat.type == 'file' then
       local filepath = vim.fs.normalize(build_path)
 
-      ---@diagnostic disable-next-line: param-type-mismatch
       local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
       local parser = vim.treesitter.get_parser(bufnr, 'python')
       local tree = parser:parse()[1]
       local query = vim.treesitter.query.parse('python', make_build_target_query(target))
 
-      ---@diagnostic disable-next-line: param-type-mismatch
       for id, node in query:iter_captures(tree:root(), bufnr, nil, nil) do
         local name = query.captures[id]
         if name == 'target' then
@@ -176,7 +174,6 @@ end
 ---     Requires treesitter >= 0.20.9.
 ---@return fun(): table<string, TSNode>?
 local function iter_match_captures(query, node, opts)
-  ---@diagnostic disable-next-line: param-type-mismatch
   local iter = query:iter_matches(node, 0, nil, nil, opts)
   return function()
     local _, match = iter()
@@ -536,7 +533,6 @@ function parsing.get_target_at_cursor(root)
   local tree = vim.treesitter.get_parser(0, 'python'):parse()[1]
   local query = vim.treesitter.query.parse('python', make_build_target_query())
 
-  ---@diagnostic disable-next-line: param-type-mismatch
   for _, match in query:iter_matches(tree:root(), 0, nil, nil) do
     local captures = extract_captures_from_match(match, query)
     if cursor_in_node_range(captures.target) then
