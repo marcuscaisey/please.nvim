@@ -16,7 +16,7 @@ vim.cmd.highlight('PleaseNvimRunnerBannerHelp guifg=Pink')
 ---@field private _job_exited boolean
 ---@field private _on_success fun()?
 ---@field private _minimised boolean
----@field private _prev_cursor integer[]
+---@field private _prev_cursor_position integer[]
 local Runner = {}
 Runner.__index = Runner
 
@@ -31,7 +31,7 @@ function Runner:new(root, args)
     _stopped = false,
     _minimised = false,
     _cmd_exited = false,
-    _prev_cursor = { 1, 0 },
+    _prev_cursor_position = { 1, 0 },
   }
   return setmetatable(runner, Runner)
 end
@@ -213,7 +213,7 @@ function Runner:start()
     buffer = self._bufnr,
     callback = function()
       self._minimised = true
-      self._prev_cursor = vim.api.nvim_win_get_cursor(0)
+      self._prev_cursor_position = vim.api.nvim_win_get_cursor(0)
     end,
   })
 
@@ -245,7 +245,7 @@ function Runner:maximise()
   self._minimised = false
   self._winid = open_win(self._bufnr)
   if self._job_exited then
-    vim.api.nvim_win_set_cursor(0, self._prev_cursor)
+    vim.api.nvim_win_set_cursor(0, self._prev_cursor_position)
   else
     move_cursor_to_last_line()
   end

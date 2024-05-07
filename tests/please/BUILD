@@ -3,7 +3,6 @@ neovim_test(
     nvim = "//third_party/neovim:toolchain|nvim",
     test_file = "parsing_spec.lua",
     deps = [
-        "//lua/please:cursor",
         "//lua/please:parsing",
         "//tests/utils:temptree",
     ],

@@ -9,7 +9,6 @@ neovim_test(
     test_file = "please_spec.lua",
     deps = [
         "//:please",
-        "//lua/please:cursor",
         "//tests/utils:temptree",
     ],
 )

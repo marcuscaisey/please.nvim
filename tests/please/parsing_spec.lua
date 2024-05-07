@@ -1,5 +1,4 @@
 local temptree = require('tests.utils.temptree')
-local cursor = require('please.cursor')
 local parsing = require('please.parsing')
 
 describe('locate_build_target', function()
@@ -90,7 +89,7 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_position = { 1, 1 },
+      expected_position = { 1, 0 },
     },
     {
       name = 'should return position for target in the middle of a BUILD file',
@@ -110,7 +109,7 @@ describe('locate_build_target', function()
         'foo2.txt',
       },
       label = '//:foo2',
-      expected_position = { 6, 1 },
+      expected_position = { 6, 0 },
     },
     {
       name = 'should return position for target which is indented',
@@ -124,7 +123,7 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_position = { 1, 3 },
+      expected_position = { 1, 2 },
     },
     {
       name = 'should return first line and column if target cannot be found in BUILD file',
@@ -138,7 +137,7 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_position = { 1, 1 },
+      expected_position = { 1, 0 },
     },
   }
 
@@ -170,7 +169,7 @@ describe('locate_build_target', function()
 end)
 
 describe('get_test_at_cursor', function()
-  ---@alias test_case {name:string, filetype:string, file:string, cursor:please.cursor.Position, expected_test:{name:string, selector:string}}
+  ---@alias test_case {name:string, filetype:string, file:string, cursor_position:integer[], expected_test:{name:string, selector:string}}
   ---@param test_cases test_case[]
   local function run_tests(test_cases)
     for _, tc in ipairs(test_cases) do
@@ -181,7 +180,7 @@ describe('get_test_at_cursor', function()
 
         vim.cmd('edit ' .. root .. '/test_file')
         vim.api.nvim_set_option_value('filetype', tc.filetype, { buf = 0 })
-        cursor.set(tc.cursor)
+        vim.api.nvim_win_set_cursor(0, tc.cursor_position)
 
         local test, err = parsing.get_test_at_cursor()
 
@@ -207,7 +206,7 @@ describe('get_test_at_cursor', function()
               t.Fatal("oh no")
           }
         ]], -- go
-        cursor = { row = 2, col = 5 }, -- inside TestFunction1
+        cursor_position = { 2, 4 }, -- inside TestFunction1
         expected_test = {
           name = 'TestFunction1',
           selector = '^TestFunction1$',
@@ -227,7 +226,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 3, col = 9 }, -- inside PascalCaseName
+        cursor_position = { 3, 8 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithSubtests/PascalCaseName',
           selector = '^TestFunctionWithSubtests$/^PascalCaseName$',
@@ -247,7 +246,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 7, col = 9 }, -- inside snake case name
+        cursor_position = { 7, 8 }, -- inside snake case name
         expected_test = {
           name = 'TestFunctionWithSubtests/snake_case_name',
           selector = '^TestFunctionWithSubtests$/^snake_case_name$',
@@ -269,7 +268,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
+        cursor_position = { 4, 12 }, -- inside NestedSubtest1
         expected_test = {
           name = 'TestFunctionWithNestedSubtests/Subtest/NestedSubtest1',
           selector = '^TestFunctionWithNestedSubtests$/^Subtest$/^NestedSubtest1$',
@@ -304,7 +303,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 8, col = 13 }, -- inside PascalCaseName
+        cursor_position = { 8, 12 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithTableTests/PascalCaseName',
           selector = '^TestFunctionWithTableTests$/^PascalCaseName$',
@@ -339,7 +338,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 13, col = 13 }, -- inside snake case name
+        cursor_position = { 13, 12 }, -- inside snake case name
         expected_test = {
           name = 'TestFunctionWithTableTests/snake_case_name',
           selector = '^TestFunctionWithTableTests$/^snake_case_name$',
@@ -374,7 +373,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 21, col = 13 }, -- inside t.Run
+        cursor_position = { 21, 12 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithTableTests',
           selector = '^TestFunctionWithTableTests$',
@@ -409,7 +408,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 8, col = 13 }, -- inside PascalCaseName
+        cursor_position = { 8, 12 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestFunctionWithTableTestsVar/PascalCaseName',
           selector = '^TestFunctionWithTableTestsVar$/^PascalCaseName$',
@@ -433,7 +432,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 10, col = 13 }, -- inside t.Run
+        cursor_position = { 10, 12 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithEmptyTableTestCases',
           selector = '^TestFunctionWithEmptyTableTestCases$',
@@ -474,7 +473,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 8, col = 13 }, -- inside TestCase1
+        cursor_position = { 8, 12 }, -- inside TestCase1
         expected_test = {
           name = 'TestFunctionWithSubtestsNestedInsideTableTest/TestCase1',
           selector = '^TestFunctionWithSubtestsNestedInsideTableTest$/^TestCase1$',
@@ -515,7 +514,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 22, col = 17 }, -- inside Subtest1
+        cursor_position = { 22, 16 }, -- inside Subtest1
         expected_test = {
           name = 'TestFunctionWithSubtestsNestedInsideTableTest',
           selector = '^TestFunctionWithSubtestsNestedInsideTableTest$',
@@ -556,7 +555,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 9, col = 17 }, -- inside TestCase1
+        cursor_position = { 9, 16 }, -- inside TestCase1
         expected_test = {
           name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
           selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase1$',
@@ -597,7 +596,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 22, col = 17 }, -- inside t.Run
+        cursor_position = { 22, 16 }, -- inside t.Run
         expected_test = {
           name = 'TestFunctionWithTableTestsNestedInsideSubtest/Subtest1',
           selector = '^TestFunctionWithTableTestsNestedInsideSubtest$/^Subtest1$',
@@ -615,7 +614,7 @@ describe('get_test_at_cursor', function()
               s.Fail("oh no")
           }
         ]], -- go
-        cursor = { row = 2, col = 5 }, -- inside TestMethod1
+        cursor_position = { 2, 4 }, -- inside TestMethod1
         expected_test = {
           name = 'TestMethod1',
           selector = '/^TestMethod1$',
@@ -633,7 +632,7 @@ describe('get_test_at_cursor', function()
               s.Fail("oh no")
           }
         ]], -- go
-        cursor = { row = 6, col = 5 }, -- inside TestMethod1
+        cursor_position = { 6, 4 }, -- inside TestMethod1
         expected_test = {
           name = 'TestSuite/TestMethod1',
           selector = '^TestSuite$/^TestMethod1$',
@@ -653,7 +652,7 @@ describe('get_test_at_cursor', function()
               s.Fail("oh no")
           }
         ]], -- go
-        cursor = { row = 8, col = 5 }, -- inside TestMethod2
+        cursor_position = { 8, 4 }, -- inside TestMethod2
         expected_test = {
           name = 'TestSuiteWithEmbeddedPointer/TestMethod2',
           selector = '^TestSuiteWithEmbeddedPointer$/^TestMethod2$',
@@ -671,7 +670,7 @@ describe('get_test_at_cursor', function()
               s.Fail("oh no")
           }
         ]], -- go
-        cursor = { row = 6, col = 5 }, -- inside TestMethod3
+        cursor_position = { 6, 4 }, -- inside TestMethod3
         expected_test = {
           name = 'TestSuiteWithNew/TestMethod3',
           selector = '^TestSuiteWithNew$/^TestMethod3$',
@@ -689,7 +688,7 @@ describe('get_test_at_cursor', function()
               s.Fail("oh no")
           }
         ]], -- go
-        cursor = { row = 6, col = 5 }, -- inside TestMethod5
+        cursor_position = { 6, 4 }, -- inside TestMethod5
         expected_test = {
           name = 'TestSuite/TestMethod5',
           selector = '^TestSuite$/^TestMethod5$',
@@ -711,7 +710,7 @@ describe('get_test_at_cursor', function()
               s.Fail("oh no")
           }
         ]], -- go
-        cursor = { row = 10, col = 5 }, -- inside TestMethod6
+        cursor_position = { 10, 4 }, -- inside TestMethod6
         expected_test = {
           name = 'TestMethod6',
           selector = '/^TestMethod6$',
@@ -731,7 +730,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 3, col = 9 }, -- inside PascalCaseName
+        cursor_position = { 3, 8 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithSubtests/PascalCaseName',
           selector = '/^TestMethodWithSubtests$/^PascalCaseName$',
@@ -751,7 +750,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 7, col = 9 }, -- inside snake case name
+        cursor_position = { 7, 8 }, -- inside snake case name
         expected_test = {
           name = 'TestMethodWithSubtests/snake_case_name',
           selector = '/^TestMethodWithSubtests$/^snake_case_name$',
@@ -773,7 +772,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 4, col = 13 }, -- inside NestedSubtest1
+        cursor_position = { 4, 12 }, -- inside NestedSubtest1
         expected_test = {
           name = 'TestMethodWithNestedSubtests/Subtest/NestedSubtest1',
           selector = '/^TestMethodWithNestedSubtests$/^Subtest$/^NestedSubtest1$',
@@ -808,7 +807,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 8, col = 13 }, -- inside PascalCaseName
+        cursor_position = { 8, 12 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithTableTests/PascalCaseName',
           selector = '/^TestMethodWithTableTests$/^PascalCaseName$',
@@ -843,7 +842,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 13, col = 13 }, -- inside snake case name
+        cursor_position = { 13, 12 }, -- inside snake case name
         expected_test = {
           name = 'TestMethodWithTableTests/snake_case_name',
           selector = '/^TestMethodWithTableTests$/^snake_case_name$',
@@ -878,7 +877,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 21, col = 13 }, -- inside t.Run
+        cursor_position = { 21, 12 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithTableTests',
           selector = '/^TestMethodWithTableTests$',
@@ -913,7 +912,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 8, col = 13 }, -- inside PascalCaseName
+        cursor_position = { 8, 12 }, -- inside PascalCaseName
         expected_test = {
           name = 'TestMethodWithVarTableTests/PascalCaseName',
           selector = '/^TestMethodWithVarTableTests$/^PascalCaseName$',
@@ -937,7 +936,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 10, col = 13 }, -- inside t.Run
+        cursor_position = { 10, 12 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithEmptyTableTestCases',
           selector = '/^TestMethodWithEmptyTableTestCases$',
@@ -978,7 +977,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 8, col = 13 }, -- inside TestCase1
+        cursor_position = { 8, 12 }, -- inside TestCase1
         expected_test = {
           name = 'TestMethodWithSubtestsNestedInsideTableTest/TestCase1',
           selector = '/^TestMethodWithSubtestsNestedInsideTableTest$/^TestCase1$',
@@ -1019,7 +1018,7 @@ describe('get_test_at_cursor', function()
               }
           }
         ]], -- go
-        cursor = { row = 22, col = 17 }, -- inside Subtest1
+        cursor_position = { 22, 16 }, -- inside Subtest1
         expected_test = {
           name = 'TestMethodWithSubtestsNestedInsideTableTest',
           selector = '/^TestMethodWithSubtestsNestedInsideTableTest$',
@@ -1060,7 +1059,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 9, col = 17 }, -- inside TestCase1
+        cursor_position = { 9, 16 }, -- inside TestCase1
         expected_test = {
           name = 'TestMethodWithTableTestsNestedInsideSubtest/Subtest1/TestCase1',
           selector = '/^TestMethodWithTableTestsNestedInsideSubtest$/^Subtest1$/^TestCase1$',
@@ -1101,7 +1100,7 @@ describe('get_test_at_cursor', function()
               })
           }
         ]], -- go
-        cursor = { row = 22, col = 17 }, -- inside t.Run
+        cursor_position = { 22, 16 }, -- inside t.Run
         expected_test = {
           name = 'TestMethodWithTableTestsNestedInsideSubtest/Subtest1',
           selector = '/^TestMethodWithTableTestsNestedInsideSubtest$/^Subtest1$',
@@ -1126,7 +1125,7 @@ describe('get_test_at_cursor', function()
               def test_method_2(self):
                   self.fail("oh no")
         ]], -- python
-        cursor = { row = 4, col = 9 }, -- inside test_method_1
+        cursor_position = { 4, 8 }, -- inside test_method_1
         expected_test = {
           name = 'TestCase.test_method_1',
           selector = 'TestCase.test_method_1',
@@ -1145,7 +1144,7 @@ describe('get_test_at_cursor', function()
               def test_method_with_decorator(self):
                   self.fail("oh no")
         ]], -- python
-        cursor = { row = 8, col = 9 }, -- inside test_method_with_decorator
+        cursor_position = { 8, 8 }, -- inside test_method_with_decorator
         expected_test = {
           name = 'TestCase.test_method_with_decorator',
           selector = 'TestCase.test_method_with_decorator',
@@ -1164,7 +1163,7 @@ describe('get_test_at_cursor', function()
               def test_method_with_decorator_with_params(self):
                   self.fail("oh no")
         ]], -- python
-        cursor = { row = 8, col = 9 }, -- inside test_method_with_decorator_with_params
+        cursor_position = { 8, 8 }, -- inside test_method_with_decorator_with_params
         expected_test = {
           name = 'TestCase.test_method_with_decorator_with_params',
           selector = 'TestCase.test_method_with_decorator_with_params',
@@ -1200,7 +1199,7 @@ describe('get_test_at_cursor', function()
     })
 
     vim.cmd('edit ' .. root .. '/' .. 'foo_test.go')
-    cursor.set({ row = 2, col = 5 })
+    vim.api.nvim_win_set_cursor(0, { 2, 4 })
 
     local tests, err = parsing.get_test_at_cursor()
 
@@ -1216,7 +1215,7 @@ describe('get_target_at_cursor', function()
     local root, teardown_tree = temptree.create(case.tree)
 
     vim.cmd('edit ' .. root .. '/' .. case.file)
-    cursor.set(case.cursor)
+    vim.api.nvim_win_set_cursor(0, case.cursor_position)
 
     local label, rule, err = parsing.get_target_at_cursor(root)
 
@@ -1251,15 +1250,15 @@ describe('get_target_at_cursor', function()
     local test_cases = {
       {
         name = 'first char',
-        cursor = { row = 1, col = 1 },
+        cursor_position = { 1, 0 },
       },
       {
         name = 'middle row',
-        cursor = { row = 2, col = 1 },
+        cursor_position = { 2, 0 },
       },
       {
         name = 'last char',
-        cursor = { row = 4, col = 1 },
+        cursor_position = { 4, 0 },
       },
     }
 
@@ -1268,7 +1267,7 @@ describe('get_target_at_cursor', function()
         run_test({
           tree = tree,
           file = 'BUILD',
-          cursor = case.cursor,
+          cursor_position = case.cursor_position,
           expected_label = '//:foo',
           expected_rule = 'export_file',
         })
@@ -1290,7 +1289,7 @@ describe('get_target_at_cursor', function()
     run_test({
       tree = tree,
       file = 'pkg/BUILD',
-      cursor = { row = 2, col = 1 },
+      cursor_position = { 2, 0 },
       expected_label = '//pkg:foo',
     })
   end)
@@ -1310,7 +1309,7 @@ describe('get_target_at_cursor', function()
           )]],
       },
       file = 'BUILD',
-      cursor = { row = 7, col = 4 },
+      cursor_position = { 7, 3 },
       expected_label = '//:foo2',
       expected_rule = 'export_file',
     })
@@ -1330,19 +1329,19 @@ describe('get_target_at_cursor', function()
     local test_cases = {
       {
         name = 'before first row',
-        cursor = { row = 1, col = 1 },
+        cursor_position = { 1, 0 },
       },
       {
         name = 'before first char',
-        cursor = { row = 2, col = 1 },
+        cursor_position = { 2, 0 },
       },
       {
         name = 'after last char',
-        cursor = { row = 5, col = 2 },
+        cursor_position = { 5, 1 },
       },
       {
         name = 'after last row',
-        cursor = { row = 6, col = 1 },
+        cursor_position = { 6, 0 },
       },
     }
 
@@ -1351,7 +1350,7 @@ describe('get_target_at_cursor', function()
         run_test({
           tree = tree,
           file = 'BUILD',
-          cursor = case.cursor,
+          cursor_position = case.cursor_position,
           expected_err = 'cursor is not in a build target definition',
         })
       end)
@@ -1368,7 +1367,7 @@ describe('get_target_at_cursor', function()
           )]],
       },
       file = 'BUILD',
-      cursor = { row = 1, col = 1 },
+      cursor_position = { 1, 0 },
       expected_label = '//:foo',
     })
   end)

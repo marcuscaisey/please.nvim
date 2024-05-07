@@ -1,5 +1,4 @@
 local logging = require('please.logging')
-local cursor = require('please.cursor')
 local future = require('please.future')
 
 vim.treesitter.language.register('python', 'please')
@@ -59,12 +58,18 @@ end
 -- TODO: should we get these from the .plzconfig? feels like it should be really rare that people change them
 local build_file_names = { 'BUILD', 'BUILD.plz' }
 
+local function ts_range_to_nvim_range(ts_start_row, ts_start_col)
+  -- treesitter ranges are (0, 0)-based
+  -- nvim ranges are (1, 0)-based
+  return { ts_start_row + 1, ts_start_col }
+end
+
 ---Returns the location of a build target. If the location of the target in the BUILD file can't be found (might be
----dynamically created), then position will be {1, 1}.
+---dynamically created), then position will be {1, 0}.
 ---@param root string an absolute path to the repo root
 ---@param label string: a build label of the form //path/to/pkg:target
 ---@return string?: an absolute path to the BUILD file
----@return number[]?: the position that the build target definition starts as a (1, 1)-indexed (line, col) tuple
+---@return number[]?: the position that the build target definition starts as a (1, 0)-based (line, col) tuple
 ---@return string|nil: error if any, this should be checked before using the other return values
 function parsing.locate_build_target(root, label)
   logging.log_call('parsing.locate_build_target')
@@ -90,11 +95,11 @@ function parsing.locate_build_target(root, label)
         local name = query.captures[id]
         if name == 'target' then
           local ts_start_row, ts_start_col = node:range()
-          return filepath, { ts_start_row + 1, ts_start_col + 1 }
+          return filepath, ts_range_to_nvim_range(ts_start_row, ts_start_col)
         end
       end
 
-      return filepath, { 1, 1 }
+      return filepath, { 1, 0 }
     end
   end
 
@@ -122,8 +127,8 @@ end
 ---@class please.parsing.Test
 ---@field name string
 ---@field selector string The string which should be passed to the test runner to run this test.
----@field start please.cursor.Position The start position of the test.
----@field end_ please.cursor.Position The end position of the test.
+---@field start integer[] The (1, 0)-based start position of the test.
+---@field end_ integer[] The (1, 0)-based end position of the test.
 ---@field children please.parsing.Test[]
 local Test = {}
 
@@ -138,19 +143,19 @@ function Test:new(name, selector, node, children)
   return setmetatable({
     name = name,
     selector = selector,
-    start = { row = start_row + 1, col = start_col + 1 },
-    end_ = { row = end_row + 1, col = end_col },
+    start = ts_range_to_nvim_range(start_row, start_col),
+    end_ = ts_range_to_nvim_range(end_row, end_col),
     children = children or {},
   }, self)
 end
 
 ---Returns whether the test (including start and end) contains the given position.
----@param pos please.cursor.Position
+---@param pos integer[] {row, col}
 ---@return boolean
 function Test:contains(pos)
-  return (pos.row == self.start.row and self.start.col <= pos.col)
-    or (self.start.row < pos.row and pos.row < self.end_.row)
-    or (pos.row == self.end_.row and pos.col <= self.end_.col)
+  return (pos[1] == self.start[1] and self.start[2] <= pos[2])
+    or (self.start[1] < pos[1] and pos[1] < self.end_[1])
+    or (pos[1] == self.end_[1] and pos[2] <= self.end_[2])
 end
 
 ---Performs a pre-order depth traversal of the test tree, calling the given function with each test.
@@ -484,7 +489,6 @@ function parsing.get_test_at_cursor()
 
   check_parser_installed(vim.bo.filetype)
 
-  local current_pos = cursor.get()
   local root_node = vim.treesitter.get_node()
   while root_node and not parsers_by_root_node_type[root_node:type()] do
     root_node = root_node:parent()
@@ -500,6 +504,7 @@ function parsing.get_test_at_cursor()
   end
 
   local test ---@type please.parsing.Test
+  local current_pos = vim.api.nvim_win_get_cursor(0)
   parent_test:for_each(function(t)
     if t:contains(current_pos) then
       test = t

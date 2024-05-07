@@ -84,7 +84,6 @@ local parsing = require('please.parsing')
 local Runner = require('please.Runner')
 local logging = require('please.logging')
 local future = require('please.future')
-local cursor = require('please.cursor')
 local debug = require('please.debug')
 
 local please = {}
@@ -106,7 +105,7 @@ end
 local actions = {
   jump_to_target = function(filepath, position)
     vim.cmd('edit ' .. filepath)
-    cursor.set(position)
+    vim.api.nvim_win_set_cursor(0, position)
   end,
   build = function(root, label)
     new_runner(root, { 'build', label }):start()
@@ -292,7 +291,7 @@ function please.jump_to_target()
       logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
       run_and_save_action(root, {
         name = 'jump_to_target',
-        args = { target_filepath, { row = position[1], col = position[2] } },
+        args = { target_filepath, { position[1], position[2] } },
         description = 'Jump to ' .. label,
       })
     end)
