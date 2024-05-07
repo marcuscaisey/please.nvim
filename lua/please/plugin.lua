@@ -1,6 +1,5 @@
 local please = require('please')
 local command = require('please.command')
-local future = require('please.future')
 local logging = require('please.logging')
 local debug = require('please.debug')
 local popup = require('please.runners.popup')

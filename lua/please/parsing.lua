@@ -168,7 +168,7 @@ function Test:for_each(f)
 end
 
 ---Wrapper around TSNode:iter_matches which returns the captures for each match.
----@param query Query
+---@param query vim.treesitter.Query
 ---@param node TSNode
 ---@param opts table|nil Options:
 ---   - max_start_depth (integer) if non-zero, sets the maximum start depth

@@ -1227,7 +1227,7 @@ describe('get_target_at_cursor', function()
     end
 
     if case.expected_err then
-      assert.is_not_nil(err, 'expected error')
+      assert.not_nil(err, 'expected error')
       assert.are.equal(case.expected_err, err, 'incorrect error')
       assert.is_nil(label, 'expected no label')
       assert.is_nil(rule, 'expected no rule')

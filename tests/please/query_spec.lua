@@ -84,7 +84,7 @@ describe('whatinputs', function()
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(labels, 'expected no labels')
-    assert.is_not_nil(err, 'expected error')
+    assert.not_nil(err, 'expected error')
     -- TODO: should add test helpers for these checks
     assert.are.equal('string', type(err), 'expected error to be string')
     assert.is_truthy(
@@ -109,7 +109,7 @@ describe('whatinputs', function()
     local labels, err = query.whatinputs(repo_root, filepath)
 
     assert.is_nil(labels, 'expected no labels')
-    assert.is_not_nil(err, 'expected error')
+    assert.not_nil(err, 'expected error')
     assert.are.equal('string', type(err), 'expected error to be string')
     ---@diagnostic disable-next-line: need-check-nil
     assert.is_truthy(err:match('not a source'), string.format('expected error to contain "not a source", got %s', err))
