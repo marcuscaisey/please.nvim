@@ -93,4 +93,20 @@ function query.is_target_sandboxed(root, label)
   return output[1] == 'True'
 end
 
+---Wrapper around plz query config which returns the value of the given option.
+---@param root string: absolute path to the repo root
+---@param option string: option name
+---@return string?: value of the option
+---@return string?: error if any, this should be checked before using the result
+function query.config(root, option)
+  logging.log_call('query.config')
+
+  local output, err = exec_plz({ '--repo_root', root, 'query', 'config', option })
+  if err then
+    return nil, err
+  end
+
+  return output[1]
+end
+
 return query

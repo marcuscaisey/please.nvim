@@ -91,32 +91,18 @@ end
 local function launch_delve(root, label, test_selector)
   logging.log_call('launch_delve')
 
+  local arch = assert(query.config(root, 'build.arch'))
+
   local substitutePath = {
     {
-      from = future.vim.fs.joinpath(target_debug_directory(root, label), 'third_party'),
-      to = 'third_party',
+      from = future.vim.fs.joinpath(root, 'plz-out/go/src'),
+      to = future.vim.fs.joinpath('pkg', arch),
+    },
+    {
+      from = root,
+      to = '',
     },
   }
-
-  -- We would like a subtitutePath entry like { from = root, to = '' } which strips the repo root from paths but Delve
-  -- doesn't allow either from or to to be empty. Instead, we add an entry for each child of the root.
-  --
-  -- Example: if we have a repo like the following
-  --   root
-  --   ├── foo
-  --   │   ├── BUILD
-  --   │   ├── foo.go
-  --   │   └── foo_test.go
-  --   └── bar.go
-  -- then we'll add the following entries to substitutePath:
-  --   - { from = 'root/foo', to = 'foo' }
-  --   - { from = 'root/bar.go', to = 'bar.go' }
-  for path in vim.fs.dir(root) do
-    table.insert(substitutePath, {
-      from = future.vim.fs.joinpath(root, path),
-      to = path,
-    })
-  end
 
   local extra_args = {}
   if test_selector then
