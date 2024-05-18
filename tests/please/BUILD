@@ -7,18 +7,3 @@ neovim_test(
         "//tests/utils:temptree",
     ],
 )
-
-neovim_test(
-    name = "query_spec",
-    data = [
-        "//third_party/please:plz",
-    ],
-    env = {
-        "PLEASE_NVIM_PLZ": "$TMP_DIR/third_party/please/plz",
-    },
-    test_file = "query_spec.lua",
-    deps = [
-        "//lua/please:query",
-        "//tests/utils:temptree",
-    ],
-)

@@ -1,66 +1,52 @@
 local future = require('please.future')
 local logging = require('please.logging')
-local utils = require('please.utils')
 local plz = require('please.plz')
 
 local query = {}
 
-local function strip_and_join_stderr(lines)
-  -- If there's only one line, then strip off the prefix since the line is probably an error message. Otherwise, don't
-  -- strip the lines since the prefixes (log level and time) might be useful for debugging.
-  if #lines == 1 then
-    return utils.strip_plz_log_prefix(lines[1])
-  end
-  return table.concat(lines, '\n')
-end
-
+---@param root string
 ---@param args string[]
----@param cwd string?
----@return string[]: stdout lines
----@return string|nil: error if any
-local function exec_plz(args, cwd)
-  local result = future.vim.system({ plz, unpack(args) }, { cwd = cwd }):wait()
-
-  local stdout_lines = vim.split(result.stdout, '\n', { trimempty = true })
-  if result.code ~= 0 then
-    local stderr_lines = vim.split(result.stderr, '\n', { trimempty = true })
-    return stdout_lines, strip_and_join_stderr(stderr_lines)
+---@return string?
+---@return string?
+local function plz_query(root, args)
+  local res = future.vim.system({ plz, '--repo_root', root, 'query', unpack(args) }):wait()
+  if res.code ~= 0 then
+    return nil, vim.trim(res.stderr)
   end
-
-  return stdout_lines, nil
+  return vim.trim(res.stdout), nil
 end
 
----Wrapper around plz query whatinputs which returns the labels of the build targets which filepath is an input for.
----@param root string: an absolute path to the repo root
----@param filepath string: an absolute path or path relative to the repo root
+---Wrapper around plz query whatinputs which returns the labels of the build targets which a file is an input for.
+---@param root string: absolute path to repo root
+---@param filepath string: absolute path to file
 ---@return string[]?: build target labels
----@return string|nil: error if any, this should be checked before using the labels
+---@return string?: error if any
 function query.whatinputs(root, filepath)
   logging.log_call('query.whatinputs')
 
-  local normalized_root = vim.fs.normalize(root)
-  local normalized_filepath = vim.fs.normalize(filepath)
-  local relative_filepath = normalized_filepath:gsub('^' .. vim.pesc(normalized_root) .. '/', '')
-
-  local output, err = exec_plz({ 'query', 'whatinputs', '--repo_root', root, relative_filepath })
-  if err then
-    return nil, err
+  local output, err = plz_query(root, { 'whatinputs', filepath })
+  if not output then
+    return nil, string.format('plz query whatinputs %s: %s', filepath, err)
   end
 
-  -- whatinputs can exit with no error even if it errors so check the first line looks like a build label
-  if not output[1]:match('^//') then
-    return nil, strip_and_join_stderr(output)
-  end
-
-  return output, nil
+  return vim.split(output, '\n'), nil
 end
 
-local function target_value(root, label, field)
-  local output, err = exec_plz({ '--repo_root', root, 'query', 'print', label, '--field', field })
-  if err then
-    return nil, err
+---Wrapper around plz query print which returns the value of the given field for the given build target.
+---@param root string: absolute path to the repo root
+---@param label string: a build label
+---@param field string: field name
+---@return string?: value of the field
+---@return string?: error
+function query.print_field(root, label, field)
+  logging.log_call('query.print')
+
+  local output, err = plz_query(root, { 'print', label, '--field', field })
+  if not output then
+    return nil, string.format('plz query print %s --field %s: %s', label, field, err)
   end
-  return output[1]
+
+  return output
 end
 
 ---Returns whether the given build target should be run in a sandbox.
@@ -71,42 +57,36 @@ end
 function query.is_target_sandboxed(root, label)
   logging.log_call('query.is_target_sandboxed')
 
-  local test_value, err = target_value(root, label, 'test')
-  if err then
-    return nil, err
+  local test_value, err = query.print_field(root, label, 'test')
+  if not test_value then
+    return nil, string.format('determining if %s is sandboxed: %s', label, err)
   end
 
   local target_is_test = test_value == 'True'
+  local sandbox_field = target_is_test and 'test_sandbox' or 'sandbox'
 
-  local sandbox_field
-  if target_is_test then
-    sandbox_field = 'test_sandbox'
-  else
-    sandbox_field = 'sandbox'
+  local sandbox_value, err = query.print_field(root, label, sandbox_field)
+  if not sandbox_value then
+    return nil, string.format('determining if %s is sandboxed: %s', label, err)
   end
 
-  local output, plz_err = exec_plz({ '--repo_root', root, 'query', 'print', label, '--field', sandbox_field })
-  if plz_err then
-    return nil, plz_err
-  end
-
-  return output[1] == 'True'
+  return sandbox_value == 'True'
 end
 
 ---Wrapper around plz query config which returns the value of the given option.
 ---@param root string: absolute path to the repo root
 ---@param option string: option name
----@return string?: value of the option
+---@return string[]?: value of the option
 ---@return string?: error if any, this should be checked before using the result
 function query.config(root, option)
   logging.log_call('query.config')
 
-  local output, err = exec_plz({ '--repo_root', root, 'query', 'config', option })
-  if err then
-    return nil, err
+  local output, err = plz_query(root, { 'config', option })
+  if not output then
+    return nil, string.format('plz query config %s: %s', option, err)
   end
 
-  return output[1]
+  return vim.split(output, '\n')
 end
 
 return query

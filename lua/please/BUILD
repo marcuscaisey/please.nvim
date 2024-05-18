@@ -13,7 +13,6 @@ neovim_lua_module(
         ":logging",
         ":plz",
         ":query",
-        ":utils",
         "//lua/please/future",
         "//third_party/neovim:nvim_dap",
     ],
@@ -59,7 +58,6 @@ neovim_lua_module(
     deps = [
         ":logging",
         ":plz",
-        ":utils",
         "//lua/please/future",
     ],
 )
@@ -71,9 +69,4 @@ neovim_lua_module(
         ":logging",
         "//lua/please/future",
     ],
-)
-
-neovim_lua_module(
-    name = "utils",
-    srcs = ["utils.lua"],
 )

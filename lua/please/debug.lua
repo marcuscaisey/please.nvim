@@ -2,7 +2,6 @@ local dap = require('dap')
 local repl = require('dap.repl')
 local future = require('please.future')
 local logging = require('please.logging')
-local utils = require('please.utils')
 local query = require('please.query')
 local plz = require('please.plz')
 
@@ -53,8 +52,7 @@ function M.setup()
         logging.warn('error reading stderr from plz debug: %s', err)
       end
       if data then
-        local stripped_line = utils.strip_plz_log_prefix(data:gsub('%s+$', ''))
-        table.insert(stderr_lines, stripped_line)
+        table.insert(stderr_lines, data:gsub('%s+$', ''))
         vim.schedule(function()
           repl.append(data)
         end)
