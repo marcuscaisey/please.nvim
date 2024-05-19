@@ -11,7 +11,14 @@ local query = {}
 local function plz_query(root, args)
   local res = future.vim.system({ plz, '--repo_root', root, 'query', unpack(args) }):wait()
   if res.code ~= 0 then
-    return nil, vim.trim(res.stderr)
+    local stderr = vim.trim(res.stderr)
+    if not stderr:match('\n') then
+      -- If there's only one line, then strip off the prefix since the line is probably an error message. Otherwise, don't
+      -- strip the lines since the prefixes (log level and time) might be useful for debugging.
+      stderr = stderr:gsub('^%d+:%d+:%d+%.%d+ %u+: ', '')
+      stderr = stderr:gsub('^Error: ', '')
+    end
+    return nil, stderr
   end
   return vim.trim(res.stdout), nil
 end
