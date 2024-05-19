@@ -1,5 +1,4 @@
 local logging = require('please.logging')
-local future = require('please.future')
 
 vim.treesitter.language.register('python', 'please')
 
@@ -77,10 +76,10 @@ function parsing.locate_build_target(root, label)
   check_parser_installed('please')
 
   local pkg, target = label:match('^//([^:]*):([^/]+)$')
-  local pkg_path = future.vim.fs.joinpath(root, pkg)
+  local pkg_path = vim.fs.joinpath(root, pkg)
   for _, build_file_name in ipairs(build_file_names) do
-    local build_path = future.vim.fs.joinpath(pkg_path, build_file_name)
-    local stat = future.vim.uv.fs_stat(build_path)
+    local build_path = vim.fs.joinpath(pkg_path, build_file_name)
+    local stat = vim.uv.fs_stat(build_path)
     if stat and stat.type == 'file' then
       local filepath = vim.fs.normalize(build_path)
 

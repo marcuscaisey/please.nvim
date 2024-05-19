@@ -18,7 +18,10 @@ def neovim_toolchain(name: str, version: str, hashes: list = [], visibility: lis
         visibility: Visibility specification. Defaults to public.
     """
     urls_by_os = {
-        "darwin": f"https://github.com/neovim/neovim/releases/download/v{version}/nvim-macos.tar.gz",
+        "darwin": [
+            f"https://github.com/neovim/neovim/releases/download/v{version}/nvim-macos.tar.gz",
+            f"https://github.com/neovim/neovim/releases/download/v{version}/nvim-macos-{CONFIG.HOSTARCH}.tar.gz",
+        ],
         "linux": f"https://github.com/neovim/neovim/releases/download/v{version}/nvim-linux64.tar.gz",
     }
     if CONFIG.HOSTOS not in urls_by_os:
@@ -28,7 +31,7 @@ def neovim_toolchain(name: str, version: str, hashes: list = [], visibility: lis
         name = tag(name, "download"),
         url = urls_by_os[CONFIG.HOSTOS],
         hashes = hashes,
-        out = f"nvim_{CONFIG.HOSTOS}_{version}.tar.gz",
+        out = f"nvim_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}_{version}.tar.gz",
     )
 
     return genrule(

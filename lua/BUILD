@@ -8,6 +8,5 @@ neovim_lua_module(
         "//lua/please:plz",
         "//lua/please:query",
         "//lua/please:runner",
-        "//lua/please/future",
     ],
 )

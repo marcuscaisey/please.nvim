@@ -13,7 +13,6 @@ neovim_lua_module(
         ":logging",
         ":plz",
         ":query",
-        "//lua/please/future",
         "//third_party/neovim:nvim_dap",
     ],
 )
@@ -28,7 +27,6 @@ neovim_lua_module(
     srcs = ["parsing.lua"],
     deps = [
         ":logging",
-        "//lua/please/future",
         "//third_party/neovim:go_tree_sitter_parser",
         "//third_party/neovim:python_tree_sitter_parser",
     ],
@@ -42,7 +40,6 @@ neovim_lua_module(
         ":debug",
         ":logging",
         "//lua",
-        "//lua/please/future",
         "//lua/please/runners:popup",
     ],
 )
@@ -58,7 +55,6 @@ neovim_lua_module(
     deps = [
         ":logging",
         ":plz",
-        "//lua/please/future",
     ],
 )
 
@@ -67,6 +63,5 @@ neovim_lua_module(
     srcs = ["Runner.lua"],
     deps = [
         ":logging",
-        "//lua/please/future",
     ],
 )

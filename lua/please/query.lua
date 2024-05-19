@@ -1,4 +1,3 @@
-local future = require('please.future')
 local logging = require('please.logging')
 local plz = require('please.plz')
 
@@ -9,7 +8,7 @@ local query = {}
 ---@return string?
 ---@return string?
 local function plz_query(root, args)
-  local res = future.vim.system({ plz, '--repo_root', root, 'query', unpack(args) }):wait()
+  local res = vim.system({ plz, '--repo_root', root, 'query', unpack(args) }):wait()
   if res.code ~= 0 then
     local stderr = vim.trim(res.stderr)
     if not stderr:match('\n') then

@@ -83,7 +83,6 @@ local query = require('please.query')
 local parsing = require('please.parsing')
 local Runner = require('please.Runner')
 local logging = require('please.logging')
-local future = require('please.future')
 local debug = require('please.debug')
 
 local please = {}
@@ -163,11 +162,11 @@ local actions = {
 
 local data_path = vim.fn.stdpath('data')
 ---@cast data_path string
-local action_history_path = future.vim.fs.joinpath(data_path, 'please-history.json')
+local action_history_path = vim.fs.joinpath(data_path, 'please-history.json')
 
 ---@return table<string, any>
 local function read_action_history()
-  if not future.vim.uv.fs_stat(action_history_path) then
+  if not vim.uv.fs_stat(action_history_path) then
     return {}
   end
   local f = assert(io.open(action_history_path))
@@ -179,7 +178,7 @@ end
 
 ---@param history table<string, any>
 local function write_action_history(history)
-  if not future.vim.uv.fs_stat(data_path) then
+  if not vim.uv.fs_stat(data_path) then
     vim.fn.mkdir(data_path, 'p')
   end
   local f = assert(io.open(action_history_path, 'w'))
@@ -277,7 +276,7 @@ end
 ---@return string?
 ---@return string?
 local function get_repo_root(path)
-  local root = future.vim.fs.root(path, '.plzconfig')
+  local root = vim.fs.root(path, '.plzconfig')
   if root then
     return root
   end
@@ -528,7 +527,7 @@ function please.action_history()
   logging.log_call('please.action_history')
 
   logging.log_errors('Failed to show action history', function()
-    local cwd = get_filepath() or assert(future.vim.uv.cwd())
+    local cwd = get_filepath() or assert(vim.uv.cwd())
     local root = assert(get_repo_root(cwd))
 
     local history = read_action_history()

@@ -1,6 +1,5 @@
 local dap = require('dap')
 local repl = require('dap.repl')
-local future = require('please.future')
 local logging = require('please.logging')
 local query = require('please.query')
 local plz = require('please.plz')
@@ -11,7 +10,7 @@ local M = {
 }
 
 local function get_free_port()
-  local tcp = future.vim.uv.new_tcp()
+  local tcp = vim.uv.new_tcp()
   -- binding to port 0 lets the OS assign an ephemeral port which we can lookup with getsocketname
   tcp:bind('127.0.0.1', 0)
   local port = tcp:getsockname().port
@@ -68,7 +67,7 @@ function M.setup()
       end
     end
 
-    future.vim.system(cmd, { stdout = stdout, stderr = stderr }, on_exit)
+    vim.system(cmd, { stdout = stdout, stderr = stderr }, on_exit)
 
     callback({
       type = 'server',
@@ -161,8 +160,8 @@ M.launchers.go = function(root, label, test_selector)
 
   local substitutePath = {
     {
-      from = future.vim.fs.joinpath(root, 'plz-out/go/src'),
-      to = future.vim.fs.joinpath('pkg', arch),
+      from = vim.fs.joinpath(root, 'plz-out/go/src'),
+      to = vim.fs.joinpath('pkg', arch),
     },
   }
 
@@ -185,7 +184,7 @@ M.launchers.go = function(root, label, test_selector)
     -- plz-out doesn't contain any source files
     if path ~= 'plz-out' then
       table.insert(substitutePath, {
-        from = future.vim.fs.joinpath(root, path),
+        from = vim.fs.joinpath(root, path),
         to = path,
       })
     end
@@ -194,7 +193,7 @@ M.launchers.go = function(root, label, test_selector)
   --- This needs to be the last entry since the empty 'to' will match all paths when mapping back from a path in the
   --- binary.
   table.insert(substitutePath, {
-    from = future.vim.fs.joinpath(goroot, 'src'),
+    from = vim.fs.joinpath(goroot, 'src'),
     to = '',
   })
 
@@ -218,7 +217,7 @@ end
 
 local function target_debug_directory(root, label)
   local pkg = label:match('//(.+):.+')
-  return future.vim.fs.joinpath(root, 'plz-out/debug', pkg)
+  return vim.fs.joinpath(root, 'plz-out/debug', pkg)
 end
 
 ---@param root string
@@ -230,8 +229,8 @@ M.launchers.python = function(root, label, test_selector)
   logging.log_call('launch_debugpy')
 
   local relative_sandbox_location = '.cache/pex/pex-debug'
-  local local_explode_location = future.vim.fs.joinpath(target_debug_directory(root, label), relative_sandbox_location)
-  local sandbox_explode_location = future.vim.fs.joinpath('/tmp/plz_sandbox', relative_sandbox_location)
+  local local_explode_location = vim.fs.joinpath(target_debug_directory(root, label), relative_sandbox_location)
+  local sandbox_explode_location = vim.fs.joinpath('/tmp/plz_sandbox', relative_sandbox_location)
 
   local pathMappings
 
@@ -241,15 +240,15 @@ M.launchers.python = function(root, label, test_selector)
     return target_sandboxed
   end
 
-  if (future.vim.uv.os_uname().sysname == 'Linux') and is_target_sandboxed() then
+  if (vim.uv.os_uname().sysname == 'Linux') and is_target_sandboxed() then
     pathMappings = {
       {
-        localRoot = future.vim.fs.joinpath(local_explode_location, '.bootstrap'),
-        remoteRoot = future.vim.fs.joinpath(sandbox_explode_location, '.bootstrap'),
+        localRoot = vim.fs.joinpath(local_explode_location, '.bootstrap'),
+        remoteRoot = vim.fs.joinpath(sandbox_explode_location, '.bootstrap'),
       },
       {
-        localRoot = future.vim.fs.joinpath(local_explode_location, 'third_party'),
-        remoteRoot = future.vim.fs.joinpath(sandbox_explode_location, 'third_party'),
+        localRoot = vim.fs.joinpath(local_explode_location, 'third_party'),
+        remoteRoot = vim.fs.joinpath(sandbox_explode_location, 'third_party'),
       },
       {
         localRoot = root,
@@ -259,12 +258,12 @@ M.launchers.python = function(root, label, test_selector)
   else
     pathMappings = {
       {
-        localRoot = future.vim.fs.joinpath(local_explode_location, '.bootstrap'),
-        remoteRoot = future.vim.fs.joinpath(local_explode_location, '.bootstrap'),
+        localRoot = vim.fs.joinpath(local_explode_location, '.bootstrap'),
+        remoteRoot = vim.fs.joinpath(local_explode_location, '.bootstrap'),
       },
       {
-        localRoot = future.vim.fs.joinpath(local_explode_location, 'third_party'),
-        remoteRoot = future.vim.fs.joinpath(local_explode_location, 'third_party'),
+        localRoot = vim.fs.joinpath(local_explode_location, 'third_party'),
+        remoteRoot = vim.fs.joinpath(local_explode_location, 'third_party'),
       },
       {
         localRoot = root,

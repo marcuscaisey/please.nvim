@@ -1,7 +1,6 @@
 local please = require('please')
 local command = require('please.command')
 local debug = require('please.debug')
-local future = require('please.future')
 local logging = require('please.logging')
 local popup = require('please.runners.popup')
 
@@ -15,7 +14,7 @@ local function configure_filetype()
     },
     filename = {
       BUILD = function(path)
-        if future.vim.fs.root(path, '.plzconfig') then
+        if vim.fs.root(path, '.plzconfig') then
           return 'please'
         end
         return 'bzl'

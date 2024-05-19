@@ -1,5 +1,6 @@
-if not vim.fn.has('nvim-0.9.0') then
-  vim.api.nvim_err_writeln('please.nvim requires at least Neovim 0.9.0')
+local min_nvim_version = '0.10.0'
+if not vim.fn.has(string.format('nvim-%s', min_nvim_version)) then
+  vim.api.nvim_err_writeln(string.format('please.nvim requires at least Neovim %s', min_nvim_version))
   return
 end
 
