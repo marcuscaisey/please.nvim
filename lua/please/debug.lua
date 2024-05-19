@@ -55,7 +55,7 @@ function M.setup()
         logging.warn('error reading stderr from plz debug: %s', err)
       end
       if data then
-        table.insert(stderr_lines, data:gsub('%s+$', ''))
+        table.insert(stderr_lines, data)
         vim.schedule(function()
           repl.append(data)
         end)
