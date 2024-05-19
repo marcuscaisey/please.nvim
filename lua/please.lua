@@ -144,7 +144,9 @@ local actions = {
     local runner = new_runner(root, { 'build', '--config', 'dbg', label })
     runner:on_success(function()
       runner:minimise()
-      launcher(root, label)
+      logging.log_errors('Failed to debug', function()
+        assert(launcher(root, label))
+      end)
     end)
     runner:start()
   end,

@@ -5,7 +5,10 @@ local logging = require('please.logging')
 local query = require('please.query')
 local plz = require('please.plz')
 
-local M = {}
+local M = {
+  ---@type table<string, fun(root: string, label: string, test_selector: string?): boolean, string?>
+  launchers = {},
+}
 
 local function get_free_port()
   local tcp = future.vim.uv.new_tcp()
@@ -81,26 +84,119 @@ function M.setup()
   dap.defaults.plz.exception_breakpoints = { 'uncaught' }
 end
 
-local function target_debug_directory(root, label)
-  local pkg = label:match('//(.+):.+')
-  return future.vim.fs.joinpath(root, 'plz-out/debug', pkg)
+---@param root string
+---@return string? goroot
+---@return string? errmsg
+local function plz_goroot(root)
+  local gotools, err = query.config(root, 'plugin.go.gotool')
+  if not gotools then
+    return nil, string.format('determining GOROOT: %s', err)
+  end
+  local gotool = gotools[1]
+
+  if vim.startswith(gotool, ':') or vim.startswith(gotool, '//') then
+    gotool = gotool:gsub('|go$', '')
+    local gotool_output, err = query.output(root, gotool)
+    if not gotool_output then
+      return nil, string.format('determining GOROOT: querying output of plugin.go.gotool target: %s', gotool, err)
+    end
+    return vim.fs.joinpath(root, gotool_output)
+  end
+
+  if vim.startswith(gotool, '/') then
+    if not vim.uv.fs_stat(gotool) then
+      return nil, string.format('determining GOROOT: plugin.go.gotool %s does not exist', gotool)
+    end
+    local goroot_res = vim.system({ gotool, 'env', 'GOROOT' }):wait()
+    if goroot_res.code == 0 then
+      return vim.trim(goroot_res.stdout)
+    else
+      return nil, string.format('determining GOROOT: %s env GOROOT: %s', gotool, goroot_res.stderr)
+    end
+  end
+
+  local build_paths, err = query.config(root, 'build.path')
+  if not build_paths then
+    return nil, string.format('determining GOROOT: querying value of build.path: %s', err)
+  end
+  for _, build_path in ipairs(build_paths) do
+    for build_path_part in vim.gsplit(build_path, ':') do
+      local go = vim.fs.joinpath(build_path_part, gotool)
+      if vim.uv.fs_stat(go) then
+        local goroot_res = vim.system({ go, 'env', 'GOROOT' }):wait()
+        if goroot_res.code == 0 then
+          return vim.trim(goroot_res.stdout)
+        else
+          return nil, string.format('determing GOROOT: %s env GOROOT: %s', go, goroot_res.stderr)
+        end
+      end
+    end
+  end
+
+  return nil,
+    string.format(
+      'determining GOROOT: plugin.go.gotool %s not found in build.path %s',
+      gotool,
+      table.concat(build_paths, ':')
+    )
 end
 
-local function launch_delve(root, label, test_selector)
+---@param root string
+---@param label string
+---@param test_selector string?
+---@return boolean success
+---@return string? errmsg
+M.launchers.go = function(root, label, test_selector)
   logging.log_call('launch_delve')
 
-  local arch = assert(query.config(root, 'build.arch'))
+  local arches, err = query.config(root, 'build.arch')
+  if not arches then
+    return false, string.format('launching delve: determining host arch: %s', err)
+  end
+  local arch = arches[1]
+  local goroot, err = plz_goroot(root)
+  if not goroot then
+    return false, string.format('launching delve: %s', err)
+  end
 
   local substitutePath = {
     {
       from = future.vim.fs.joinpath(root, 'plz-out/go/src'),
       to = future.vim.fs.joinpath('pkg', arch),
     },
-    {
-      from = root,
-      to = '',
-    },
   }
+
+  -- We would like to have the entry { from = root, to = '' } which makes paths under the repo relative but we also need
+  -- the entry { from = joinpath(goroot, 'src'), to = '' } to make paths under the GOROOT relative as well. Delve needs
+  -- to map paths back from the binary to the source so we can't have two entries with the same 'to'. Instead of
+  -- { from = root, to = '' }, we add an entry for each child of the root.
+  --
+  -- Example: if we have a repo like the following
+  --   root
+  --   ├── foo
+  --   │   ├── BUILD
+  --   │   ├── foo.go
+  --   │   └── foo_test.go
+  --   └── bar.go
+  -- then we'll add the following entries to substitutePath:
+  --   - { from = 'root/foo', to = 'foo' }
+  --   - { from = 'root/bar.go', to = 'bar.go' }
+  for path in vim.fs.dir(root) do
+    -- plz-out doesn't contain any source files
+    if path ~= 'plz-out' then
+      table.insert(substitutePath, {
+        from = future.vim.fs.joinpath(root, path),
+        to = path,
+      })
+    end
+  end
+
+  --- This needs to be the last entry since the empty 'to' will match all paths when mapping back from a path in the
+  --- binary.
+  table.insert(substitutePath, {
+    from = future.vim.fs.joinpath(goroot, 'src'),
+    to = '',
+  })
 
   local extra_args = {}
   if test_selector then
@@ -116,9 +212,21 @@ local function launch_delve(root, label, test_selector)
     label = label,
     extra_args = extra_args,
   })
+
+  return true
 end
 
-local function launch_debugpy(root, label, test_selector)
+local function target_debug_directory(root, label)
+  local pkg = label:match('//(.+):.+')
+  return future.vim.fs.joinpath(root, 'plz-out/debug', pkg)
+end
+
+---@param root string
+---@param label string
+---@param test_selector string?
+---@return boolean success
+---@return string? errmsg
+M.launchers.python = function(root, label, test_selector)
   logging.log_call('launch_debugpy')
 
   local relative_sandbox_location = '.cache/pex/pex-debug'
@@ -180,11 +288,8 @@ local function launch_debugpy(root, label, test_selector)
     label = label,
     extra_args = extra_args,
   })
-end
 
-M.launchers = {
-  go = launch_delve,
-  python = launch_debugpy,
-}
+  return true
+end
 
 return M

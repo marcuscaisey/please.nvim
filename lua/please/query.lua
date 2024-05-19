@@ -96,4 +96,20 @@ function query.config(root, option)
   return vim.split(output, '\n')
 end
 
+---Wrapper around plz query output which returns the output of the given build target.
+---@param root string: absolute path to the repo root
+---@param target string: build target label
+---@return string?: output of the target
+---@return string?: error if any, this should be checked before using the result
+function query.output(root, target)
+  logging.log_call('query.output')
+
+  local output, err = plz_query(root, { 'output', target })
+  if err then
+    return nil, string.format('plz query output %s: %s', target, err)
+  end
+
+  return output
+end
+
 return query
