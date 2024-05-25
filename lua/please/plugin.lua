@@ -30,25 +30,29 @@ end
 -- create the Please user command
 local function create_user_command()
   local cmds = {
-    jump_to_target = please.jump_to_target,
     build = please.build,
-    test = please.test,
     run = please.run,
+    test = please.test,
     debug = please.debug,
-    yank = please.yank,
-    action_history = please.action_history,
+    command = please.command,
     history = please.history,
+    action_history = please.action_history,
     maximise_popup = please.maximise_popup,
     restore_popup = popup.restore,
-    reload = M.reload,
+    jump_to_target = please.jump_to_target,
+    yank = please.yank,
     toggle_debug_logs = logging.toggle_debug,
+    reload = M.reload,
   }
   local cmd_name_to_opts = {
     test = { 'under_cursor' },
     debug = { 'under_cursor' },
   }
+  local cmd_name_to_positional_args = {
+    command = true,
+  }
 
-  command.create_user_command(cmds, cmd_name_to_opts)
+  command.create_user_command(cmds, cmd_name_to_opts, cmd_name_to_positional_args)
 end
 
 function M.load()

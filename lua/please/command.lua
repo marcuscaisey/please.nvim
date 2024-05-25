@@ -52,7 +52,7 @@ local function complete(cmd_names, cmd_name_to_opts)
 end
 
 -- run a please.nvim command
-local function user_command(cmds)
+local function user_command(cmds, cmd_name_to_positional_args)
   -- See :help nvim_create_user_command for detailed description of opts. We only use fargs anyway which is just the
   -- list of args passed to the command.
   return function(opts)
@@ -65,17 +65,23 @@ local function user_command(cmds)
     end
 
     local args = { unpack(opts.fargs, 2) } -- first farg is the command name so ignore that
-    local cmd_opts = {}
-    for _, arg in ipairs(args) do
-      cmd_opts[arg] = true
+    local cmd_args = {}
+    if cmd_name_to_positional_args[cmd_name] then
+      cmd_args = args
+    else
+      local opts = {}
+      for _, arg in ipairs(args) do
+        opts[arg] = true
+      end
+      cmd_args = { opts }
     end
-    cmd(cmd_opts)
+    cmd(unpack(cmd_args))
   end
 end
 
-function M.create_user_command(cmds, cmd_name_to_opts)
+function M.create_user_command(cmds, cmd_name_to_opts, cmd_name_to_positional_args)
   local cmd_names = vim.tbl_keys(cmds)
-  vim.api.nvim_create_user_command('Please', user_command(cmds), {
+  vim.api.nvim_create_user_command('Please', user_command(cmds, cmd_name_to_positional_args), {
     nargs = '+',
     complete = complete(cmd_names, cmd_name_to_opts),
     force = true, -- allows us to recreate the command on plugin reload

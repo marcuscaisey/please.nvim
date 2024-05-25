@@ -140,6 +140,19 @@ please.debug({opts})                                              *please.debug*
           * {under_cursor} (boolean): debug the test under the cursor
 
 
+please.command({...})                                           *please.command*
+    Run an arbitrary plz command and display the output in a popup.
+
+    Parameters: ~
+        {...} (string) Arguments to pass to plz
+
+    Usage: ~
+>lua
+        local please = require('please')
+        please.command('build', '//foo/bar/...')
+<
+
+
 please.history()                                                *please.history*
     Display a history of previous commands. Selecting one of them will run it
     again.

@@ -438,14 +438,31 @@ function please.debug(opts)
   end)
 end
 
+---Run an arbitrary plz command and display the output in a popup.
+---@param ... string Arguments to pass to plz
+---@usage [[
+---local please = require('please')
+---please.command('build', '//foo/bar/...')
+---@usage ]]
+function please.command(...)
+  logging.log_call('please.command')
+
+  local args = { ... }
+  logging.log_errors('Failed to run command', function()
+    local path = get_filepath() or assert(vim.uv.cwd())
+    local root = assert(get_repo_root(path))
+    save_and_run_simple_command(root, args)
+  end)
+end
+
 ---Display a history of previous commands. Selecting one of them will run it
 ---again.
 function please.history()
   logging.log_call('please.history')
 
   logging.log_errors('Failed to show command history', function()
-    local cwd = get_filepath() or assert(vim.uv.cwd())
-    local root = assert(get_repo_root(cwd))
+    local path = get_filepath() or assert(vim.uv.cwd())
+    local root = assert(get_repo_root(path))
 
     local history = read_command_history()
     if not history[root] then

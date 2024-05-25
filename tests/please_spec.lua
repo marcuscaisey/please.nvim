@@ -847,6 +847,56 @@ describe('debug', function()
   end)
 end)
 
+describe('command', function()
+  local function create_temp_tree()
+    return temptree.create({
+      '.plzconfig',
+      BUILD = [[
+        export_file(
+            name = "foo",
+            src = "foo.txt",
+        )
+      ]],
+      ['foo.txt'] = 'foo content',
+    })
+  end
+
+  it('should call plz with the provided arguments', function()
+    local root, teardown_tree = create_temp_tree()
+    local runner_spy = RunnerSpy:new()
+
+    -- GIVEN we're editing a file
+    vim.cmd('edit ' .. root .. '/foo.txt')
+    -- WHEN we call command with some arguments
+    please.command('build', '//:foo')
+    -- THEN plz is called with those arguments
+    runner_spy:assert_called_with(root, { 'build', '//:foo' })
+
+    teardown_tree()
+  end)
+
+  it('should add entry to command history', function()
+    local root, teardown_tree = create_temp_tree()
+    local runner_spy = RunnerSpy:new()
+    local select_fake = SelectFake:new()
+
+    -- GIVEN we've run a command
+    vim.cmd('edit ' .. root .. '/foo.txt')
+    please.command('build', '//:foo')
+    -- WHEN we call history
+    please.history()
+    -- THEN we're prompted to pick a command to run again
+    select_fake:assert_prompt('Pick command to run again')
+    select_fake:assert_items({ 'plz build //:foo' })
+    -- WHEN we select the command
+    select_fake:choose_item('plz build //:foo')
+    -- THEN the command is run again
+    runner_spy:assert_called_with(root, { 'build', '//:foo' })
+
+    teardown_tree()
+  end)
+end)
+
 describe('history', function()
   local function create_temp_tree()
     return temptree.create({
