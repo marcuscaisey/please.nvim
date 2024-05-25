@@ -13,9 +13,9 @@
 ---
 ---Features ~
 ---  * Build, run, test, and debug a target
----  * Yank a target's label
----  * Jump from a source file to its build target definition
 ---  * Display history of previous commands and run any of them again
+---  * Jump from a source file to its build target definition
+---  * Yank a target's label
 ---  * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs`
 ---    files
 ---  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
@@ -60,20 +60,20 @@
 ---can customise how you use it. Below are a set of mappings for each available
 ---command to get you started.
 --->lua
----  vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
 ---  vim.keymap.set('n', '<leader>pb', require('please').build)
+---  vim.keymap.set('n', '<leader>pr', require('please').run)
 ---  vim.keymap.set('n', '<leader>pt', require('please').test)
 ---  vim.keymap.set('n', '<leader>pct', function()
 ---    require('please').test({ under_cursor = true })
 ---  end)
----  vim.keymap.set('n', '<leader>pr', require('please').run)
----  vim.keymap.set('n', '<leader>py', require('please').yank)
 ---  vim.keymap.set('n', '<leader>pd', require('please').debug)
 ---  vim.keymap.set('n', '<leader>pcd', function()
 ---    require('please').debug({ under_cursor = true })
 ---  end)
 ---  vim.keymap.set('n', '<leader>ph', require('please').history)
 ---  vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
+---  vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
+---  vim.keymap.set('n', '<leader>py', require('please').yank)
 ---<
 ---@brief ]]
 
@@ -246,28 +246,6 @@ local function get_repo_root(path)
   return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
 end
 
----Jumps to the location of the build target which takes the current file as
----an input.
----
----The cursor will be moved to where the build target is created if it can be
----found which should be the case for all targets except for those with names
----which are generated when the `BUILD` file is executed.
-function please.jump_to_target()
-  logging.log_call('please.jump_to_target')
-
-  logging.log_errors('Failed to jump to target', function()
-    local filepath = assert(get_filepath())
-    local root = assert(get_repo_root(filepath))
-    local labels = assert(query.whatinputs(root, filepath))
-    select_if_many(labels, { prompt = 'Select target to jump to' }, function(label)
-      local target_filepath, position = assert(parsing.locate_build_target(root, label))
-      logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
-      vim.cmd('edit ' .. target_filepath)
-      vim.api.nvim_win_set_cursor(0, position)
-    end)
-  end)
-end
-
 ---If the current file is a `BUILD` file, builds the target which is under
 ---the cursor. Otherwise, builds the target which takes the current file as
 ---an input.
@@ -288,6 +266,41 @@ function please.build()
 
     select_if_many(labels, { prompt = 'Select target to build' }, function(label)
       save_and_run_simple_command(root, { 'build', label })
+    end)
+  end)
+end
+
+---If the current file is a `BUILD` file, run the target which is under the
+---cursor. Otherwise, run the target which takes the current file as an
+---input.
+function please.run()
+  logging.log_call('please.run')
+
+  logging.log_errors('Failed to run', function()
+    local filepath = assert(get_filepath())
+    local root = assert(get_repo_root(filepath))
+
+    local labels
+    if vim.bo.filetype == 'please' then
+      local label = assert(parsing.get_target_at_cursor(root))
+      labels = { label }
+    else
+      labels = assert(query.whatinputs(root, filepath))
+    end
+
+    select_if_many(labels, { prompt = 'Select target to run' }, function(label)
+      vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
+        if not input then
+          return
+        end
+        local args = {}
+        -- vim.ui.input passes empty input as an empty string instead of nil, I think this is a bug so just check for both to be safe.
+        input = vim.trim(input)
+        if input ~= '' then
+          args = { '--', unpack(vim.split(input, ' ')) }
+        end
+        save_and_run_simple_command(root, { 'run', label, unpack(args) })
+      end)
     end)
   end)
 end
@@ -339,70 +352,6 @@ function please.test(opts)
 
     select_if_many(labels, { prompt = 'Select target to test' }, function(label)
       save_and_run_simple_command(root, { 'test', label, unpack(extra_args) })
-    end)
-  end)
-end
-
----If the current file is a `BUILD` file, run the target which is under the
----cursor. Otherwise, run the target which takes the current file as an
----input.
-function please.run()
-  logging.log_call('please.run')
-
-  logging.log_errors('Failed to run', function()
-    local filepath = assert(get_filepath())
-    local root = assert(get_repo_root(filepath))
-
-    local labels
-    if vim.bo.filetype == 'please' then
-      local label = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
-    else
-      labels = assert(query.whatinputs(root, filepath))
-    end
-
-    select_if_many(labels, { prompt = 'Select target to run' }, function(label)
-      vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
-        if not input then
-          return
-        end
-        local args = {}
-        -- vim.ui.input passes empty input as an empty string instead of nil, I think this is a bug so just check for both to be safe.
-        input = vim.trim(input)
-        if input ~= '' then
-          args = { '--', unpack(vim.split(input, ' ')) }
-        end
-        save_and_run_simple_command(root, { 'run', label, unpack(args) })
-      end)
-    end)
-  end)
-end
-
----If the current file is a `BUILD` file, yank the label of the target which is
----under the cursor. Otherwise, yank the label of the target which takes the
----current file as an input.
-function please.yank()
-  logging.log_call('please.yank')
-
-  logging.log_errors('Failed to yank', function()
-    local filepath = assert(get_filepath())
-    local root = assert(get_repo_root(filepath))
-
-    local labels = {}
-    if vim.bo.filetype == 'please' then
-      local label = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
-    else
-      labels = assert(query.whatinputs(root, filepath))
-    end
-
-    select_if_many(labels, { prompt = 'Select label to yank' }, function(label)
-      local registers = { '"', '*' }
-      for _, register in ipairs(registers) do
-        logging.debug('setting %s register to %s', register, label)
-        vim.fn.setreg(register, label)
-      end
-      logging.info('yanked %s', label)
     end)
   end)
 end
@@ -533,6 +482,57 @@ function please.maximise_popup()
   else
     logging.error('no popup to maximise')
   end
+end
+
+---Jumps to the location of the build target which takes the current file as
+---an input.
+---
+---The cursor will be moved to where the build target is created if it can be
+---found which should be the case for all targets except for those with names
+---which are generated when the `BUILD` file is executed.
+function please.jump_to_target()
+  logging.log_call('please.jump_to_target')
+
+  logging.log_errors('Failed to jump to target', function()
+    local filepath = assert(get_filepath())
+    local root = assert(get_repo_root(filepath))
+    local labels = assert(query.whatinputs(root, filepath))
+    select_if_many(labels, { prompt = 'Select target to jump to' }, function(label)
+      local target_filepath, position = assert(parsing.locate_build_target(root, label))
+      logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
+      vim.cmd('edit ' .. target_filepath)
+      vim.api.nvim_win_set_cursor(0, position)
+    end)
+  end)
+end
+
+---If the current file is a `BUILD` file, yank the label of the target which is
+---under the cursor. Otherwise, yank the label of the target which takes the
+---current file as an input.
+function please.yank()
+  logging.log_call('please.yank')
+
+  logging.log_errors('Failed to yank', function()
+    local filepath = assert(get_filepath())
+    local root = assert(get_repo_root(filepath))
+
+    local labels = {}
+    if vim.bo.filetype == 'please' then
+      local label = assert(parsing.get_target_at_cursor(root))
+      labels = { label }
+    else
+      labels = assert(query.whatinputs(root, filepath))
+    end
+
+    select_if_many(labels, { prompt = 'Select label to yank' }, function(label)
+      local registers = { '"', '*' }
+      for _, register in ipairs(registers) do
+        logging.debug('setting %s register to %s', register, label)
+        vim.fn.setreg(register, label)
+      end
+      logging.info('yanked %s', label)
+    end)
+  end)
 end
 
 return please

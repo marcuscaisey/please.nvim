@@ -3,9 +3,9 @@ please.nvim is a plugin which allows you interact with your Please repository fr
 
 ## Features
   * Build, run, test, and debug a target
-  * Yank a target's label
-  * Jump from a source file to its build target definition
   * Display history of previous commands and run any of them again
+  * Jump from a source file to its build target definition
+  * Yank a target's label
   * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs` files
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
   * Python tree-sitter parser configured to be used for please files to enable better syntax

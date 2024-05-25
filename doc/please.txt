@@ -19,9 +19,9 @@ editor to the shell when performing routine actions.
 
 Features ~
   * Build, run, test, and debug a target
-  * Yank a target's label
-  * Jump from a source file to its build target definition
   * Display history of previous commands and run any of them again
+  * Jump from a source file to its build target definition
+  * Yank a target's label
   * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs`
     files
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better
@@ -66,38 +66,35 @@ please.nvim doesn't come with any mappings defined out of the box so that you
 can customise how you use it. Below are a set of mappings for each available
 command to get you started.
 >lua
-  vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
   vim.keymap.set('n', '<leader>pb', require('please').build)
+  vim.keymap.set('n', '<leader>pr', require('please').run)
   vim.keymap.set('n', '<leader>pt', require('please').test)
   vim.keymap.set('n', '<leader>pct', function()
     require('please').test({ under_cursor = true })
   end)
-  vim.keymap.set('n', '<leader>pr', require('please').run)
-  vim.keymap.set('n', '<leader>py', require('please').yank)
   vim.keymap.set('n', '<leader>pd', require('please').debug)
   vim.keymap.set('n', '<leader>pcd', function()
     require('please').debug({ under_cursor = true })
   end)
   vim.keymap.set('n', '<leader>ph', require('please').history)
   vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
+  vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
+  vim.keymap.set('n', '<leader>py', require('please').yank)
 <
 
 ==============================================================================
 PLEASE COMMANDS                                                         *please*
 
-please.jump_to_target()                                  *please.jump_to_target*
-    Jumps to the location of the build target which takes the current file as
-    an input.
-
-    The cursor will be moved to where the build target is created if it can be
-    found which should be the case for all targets except for those with names
-    which are generated when the `BUILD` file is executed.
-
-
 please.build()                                                    *please.build*
     If the current file is a `BUILD` file, builds the target which is under
     the cursor. Otherwise, builds the target which takes the current file as
     an input.
+
+
+please.run()                                                        *please.run*
+    If the current file is a `BUILD` file, run the target which is under the
+    cursor. Otherwise, run the target which takes the current file as an
+    input.
 
 
 please.test({opts})                                                *please.test*
@@ -122,18 +119,6 @@ please.test({opts})                                                *please.test*
     Parameters: ~
         {opts} (table|nil) available options
           * {under_cursor} (boolean): run the test under the cursor
-
-
-please.run()                                                        *please.run*
-    If the current file is a `BUILD` file, run the target which is under the
-    cursor. Otherwise, run the target which takes the current file as an
-    input.
-
-
-please.yank()                                                      *please.yank*
-    If the current file is a `BUILD` file, yank the label of the target which is
-    under the cursor. Otherwise, yank the label of the target which takes the
-    current file as an input.
 
 
 please.debug({opts})                                              *please.debug*
@@ -162,6 +147,21 @@ please.history()                                                *please.history*
 
 please.maximise_popup()                                  *please.maximise_popup*
     Maximises the popup which was most recently quit or minimised.
+
+
+please.jump_to_target()                                  *please.jump_to_target*
+    Jumps to the location of the build target which takes the current file as
+    an input.
+
+    The cursor will be moved to where the build target is created if it can be
+    found which should be the case for all targets except for those with names
+    which are generated when the `BUILD` file is executed.
+
+
+please.yank()                                                      *please.yank*
+    If the current file is a `BUILD` file, yank the label of the target which is
+    under the cursor. Otherwise, yank the label of the target which takes the
+    current file as an input.
 
 
 ==============================================================================
