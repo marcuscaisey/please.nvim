@@ -1,5 +1,19 @@
-local dap = require('dap')
-local repl = require('dap.repl')
+local function safe_require(module)
+  return setmetatable({}, {
+    __index = function(_, key)
+      local ok, value = pcall(require, module)
+      if not ok then
+        error(
+          'nvim-dap is required to use please.debug but it is not installed. Install it from https://github.com/mfussenegger/nvim-dap.'
+        )
+      end
+      return value[key]
+    end,
+  })
+end
+
+local dap = safe_require('dap')
+local repl = safe_require('dap.repl')
 local logging = require('please.logging')
 local query = require('please.query')
 local plz = require('please.plz')
@@ -26,6 +40,9 @@ end
 ---@field extra_args string[]? Any extra arguments to pass to plz debug.
 
 function M.setup()
+  if not pcall(require, 'dap') then
+    return
+  end
   logging.debug('setting up plz debug adapter')
 
   ---@type fun(callback: fun(adapter: Adapter), config: DapConfiguration)

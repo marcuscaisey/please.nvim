@@ -9,7 +9,7 @@ please.nvim is a plugin which allows you interact with your Please repository fr
   * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs` files
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
   * Python tree-sitter parser configured to be used for please files to enable better syntax
-    highlighting and use of all treesitter features in build files
+    highlighting and use of all tree-sitter features in build files
 
 ## Demo
 https://user-images.githubusercontent.com/34950778/205456279-665ddfe8-de77-4f36-a337-85768bb06a37.mov
@@ -28,33 +28,29 @@ Detailed documentation can be in [doc/please.txt](doc/please.txt) or by running 
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
-use({
-  'marcuscaisey/please.nvim',
-  requires = {
-    'mfussenegger/nvim-dap',
-  },
-})
+use({ 'marcuscaisey/please.nvim' })
 ```
 
 Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```viml
-Plug 'mfussenegger/nvim-dap'
 Plug 'marcuscaisey/please.nvim'
 ```
 
 Using [dein](https://github.com/Shougo/dein.vim)
 ```viml
-call dein#add('mfussenegger/nvim-dap')
 call dein#add('marcuscaisey/please.nvim')
 ```
 
 #### Recommended additional plugins
-- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - tree-sitter configurations
-  and abstraction layer for Neovim
-- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - excellent fuzzy finder
-- [dressing.nvim](https://github.com/stevearc/dressing.nvim) - pairs with telescope.nvim to
-  provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`)
-- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - provides a UI for nvim-dap
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Tree-sitter configurations
+  and abstraction layer for Neovim.
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - Highly extendable fuzzy
+  finder.
+- [dressing.nvim](https://github.com/stevearc/dressing.nvim) - Pairs with telescope.nvim to
+  provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`).
+- [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug Adapter Protocol client
+  implementation for Neovim. **This is required to use debug with please.nvim.**
+- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - UI for nvim-dap.
 
 ### `nvim-treesitter` configuration
 `please.nvim` configures the Python tree-sitter parser to be used for please files. It doesn't,

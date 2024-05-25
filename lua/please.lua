@@ -21,7 +21,7 @@
 ---  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
 ---    syntax highlighting
 ---  * Python tree-sitter parser configured to be used for please files to enable
----    better syntax highlighting and use of all treesitter features in build
+---    better syntax highlighting and use of all tree-sitter features in build
 ---    files
 ---@brief ]]
 
