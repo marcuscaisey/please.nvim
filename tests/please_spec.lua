@@ -191,30 +191,6 @@ describe('jump_to_target', function()
     teardown_tree()
   end)
 
-  it('should add entry to action history', function()
-    local root, teardown_tree = create_temp_tree()
-    local select_fake = SelectFake:new()
-
-    -- GIVEN we've jumped to a target
-    vim.cmd('edit ' .. root .. '/foo2.txt')
-    please.jump_to_target()
-    -- AND we edit a different file
-    vim.cmd('edit ' .. root .. '/foo1.txt')
-    -- WHEN we call action_history
-    please.action_history()
-    -- THEN we're prompted to pick an action to run again
-    select_fake:assert_prompt('Pick action to run again')
-    select_fake:assert_items({ 'Jump to //:foo1_and_foo2' })
-    -- WHEN we select the jump action
-    select_fake:choose_item('Jump to //:foo1_and_foo2')
-    -- THEN the BUILD file is opened again
-    assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
-    -- AND the cursor is moved to the build target again
-    assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
-
-    teardown_tree()
-  end)
-
   it('should prompt user to choose which target to jump to if there is more than one', function()
     local root, teardown_tree = create_temp_tree()
     local select_fake = SelectFake:new()
@@ -275,7 +251,7 @@ describe('build', function()
       teardown_tree()
     end)
 
-    it('should add entry to action history', function()
+    it('should add entry to command history', function()
       local root, teardown_tree = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
@@ -283,13 +259,13 @@ describe('build', function()
       -- GIVEN we've built a target
       vim.cmd('edit ' .. root .. '/foo2.txt')
       please.build()
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Build //:foo1_and_foo2' })
-      -- WHEN we select the build action
-      select_fake:choose_item('Build //:foo1_and_foo2')
+      -- WHEN we call history
+      please.history()
+      -- THEN we're prompted to pick a command to run again
+      select_fake:assert_prompt('Pick command to run again')
+      select_fake:assert_items({ 'plz build //:foo1_and_foo2' })
+      -- WHEN we select the build command
+      select_fake:choose_item('plz build //:foo1_and_foo2')
       -- THEN the target is built again
       runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
 
@@ -333,7 +309,7 @@ describe('build', function()
       teardown_tree()
     end)
 
-    it('should add entry to action history', function()
+    it('should add entry to command history', function()
       local root, teardown_tree = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
@@ -342,13 +318,13 @@ describe('build', function()
       vim.cmd('edit ' .. root .. '/BUILD')
       vim.api.nvim_win_set_cursor(0, { 6, 4 }) -- inside definition of :foo1_and_foo2
       please.build()
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Build //:foo1_and_foo2' })
-      -- WHEN we select the build action
-      select_fake:choose_item('Build //:foo1_and_foo2')
+      -- WHEN we call history
+      please.history()
+      -- THEN we're prompted to pick a command to run again
+      select_fake:assert_prompt('Pick command to run again')
+      select_fake:assert_items({ 'plz build //:foo1_and_foo2' })
+      -- WHEN we select the build command
+      select_fake:choose_item('plz build //:foo1_and_foo2')
       -- THEN the target is built again
       runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
 
@@ -421,7 +397,7 @@ describe('test', function()
       teardown_tree()
     end)
 
-    it('should add entry to action history', function()
+    it('should add entry to command history', function()
       local root, teardown_tree = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
@@ -429,13 +405,13 @@ describe('test', function()
       -- GIVEN we've tested a file
       vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
       please.test()
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Test //foo:foo1_and_foo2_test' })
-      -- WHEN we select the test action
-      select_fake:choose_item('Test //foo:foo1_and_foo2_test')
+      -- WHEN we call history
+      please.history()
+      -- THEN we're prompted to pick a command to run again
+      select_fake:assert_prompt('Pick command to run again')
+      select_fake:assert_items({ 'plz test //foo:foo1_and_foo2_test' })
+      -- WHEN we select the test command
+      select_fake:choose_item('plz test //foo:foo1_and_foo2_test')
       -- THEN the target is tested again
       runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test' })
 
@@ -478,7 +454,7 @@ describe('test', function()
         teardown_tree()
       end)
 
-      it('should add entry to action history', function()
+      it('should add entry to command history', function()
         local root, teardown_tree = create_temp_tree()
         local runner_spy = RunnerSpy:new()
         local select_fake = SelectFake:new()
@@ -487,13 +463,13 @@ describe('test', function()
         vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
         vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
         please.test({ under_cursor = true })
-        -- WHEN we call action_history
-        please.action_history()
-        -- THEN we're prompted to pick an action to run again
-        select_fake:assert_prompt('Pick action to run again')
-        select_fake:assert_items({ 'Test //foo:foo1_and_foo2_test TestFails' })
-        -- WHEN we select the test action
-        select_fake:choose_item('Test //foo:foo1_and_foo2_test TestFails')
+        -- WHEN we call history
+        please.history()
+        -- THEN we're prompted to pick a command to run again
+        select_fake:assert_prompt('Pick command to run again')
+        select_fake:assert_items({ 'plz test //foo:foo1_and_foo2_test ^TestFails$' })
+        -- WHEN we select the test command
+        select_fake:choose_item('plz test //foo:foo1_and_foo2_test ^TestFails$')
         -- THEN the test is run again
         runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
 
@@ -539,7 +515,7 @@ describe('test', function()
       teardown_tree()
     end)
 
-    it('should add entry to action history', function()
+    it('should add entry to command history', function()
       local root, teardown_tree = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
@@ -548,13 +524,13 @@ describe('test', function()
       vim.cmd('edit ' .. root .. '/foo/BUILD')
       vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1_test
       please.test()
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Test //foo:foo1_test' })
-      -- WHEN we select the test action
-      select_fake:choose_item('Test //foo:foo1_test')
+      -- WHEN we call history
+      please.history()
+      -- THEN we're prompted to pick a command to run again
+      select_fake:assert_prompt('Pick command to run again')
+      select_fake:assert_items({ 'plz test //foo:foo1_test' })
+      -- WHEN we select the test command
+      select_fake:choose_item('plz test //foo:foo1_test')
       -- THEN the target is tested again
       runner_spy:assert_called_with(root, { 'test', '//foo:foo1_test' })
 
@@ -606,7 +582,7 @@ describe('run', function()
       teardown_tree()
     end)
 
-    it('should add entry to action history', function()
+    it('should add entry to command history', function()
       local root, teardown_tree = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local input_fake = InputFake:new()
@@ -616,13 +592,13 @@ describe('run', function()
       vim.cmd('edit ' .. root .. '/foo2.txt')
       please.run()
       input_fake:enter_input('--foo foo --bar bar')
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Run //:foo1_and_foo2 --foo foo --bar bar' })
-      -- WHEN we select the run action
-      select_fake:choose_item('Run //:foo1_and_foo2 --foo foo --bar bar')
+      -- WHEN we call history
+      please.history()
+      -- THEN we're prompted to pick a command to run again
+      select_fake:assert_prompt('Pick command to run again')
+      select_fake:assert_items({ 'plz run //:foo1_and_foo2 -- --foo foo --bar bar' })
+      -- WHEN we select the run command
+      select_fake:choose_item('plz run //:foo1_and_foo2 -- --foo foo --bar bar')
       -- THEN the target is run again with the same arguments
       runner_spy:assert_called_with(root, { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' })
 
@@ -676,7 +652,7 @@ describe('run', function()
       teardown_tree()
     end)
 
-    it('should add entry to action history', function()
+    it('should add entry to command history', function()
       local root, teardown_tree = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local input_fake = InputFake:new()
@@ -687,13 +663,13 @@ describe('run', function()
       vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- in definition of :foo1
       please.run()
       input_fake:enter_input('--foo foo --bar bar')
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Run //:foo1 --foo foo --bar bar' })
-      -- WHEN we select the run action
-      select_fake:choose_item('Run //:foo1 --foo foo --bar bar')
+      -- WHEN we call history
+      please.history()
+      -- THEN we're prompted to pick a command to run again
+      select_fake:assert_prompt('Pick command to run again')
+      select_fake:assert_items({ 'plz run //:foo1 -- --foo foo --bar bar' })
+      -- WHEN we select the run command
+      select_fake:choose_item('plz run //:foo1 -- --foo foo --bar bar')
       -- THEN the target is run again with the same arguments
       runner_spy:assert_called_with(root, { 'run', '//:foo1', '--', '--foo', 'foo', '--bar', 'bar' })
 
@@ -701,7 +677,7 @@ describe('run', function()
     end)
   end)
 
-  it('should not include program args in action history entry when none are passed as input', function()
+  it('should not include program args in command history entry when none are passed as input', function()
     local root, teardown_tree = create_temp_tree()
     local input_fake = InputFake:new()
     local select_fake = SelectFake:new()
@@ -711,11 +687,11 @@ describe('run', function()
     vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- in definition of :foo1
     please.run()
     input_fake:enter_input('')
-    -- WHEN we call action_history
-    please.action_history()
-    -- THEN the action history entry should not include the empty program args
-    select_fake:assert_prompt('Pick action to run again')
-    select_fake:assert_items({ 'Run //:foo1' })
+    -- WHEN we call history
+    please.history()
+    -- THEN the command history entry should not include the empty program args
+    select_fake:assert_prompt('Pick command to run again')
+    select_fake:assert_items({ 'plz run //:foo1' })
 
     teardown_tree()
   end)
@@ -753,30 +729,6 @@ describe('yank', function()
       -- WHEN we call yank
       please.yank()
       -- THEN the label of the target which the file is an input for is yanked into the " and * registers
-      assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
-      assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
-
-      teardown_tree()
-    end)
-
-    it('should add entry to action history', function()
-      local root, teardown_tree = create_temp_tree()
-      local select_fake = SelectFake:new()
-
-      -- GIVEN we've yanked a build target's label
-      vim.cmd('edit ' .. root .. '/foo2.txt')
-      please.yank()
-      -- fill the yank registers to make sure that we actually yank again below
-      vim.fn.setreg('"', 'foo')
-      vim.fn.setreg('*', 'foo')
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Yank //:foo1_and_foo2' })
-      -- WHEN we select the yank action
-      select_fake:choose_item('Yank //:foo1_and_foo2')
-      -- THEN the label is yanked again
       assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
       assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
 
@@ -821,35 +773,10 @@ describe('yank', function()
 
       teardown_tree()
     end)
-
-    it('should add entry to action history', function()
-      local root, teardown_tree = create_temp_tree()
-      local select_fake = SelectFake:new()
-
-      -- GIVEN we've yanked a build target's label
-      vim.cmd('edit ' .. root .. '/BUILD')
-      vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1
-      please.yank()
-      -- fill the yank registers to make sure that we actually yank again below
-      vim.fn.setreg('"', 'foo')
-      vim.fn.setreg('*', 'foo')
-      -- WHEN we call action_history
-      please.action_history()
-      -- THEN we're prompted to pick an action to run again
-      select_fake:assert_prompt('Pick action to run again')
-      select_fake:assert_items({ 'Yank //:foo1' })
-      -- WHEN we select the yank action
-      select_fake:choose_item('Yank //:foo1')
-      -- THEN the label is yanked again
-      assert.equal('//:foo1', vim.fn.getreg('"'), 'incorrect value in " register')
-      assert.equal('//:foo1', vim.fn.getreg('*'), 'incorrect value in * register')
-
-      teardown_tree()
-    end)
   end)
 end)
 
-describe('action_history', function()
+describe('history', function()
   local function create_temp_tree()
     return temptree.create({
       '.plzconfig',
@@ -875,40 +802,40 @@ describe('action_history', function()
     })
   end
 
-  it('should order history items from most to least recent', function()
+  it('should order items from most to least recent', function()
     local root, teardown_tree = create_temp_tree()
     local select_fake = SelectFake:new()
 
     -- GIVEN we've yanked the label of three targets, one after the other
     for _, filename in ipairs({ 'foo1.txt', 'foo2.txt', 'foo3.txt' }) do
       vim.cmd('edit ' .. root .. '/' .. filename)
-      please.yank()
+      please.build()
     end
-    -- WHEN we call action_history
-    please.action_history()
-    -- THEN the actions to yank each label are ordered from most to least recent
-    select_fake:assert_items({ 'Yank //:foo3', 'Yank //:foo2', 'Yank //:foo1' })
+    -- WHEN we call history
+    please.history()
+    -- THEN the commands to build each label are ordered from most to least recent
+    select_fake:assert_items({ 'plz build //:foo3', 'plz build //:foo2', 'plz build //:foo1' })
 
     teardown_tree()
   end)
 
-  it('should move rerun action to the top of history', function()
+  it('should move rerun command to the top of history', function()
     local root, teardown_tree = create_temp_tree()
     local select_fake = SelectFake:new()
 
-    -- GIVEN we've yanked the label of three targets, one after the other
+    -- GIVEN we've built three targets, one after the other
     for _, filename in ipairs({ 'foo1.txt', 'foo2.txt', 'foo3.txt' }) do
       vim.cmd('edit ' .. root .. '/' .. filename)
-      please.yank()
+      please.build()
     end
-    -- WHEN we call action_history
-    please.action_history()
-    -- AND rerun the second action
-    select_fake:assert_items({ 'Yank //:foo3', 'Yank //:foo2', 'Yank //:foo1' })
-    select_fake:choose_item('Yank //:foo2')
+    -- WHEN we call history
+    please.history()
+    -- AND rerun the second command
+    select_fake:assert_items({ 'plz build //:foo3', 'plz build //:foo2', 'plz build //:foo1' })
+    select_fake:choose_item('plz build //:foo2')
     -- THEN it has been moved to the top of the history
-    please.action_history()
-    select_fake:assert_items({ 'Yank //:foo2', 'Yank //:foo3', 'Yank //:foo1' })
+    please.history()
+    select_fake:assert_items({ 'plz build //:foo2', 'plz build //:foo3', 'plz build //:foo1' })
 
     teardown_tree()
   end)

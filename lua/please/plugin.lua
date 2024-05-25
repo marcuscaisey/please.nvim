@@ -37,6 +37,7 @@ local function create_user_command()
     debug = please.debug,
     yank = please.yank,
     action_history = please.action_history,
+    history = please.history,
     maximise_popup = please.maximise_popup,
     restore_popup = popup.restore,
     reload = M.reload,

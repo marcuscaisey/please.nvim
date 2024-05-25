@@ -21,7 +21,7 @@ Features ~
   * Build, run, test, and debug a target
   * Yank a target's label
   * Jump from a source file to its build target definition
-  * Display history of previous actions and run any of them again
+  * Display history of previous commands and run any of them again
   * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs`
     files
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better
@@ -78,7 +78,7 @@ command to get you started.
   vim.keymap.set('n', '<leader>pcd', function()
     require('please').debug({ under_cursor = true })
   end)
-  vim.keymap.set('n', '<leader>pa', require('please').action_history)
+  vim.keymap.set('n', '<leader>ph', require('please').history)
   vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
 <
 
@@ -155,8 +155,8 @@ please.debug({opts})                                              *please.debug*
           * {under_cursor} (boolean): debug the test under the cursor
 
 
-please.action_history()                                  *please.action_history*
-    Display a history of previous actions. Selecting one of them will run it
+please.history()                                                *please.history*
+    Display a history of previous commands. Selecting one of them will run it
     again.
 
 

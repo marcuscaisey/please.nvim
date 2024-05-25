@@ -15,7 +15,7 @@
 ---  * Build, run, test, and debug a target
 ---  * Yank a target's label
 ---  * Jump from a source file to its build target definition
----  * Display history of previous actions and run any of them again
+---  * Display history of previous commands and run any of them again
 ---  * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs`
 ---    files
 ---  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
@@ -72,7 +72,7 @@
 ---  vim.keymap.set('n', '<leader>pcd', function()
 ---    require('please').debug({ under_cursor = true })
 ---  end)
----  vim.keymap.set('n', '<leader>pa', require('please').action_history)
+---  vim.keymap.set('n', '<leader>ph', require('please').history)
 ---  vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
 ---<
 ---@brief ]]
@@ -98,14 +98,10 @@ local function new_runner(root, args)
   return runner
 end
 
--- TODO: There must be a better way of organising these. It's quite annoying how the action logic for each command is
--- not directly referenced in each function, only indirectly through run_and_save_action. Maybe we should just extract
--- out each action and reference them from both this table and the associated command function.
-local actions = {
-  jump_to_target = function(filepath, position)
-    vim.cmd('edit ' .. filepath)
-    vim.api.nvim_win_set_cursor(0, position)
-  end,
+-- TODO: There must be a better way of organising these. It's quite annoying how the logic for each command is not
+-- directly referenced in each function, only indirectly through run_and_save_command. Maybe we should just extract out
+-- each command and reference them from both this table and the associated command function.
+local commands = {
   build = function(root, label)
     new_runner(root, { 'build', label }):start()
   end,
@@ -116,27 +112,7 @@ local actions = {
     new_runner(root, { 'test', label, test_selector }):start()
   end,
   run = function(root, label, args)
-    if #args > 0 then
-      args = { '--', unpack(args) }
-    end
     new_runner(root, { 'run', label, unpack(args) }):start()
-  end,
-  yank = function(txt)
-    local registers = {
-      unnamed = '"',
-      star = '*',
-    }
-    for _, register in pairs(registers) do
-      logging.debug('setting %s register to %s', register, txt)
-      vim.fn.setreg(register, txt)
-    end
-    if vim.fn.exists(':OSCYankReg') == 2 then
-      logging.debug('calling :OSCYankReg "')
-      vim.api.nvim_cmd({ cmd = 'OSCYankReg', args = { '"' } }, {})
-    else
-      logging.debug(':OSCYankReg does not exist')
-    end
-    logging.info('yanked %s', txt)
   end,
   debug = function(root, label, lang)
     local launcher = debug.launchers[lang] -- FIXME: error if this is nil
@@ -162,14 +138,14 @@ local actions = {
 
 local data_path = vim.fn.stdpath('data')
 ---@cast data_path string
-local action_history_path = vim.fs.joinpath(data_path, 'please-history.json')
+local command_history_path = vim.fs.joinpath(data_path, 'please-command-history.json')
 
 ---@return table<string, any>
-local function read_action_history()
-  if not vim.uv.fs_stat(action_history_path) then
+local function read_command_history()
+  if not vim.uv.fs_stat(command_history_path) then
     return {}
   end
-  local f = assert(io.open(action_history_path))
+  local f = assert(io.open(command_history_path))
   local history_text = assert(f:read('*a'))
   local history = vim.json.decode(history_text) or {}
   assert(f:close())
@@ -177,37 +153,37 @@ local function read_action_history()
 end
 
 ---@param history table<string, any>
-local function write_action_history(history)
+local function write_command_history(history)
   if not vim.uv.fs_stat(data_path) then
     vim.fn.mkdir(data_path, 'p')
   end
-  local f = assert(io.open(action_history_path, 'w'))
+  local f = assert(io.open(command_history_path, 'w'))
   assert(f:write(vim.json.encode(history)))
   assert(f:close())
 end
 
 ---@private
----@class Action
----@field name string: the name of the action to run
----@field args table: the args to pass to the action
----@field description string: the text which will be shown for this action in the history
+---@class please.Command
+---@field name string: the name of the command to run
+---@field args table: the args to pass to the command
+---@field description string: the text which will be shown for this command in the history
 
----Run the given action and save it at the top of the action history for the given root. If an action with the same
----description is already in the action history for the given root, then it will moved to the top.
+---Run the given command and save it at the top of the command history for the given root. If a command with the same
+---description is already in the command history for the given root, then it will moved to the top.
 ---@param root string: an absolute path to the repo root
----@param action Action: the action to run
-local function run_and_save_action(root, action)
-  local history = read_action_history()
+---@param command please.Command: the command to run
+local function run_and_save_command(root, command)
+  local history = read_command_history()
   if history[root] then
     history[root] = vim.tbl_filter(function(history_item)
-      return history_item.description ~= action.description
+      return history_item.description ~= command.description
     end, history[root])
   else
     history[root] = {}
   end
-  table.insert(history[root], 1, action)
-  write_action_history(history)
-  actions[action.name](unpack(action.args))
+  table.insert(history[root], 1, command)
+  write_command_history(history)
+  commands[command.name](unpack(command.args))
 end
 
 ---Wrapper around vim.ui.select which:
@@ -299,11 +275,8 @@ function please.jump_to_target()
     select_if_many(labels, { prompt = 'Select target to jump to' }, function(label)
       local target_filepath, position = assert(parsing.locate_build_target(root, label))
       logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
-      run_and_save_action(root, {
-        name = 'jump_to_target',
-        args = { target_filepath, { position[1], position[2] } },
-        description = 'Jump to ' .. label,
-      })
+      vim.cmd('edit ' .. target_filepath)
+      vim.api.nvim_win_set_cursor(0, position)
     end)
   end)
 end
@@ -327,10 +300,10 @@ function please.build()
     end
 
     select_if_many(labels, { prompt = 'Select target to build' }, function(label)
-      run_and_save_action(root, {
+      run_and_save_command(root, {
         name = 'build',
         args = { root, label },
-        description = 'Build ' .. label,
+        description = 'plz build ' .. label,
       })
     end)
   end)
@@ -370,10 +343,10 @@ function please.test(opts)
       local test = assert(parsing.get_test_at_cursor())
       local labels = assert(query.whatinputs(root, filepath))
       select_if_many(labels, { prompt = 'Select target to test' }, function(label)
-        run_and_save_action(root, {
+        run_and_save_command(root, {
           name = 'test_selector',
           args = { root, label, test.selector },
-          description = string.format('Test %s %s', label, test.name),
+          description = string.format('plz test %s %s', label, test.selector),
         })
       end)
     else
@@ -385,10 +358,10 @@ function please.test(opts)
         labels = assert(query.whatinputs(root, filepath))
       end
       select_if_many(labels, { prompt = 'Select target to test' }, function(label)
-        run_and_save_action(root, {
+        run_and_save_command(root, {
           name = 'test',
           args = { root, label },
-          description = 'Test ' .. label,
+          description = 'plz test ' .. label,
         })
       end)
     end
@@ -420,14 +393,15 @@ function please.run()
         end
         local args = {}
         -- vim.ui.input passes empty input as an empty string instead of nil, I think this is a bug so just check for both to be safe.
-        if input and input ~= '' then
-          args = vim.split(input, ' ')
+        input = vim.trim(input)
+        if input ~= '' then
+          args = { '--', unpack(vim.split(input, ' ')) }
         end
-        local description = 'Run ' .. label
+        local description = 'plz run ' .. label
         if #args > 0 then
-          description = description .. ' ' .. input
+          description = description .. ' ' .. table.concat(args, ' ')
         end
-        run_and_save_action(root, {
+        run_and_save_command(root, {
           name = 'run',
           args = { root, label, args },
           description = description,
@@ -456,11 +430,12 @@ function please.yank()
     end
 
     select_if_many(labels, { prompt = 'Select label to yank' }, function(label)
-      run_and_save_action(root, {
-        name = 'yank',
-        args = { label },
-        description = 'Yank ' .. label,
-      })
+      local registers = { '"', '*' }
+      for _, register in ipairs(registers) do
+        logging.debug('setting %s register to %s', register, label)
+        vim.fn.setreg(register, label)
+      end
+      logging.info('yanked %s', label)
     end)
   end)
 end
@@ -494,10 +469,10 @@ function please.debug(opts)
       local labels = assert(query.whatinputs(root, filepath))
       local lang = vim.bo.filetype
       select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
-        run_and_save_action(root, {
+        run_and_save_command(root, {
           name = 'debug_selector',
           args = { root, label, lang, test.selector },
-          description = string.format('Debug %s %s', label, test.name),
+          description = string.format('plz debug %s %s', label, test.selector),
         })
       end)
     else
@@ -511,38 +486,48 @@ function please.debug(opts)
         lang = vim.bo.filetype
       end
       select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
-        run_and_save_action(root, {
+        run_and_save_command(root, {
           name = 'debug',
           args = { root, label, lang },
-          description = 'Debug ' .. label,
+          description = 'plz debug ' .. label,
         })
       end)
     end
   end)
 end
 
----Display a history of previous actions. Selecting one of them will run it
+---Display a history of previous commands. Selecting one of them will run it
 ---again.
-function please.action_history()
-  logging.log_call('please.action_history')
+function please.history()
+  logging.log_call('please.history')
 
-  logging.log_errors('Failed to show action history', function()
+  logging.log_errors('Failed to show command history', function()
     local cwd = get_filepath() or assert(vim.uv.cwd())
     local root = assert(get_repo_root(cwd))
 
-    local history = read_action_history()
+    local history = read_command_history()
     if not history[root] then
-      logging.error('action history is empty for repo ' .. root)
+      logging.error('command history is empty for repo ' .. root)
       return
     end
 
     local function get_description(history_item)
       return history_item.description
     end
-    select(history[root], { prompt = 'Pick action to run again', format_item = get_description }, function(history_item)
-      run_and_save_action(root, history_item)
-    end)
+    select(
+      history[root],
+      { prompt = 'Pick command to run again', format_item = get_description },
+      function(history_item)
+        run_and_save_command(root, history_item)
+      end
+    )
   end)
+end
+
+---@private
+function please.action_history()
+  vim.deprecate('please.action_history', 'please.history', 'v1.0.0', 'please.nvim')
+  please.history()
 end
 
 ---Maximises the popup which was most recently quit or minimised.
