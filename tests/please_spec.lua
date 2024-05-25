@@ -55,6 +55,10 @@ end
 
 function RunnerSpy:stop() end
 
+function RunnerSpy:minimise() end
+
+function RunnerSpy:on_success() end
+
 function RunnerSpy:assert_called_with(root, args)
   if not self._called then
     error('Runner:new has not been called')
@@ -533,6 +537,212 @@ describe('test', function()
       select_fake:choose_item('plz test //foo:foo1_test')
       -- THEN the target is tested again
       runner_spy:assert_called_with(root, { 'test', '//foo:foo1_test' })
+
+      teardown_tree()
+    end)
+  end)
+end)
+
+describe('debug', function()
+  local function create_temp_tree()
+    return temptree.create({
+      '.plzconfig',
+      ['foo/'] = {
+        BUILD = [[
+          go_test(
+              name = "foo1_test",
+              srcs = ["foo1_test.go"],
+              external = True,
+          )
+
+          go_test(
+              name = "foo1_and_foo2_test",
+              srcs = [
+                  "foo1_test.go",
+                  "foo2_test.go",
+              ],
+              external = True,
+          )
+        ]],
+        ['foo1_test.go'] = [[
+          package foo_test
+
+          import "testing"
+
+          func TestPasses(t *testing.T) {
+          }
+
+          func TestFails(t *testing.T) {
+              t.Fatal("oh no")
+          }
+        ]],
+        ['foo2_test.go'] = [[
+          package foo_test
+
+          import "testing"
+
+          func TestPasses(t *testing.T) {
+          }
+
+          func TestFails(t *testing.T) {
+              t.Fatal("oh no")
+          }
+        ]],
+      },
+    })
+  end
+
+  describe('in source file', function()
+    it('should build target which uses file as input with dbg config', function()
+      local root, teardown_tree = create_temp_tree()
+      local runner_spy = RunnerSpy:new()
+
+      -- GIVEN we're editing a file
+      vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+      -- WHEN we call debug
+      please.debug()
+      -- THEN the target which the file is an input for is built with dbg config
+      runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+
+      teardown_tree()
+    end)
+
+    it('should add entry to command history', function()
+      local root, teardown_tree = create_temp_tree()
+      local runner_spy = RunnerSpy:new()
+      local select_fake = SelectFake:new()
+
+      -- GIVEN we've debugged a file
+      vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+      please.debug()
+      -- WHEN we call history
+      please.history()
+      -- THEN we're prompted to pick a command to run again
+      select_fake:assert_prompt('Pick command to run again')
+      select_fake:assert_items({ 'plz debug //foo:foo1_and_foo2_test' })
+      -- WHEN we select the debug command
+      select_fake:choose_item('plz debug //foo:foo1_and_foo2_test')
+      -- THEN the target is built again with dbg config
+      runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+
+      teardown_tree()
+    end)
+
+    it('should prompt user to choose which target to debug if there is more than one', function()
+      local root, teardown_tree = create_temp_tree()
+      local runner_spy = RunnerSpy:new()
+      local select_fake = SelectFake:new()
+
+      -- GIVEN we're editing a file referenced by multiple build targets
+      vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
+      -- WHEN we call debug
+      please.debug()
+      -- THEN we're prompted to choose which target to debug
+      select_fake:assert_prompt('Select target to debug')
+      select_fake:assert_items({ '//foo:foo1_and_foo2_test', '//foo:foo1_test' })
+      -- WHEN we select one of the targets
+      select_fake:choose_item('//foo:foo1_and_foo2_test')
+      -- THEN the target is built with dbg config
+      runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+
+      teardown_tree()
+    end)
+
+    describe('with under_cursor=true', function()
+      it('should build target which uses file as input with dbg config', function()
+        local root, teardown_tree = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+
+        -- GIVEN we're editing a test file and the cursor is inside a test function
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
+        -- WHEN we call debug with under_cursor=true
+        please.debug({ under_cursor = true })
+        -- THEN the test target is built with dbg config
+        runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+
+        teardown_tree()
+      end)
+
+      it('should add entry to command history', function()
+        local root, teardown_tree = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+        local select_fake = SelectFake:new()
+
+        -- GIVEN we've debugged the function under the cursor
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
+        please.debug({ under_cursor = true })
+        -- WHEN we call history
+        please.history()
+        -- THEN we're prompted to pick a command to run again
+        select_fake:assert_prompt('Pick command to run again')
+        select_fake:assert_items({ 'plz debug //foo:foo1_and_foo2_test ^TestFails$' })
+        -- WHEN we select the debug command
+        select_fake:choose_item('plz debug //foo:foo1_and_foo2_test ^TestFails$')
+        -- THEN the test target is built with dbg config
+        runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+
+        teardown_tree()
+      end)
+
+      it('should prompt user to choose which target to debug if there is more than one', function()
+        local root, teardown_tree = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+        local select_fake = SelectFake:new()
+
+        -- GIVEN we're editing a test file referenced by multiple build targets and the cursor is inside a test function
+        vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
+        vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
+        -- WHEN we call debug with under_cursor=true
+        please.debug({ under_cursor = true })
+        -- THEN we're prompted to choose which target to debug
+        select_fake:assert_prompt('Select target to debug')
+        select_fake:assert_items({ '//foo:foo1_and_foo2_test', '//foo:foo1_test' })
+        -- WHEN we select one of the targets
+        select_fake:choose_item('//foo:foo1_and_foo2_test')
+        -- THEN the target is built again with dbg config
+        runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+
+        teardown_tree()
+      end)
+    end)
+  end)
+
+  describe('in BUILD file', function()
+    it('should build target under cursor with dbg config', function()
+      local root, teardown_tree = create_temp_tree()
+      local runner_spy = RunnerSpy:new()
+
+      -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+      vim.cmd('edit ' .. root .. '/foo/BUILD')
+      vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1_test
+      -- WHEN we call debug
+      please.debug()
+      -- THEN the target is built with dbg config
+      runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
+
+      teardown_tree()
+    end)
+
+    it('should add entry to command history', function()
+      local root, teardown_tree = create_temp_tree()
+      local runner_spy = RunnerSpy:new()
+      local select_fake = SelectFake:new()
+
+      -- GIVEN we've debugged a build target
+      vim.cmd('edit ' .. root .. '/foo/BUILD')
+      vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1_test
+      please.debug()
+      -- WHEN we call history
+      please.history()
+      -- THEN we're prompted to pick a command to run again
+      select_fake:assert_prompt('Pick command to run again')
+      select_fake:assert_items({ 'plz debug //foo:foo1_test' })
+      -- WHEN we select the debug command
+      select_fake:choose_item('plz debug //foo:foo1_test')
+      -- THEN the target is built with dbg config
+      runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
 
       teardown_tree()
     end)

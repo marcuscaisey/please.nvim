@@ -234,7 +234,9 @@ function Runner:minimise()
   if not self._winid then
     error('minimise called on Runner that has not been started')
   end
-  vim.api.nvim_win_close(self._winid, false)
+  if not self._minimised then
+    vim.api.nvim_win_close(self._winid, false)
+  end
 end
 
 ---Maximises the floating window.

@@ -93,54 +93,17 @@ local function new_runner(root, args)
   local runner = Runner:new(root, args)
   if current_runner then
     current_runner:stop()
+    current_runner:minimise()
   end
   current_runner = runner
   return runner
 end
 
--- TODO: There must be a better way of organising these. It's quite annoying how the logic for each command is not
--- directly referenced in each function, only indirectly through run_and_save_command. Maybe we should just extract out
--- each command and reference them from both this table and the associated command function.
-local commands = {
-  build = function(root, label)
-    new_runner(root, { 'build', label }):start()
-  end,
-  test = function(root, label)
-    new_runner(root, { 'test', label }):start()
-  end,
-  test_selector = function(root, label, test_selector)
-    new_runner(root, { 'test', label, test_selector }):start()
-  end,
-  run = function(root, label, args)
-    new_runner(root, { 'run', label, unpack(args) }):start()
-  end,
-  debug = function(root, label, lang)
-    local launcher = debug.launchers[lang] -- FIXME: error if this is nil
-    local runner = new_runner(root, { 'build', '--config', 'dbg', label })
-    runner:on_success(function()
-      runner:minimise()
-      logging.log_errors('Failed to debug', function()
-        assert(launcher(root, label))
-      end)
-    end)
-    runner:start()
-  end,
-  debug_selector = function(root, label, lang, test_selector)
-    local launcher = debug.launchers[lang] -- FIXME: error if this is nil
-    local runner = new_runner(root, { 'build', '--config', 'dbg', label })
-    runner:on_success(function()
-      runner:minimise()
-      launcher(root, label, test_selector)
-    end)
-    runner:start()
-  end,
-}
-
 local data_path = vim.fn.stdpath('data')
 ---@cast data_path string
 local command_history_path = vim.fs.joinpath(data_path, 'please-command-history.json')
 
----@return table<string, any>
+---@return table<string, please.Command[]>
 local function read_command_history()
   if not vim.uv.fs_stat(command_history_path) then
     return {}
@@ -164,32 +127,55 @@ end
 
 ---@private
 ---@class please.Command
----@field name string: the name of the command to run
----@field args table: the args to pass to the command
----@field description string: the text which will be shown for this command in the history
+---@field type 'simple' | 'debug'
+---@field args table
+---@field description string
+---@field opts table<string, string>
 
----Run the given command and save it at the top of the command history for the given root. If a command with the same
----description is already in the command history for the given root, then it will moved to the top.
----@param root string: an absolute path to the repo root
----@param command please.Command: the command to run
-local function run_and_save_command(root, command)
+---@param root string
+---@param command please.Command
+local function save_command(root, command)
   local history = read_command_history()
   if history[root] then
-    history[root] = vim.tbl_filter(function(history_item)
-      return history_item.description ~= command.description
-    end, history[root])
+    history[root] = vim
+      .iter(history[root])
+      :filter(function(history_item)
+        return history_item.description ~= command.description
+      end)
+      :totable()
   else
     history[root] = {}
   end
   table.insert(history[root], 1, command)
   write_command_history(history)
-  commands[command.name](unpack(command.args))
+end
+
+---@param root string
+---@param args string[]
+local function run_simple_command(root, args)
+  new_runner(root, args):start()
+end
+
+---@param root string
+---@param args string[]
+local function save_and_run_simple_command(root, args)
+  save_command(root, {
+    type = 'simple',
+    args = args,
+    description = 'plz ' .. table.concat(args, ' '),
+    opts = {},
+  })
+  run_simple_command(root, args)
 end
 
 ---Wrapper around vim.ui.select which:
 ---- sets a width for the telescope popup which will fit all of the provided items
 ---- handles input cancellation
 ---- wraps on_choice in logging.log_errors
+---@generic T any
+---@param items T[]
+---@param opts table
+---@param on_choice fun(item: T)
 local function select(items, opts, on_choice)
   local max_item_length = 0
   local format_item = opts.format_item or tostring
@@ -224,6 +210,7 @@ local function select_if_many(items, opts, on_choice)
   end
 end
 
+---TODO: replace with vim.validate
 ---Validate that all opts are:
 ---- one of valid_opts
 ---- boolean
@@ -300,11 +287,7 @@ function please.build()
     end
 
     select_if_many(labels, { prompt = 'Select target to build' }, function(label)
-      run_and_save_command(root, {
-        name = 'build',
-        args = { root, label },
-        description = 'plz build ' .. label,
-      })
+      save_and_run_simple_command(root, { 'build', label })
     end)
   end)
 end
@@ -339,32 +322,24 @@ function please.test(opts)
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
 
+    local labels = {} ---@type string[]
+    local extra_args = {} ---@type string[]
     if opts.under_cursor then
       local test = assert(parsing.get_test_at_cursor())
-      local labels = assert(query.whatinputs(root, filepath))
-      select_if_many(labels, { prompt = 'Select target to test' }, function(label)
-        run_and_save_command(root, {
-          name = 'test_selector',
-          args = { root, label, test.selector },
-          description = string.format('plz test %s %s', label, test.selector),
-        })
-      end)
+      extra_args = { test.selector }
+      labels = assert(query.whatinputs(root, filepath))
     else
-      local labels
       if vim.bo.filetype == 'please' then
         local label = assert(parsing.get_target_at_cursor(root))
         labels = { label }
       else
         labels = assert(query.whatinputs(root, filepath))
       end
-      select_if_many(labels, { prompt = 'Select target to test' }, function(label)
-        run_and_save_command(root, {
-          name = 'test',
-          args = { root, label },
-          description = 'plz test ' .. label,
-        })
-      end)
     end
+
+    select_if_many(labels, { prompt = 'Select target to test' }, function(label)
+      save_and_run_simple_command(root, { 'test', label, unpack(extra_args) })
+    end)
   end)
 end
 
@@ -397,15 +372,7 @@ function please.run()
         if input ~= '' then
           args = { '--', unpack(vim.split(input, ' ')) }
         end
-        local description = 'plz run ' .. label
-        if #args > 0 then
-          description = description .. ' ' .. table.concat(args, ' ')
-        end
-        run_and_save_command(root, {
-          name = 'run',
-          args = { root, label, args },
-          description = description,
-        })
+        save_and_run_simple_command(root, { 'run', label, unpack(args) })
       end)
     end)
   end)
@@ -440,6 +407,35 @@ function please.yank()
   end)
 end
 
+---@param root string
+---@param lang string
+---@param args string[]
+local function run_debug_command(root, lang, args)
+  local launcher = debug.launchers[lang]
+  local label = args[2] -- args = { 'debug', label, ... }
+  local runner = new_runner(root, { 'build', '--config', 'dbg', label })
+  runner:on_success(function()
+    runner:minimise()
+    logging.log_errors('Failed to debug', function()
+      assert(launcher(root, label))
+    end)
+  end)
+  runner:start()
+end
+
+---@param root string
+---@param lang string
+---@param args string[]
+local function save_and_run_debug_command(root, lang, args)
+  save_command(root, {
+    type = 'debug',
+    args = args,
+    description = 'plz ' .. table.concat(args, ' '),
+    opts = { lang = lang },
+  })
+  run_debug_command(root, lang, args)
+end
+
 ---If the current file is a `BUILD` file, debug the target which is under the
 ---cursor. Otherwise, debug the target which takes the current file as an
 ---input.
@@ -464,35 +460,32 @@ function please.debug(opts)
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
 
+    local labels = {} ---@type string[]
+    local lang = '' ---@type string
+    local extra_args = {} ---@type string[]
     if opts.under_cursor then
       local test = assert(parsing.get_test_at_cursor())
-      local labels = assert(query.whatinputs(root, filepath))
-      local lang = vim.bo.filetype
-      select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
-        run_and_save_command(root, {
-          name = 'debug_selector',
-          args = { root, label, lang, test.selector },
-          description = string.format('plz debug %s %s', label, test.selector),
-        })
-      end)
+      extra_args = { test.selector }
+      labels = assert(query.whatinputs(root, filepath))
+      lang = vim.bo.filetype
     else
-      local labels, lang
       if vim.bo.filetype == 'please' then
         local label, rule = assert(parsing.get_target_at_cursor(root))
         labels = { label }
-        lang = rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx which feels pretty safe
+        lang = rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
       else
         labels = assert(query.whatinputs(root, filepath))
         lang = vim.bo.filetype
       end
-      select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
-        run_and_save_command(root, {
-          name = 'debug',
-          args = { root, label, lang },
-          description = 'plz debug ' .. label,
-        })
-      end)
     end
+
+    if not debug.launchers[lang] then
+      error(string.format('debugging is not supported for %s files', lang))
+    end
+
+    select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
+      save_and_run_debug_command(root, lang, { 'debug', label, unpack(extra_args) })
+    end)
   end)
 end
 
@@ -511,16 +504,18 @@ function please.history()
       return
     end
 
-    local function get_description(history_item)
-      return history_item.description
+    local function get_description(command)
+      return command.description
     end
-    select(
-      history[root],
-      { prompt = 'Pick command to run again', format_item = get_description },
-      function(history_item)
-        run_and_save_command(root, history_item)
+    select(history[root], { prompt = 'Pick command to run again', format_item = get_description }, function(command)
+      if command.type == 'simple' then
+        save_and_run_simple_command(root, command.args)
+      elseif command.type == 'debug' then
+        save_and_run_debug_command(root, command.opts.lang, command.args)
+      else
+        error('unknown command type ' .. command.type)
       end
-    )
+    end)
   end)
 end
 
