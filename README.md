@@ -49,6 +49,8 @@ call dein#add('marcuscaisey/please.nvim')
 ```
 
 #### Recommended additional plugins
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - tree-sitter configurations
+  and abstraction layer for Neovim
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - excellent fuzzy finder
 - [dressing.nvim](https://github.com/stevearc/dressing.nvim) - pairs with telescope.nvim to
   provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`)
