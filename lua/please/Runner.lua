@@ -69,8 +69,8 @@ end
 ---@param bufnr integer Buffer to display.
 ---@return integer winid ID of the window.
 local function open_win(bufnr)
-  local width_pct = 0.8
-  local height_pct = 0.8
+  local width_pct = 0.9
+  local height_pct = 0.9
   local padding_top_bottom = 2
   local padding_left_right = 4
 
