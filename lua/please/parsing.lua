@@ -354,12 +354,8 @@ function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
 
   local subtest_query = vim.treesitter.query.parse('go', queries.go.subtest)
   for captures in iter_match_captures(subtest_query, parent_body, { max_start_depth = 1 }) do
-    -- We make sure that the subtest is a direct child of parent_body so that we don't pick up any nested subtests which
-    -- will be picked up by recursive calls of parse_go_subtests. Passing max_start_depth = 1 to iter_matches achieves
-    -- the same thing but is not released yet, so we do both for now.
-    -- TODO: remove the extra check when minimum nvim version is 0.10
     local subtest_receiver = vim.treesitter.get_node_text(captures.receiver, 0)
-    if captures.subtest:parent():id() == parent_body:id() and subtest_receiver == receiver then
+    if subtest_receiver == receiver then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
       -- underscores to match how the Go test runner displays test names.
       local subtest_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
@@ -372,12 +368,8 @@ function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
 
   local table_test_query = vim.treesitter.query.parse('go', queries.go.table_test)
   for captures in iter_match_captures(table_test_query, parent_body, { max_start_depth = 1 }) do
-    -- We make sure that the table test is a direct child of parent_body so that we don't pick up any nested table
-    -- tests. Passing max_start_depth = 1 to iter_matches achieves the same thing but is not released yet, so we do both
-    -- for now.
-    -- TODO: remove the extra check when minimum nvim version is 0.10
     local subtest_receiver = vim.treesitter.get_node_text(captures.receiver, 0)
-    if captures.for_loop:parent():id() == parent_body:id() and subtest_receiver == receiver then
+    if subtest_receiver == receiver then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
       -- underscores to match how the Go test runner displays test names.
       local test_case_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
