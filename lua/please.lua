@@ -210,23 +210,6 @@ local function select_if_many(items, opts, on_choice)
   end
 end
 
----TODO: replace with vim.validate
----Validate that all opts are:
----- one of valid_opts
----- boolean
-local function validate_opts(opts, valid_opts)
-  for opt, value in pairs(opts) do
-    if not vim.tbl_contains(valid_opts, opt) then
-      return false, string.format("'%s' is not a valid opt", opt)
-    end
-    if type(value) ~= 'boolean' then
-      return false,
-        string.format('invalid type (%s) for "%s" value %s, should be boolean', type(value), opt, vim.inspect(value))
-    end
-  end
-  return true
-end
-
 local function get_filepath()
   local filepath = vim.api.nvim_buf_get_name(0)
   if filepath == '' then
@@ -330,7 +313,10 @@ function please.test(opts)
   logging.log_errors('Failed to test', function()
     opts = opts or {}
 
-    assert(validate_opts(opts, { 'under_cursor' }))
+    vim.validate({
+      opts = { opts, 'table' },
+      under_cursor = { opts.under_cursor, 'boolean', true },
+    })
 
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
@@ -404,7 +390,11 @@ function please.debug(opts)
 
   logging.log_errors('Failed to debug', function()
     opts = opts or {}
-    assert(validate_opts(opts, { 'under_cursor' }))
+
+    vim.validate({
+      opts = { opts, 'table' },
+      under_cursor = { opts.under_cursor, 'boolean', true },
+    })
 
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
