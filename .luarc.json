@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime": {
+    "version": "LuaJIT",
+    "pathStrict": true,
+    "path": [
+      "?.lua",
+      "?/init.lua"
+    ]
+  },
+  "workspace": {
+    "library": [
+      "${3rd}/busted/library",
+      "${3rd}/luassert/library",
+      "${3rd}/luv/library",
+      "plz-out/nvim"
+    ]
+  }
+}

@@ -12,7 +12,7 @@ neovim_github_plugin(
 neovim_github_plugin(
     name = "nvim_dap",
     repo = "mfussenegger/nvim-dap",
-    revision = "6cedcb527e264c8f25e86afa8dae74c6692dee51",
+    revision = "922ebc75c2fa9305e36402fbd8c984c8638770a0",
 )
 
 neovim_github_tree_sitter_parser(

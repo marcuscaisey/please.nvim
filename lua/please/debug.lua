@@ -12,7 +12,9 @@ local function safe_require(module)
   })
 end
 
+---@module 'dap'
 local dap = safe_require('dap')
+---@module 'dap.repl'
 local repl = safe_require('dap.repl')
 local logging = require('please.logging')
 local query = require('please.query')
@@ -24,7 +26,7 @@ local M = {
 }
 
 local function get_free_port()
-  local tcp = vim.uv.new_tcp()
+  local tcp = assert(vim.uv.new_tcp())
   -- binding to port 0 lets the OS assign an ephemeral port which we can lookup with getsocketname
   tcp:bind('127.0.0.1', 0)
   local port = tcp:getsockname().port

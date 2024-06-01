@@ -31,22 +31,27 @@ def neovim_toolchain(name: str, version: str, hashes: list = [], visibility: lis
         name = tag(name, "download"),
         url = urls_by_os[CONFIG.HOSTOS],
         hashes = hashes,
-        out = f"nvim_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}_{version}.tar.gz",
+        extract = True,
+    )
+
+    lua = genrule(
+        name = tag(name, "lua"),
+        srcs = [download],
+        output_dirs = ["_out"],
+        cmd = "mkdir _out && cp -r $SRCS/share/nvim/runtime/lua/* _out",
+        labels = ["link:plz-out/nvim"],
     )
 
     return genrule(
         name = name,
         srcs = [download],
-        cmd = [
-            "mkdir _out",
-            "tar -xf $SRCS -C _out",
-            "mv _out/$(ls _out) $OUT",
-        ],
+        cmd = "mv $SRCS $OUT",
         outs = [name],
         entry_points = {
             "nvim": f"{name}/bin/nvim",
         },
-        binary = True,
+        deps = [lua],
+        output_is_complete = True,
         visibility = visibility,
         building_description = "Installing...",
     )
@@ -260,12 +265,21 @@ def neovim_github_plugin(name: str, repo: str, revision: str, hashes: list = [],
         out = f"{name}.runtimepath",
         cmd = f"echo $SRC > $OUT",
     )
+    lua = genrule(
+        name = tag(name, "lua"),
+        srcs = [download],
+        output_dirs = ["_out"],
+        cmd = "mkdir -p _out && cp -r $SRCS/lua/* _out",
+        labels = ["link:plz-out/nvim"],
+    )
     return filegroup(
         name = name,
         srcs = [
             download,
             runtimepath,
         ],
+        output_is_complete = True,
+        deps = [lua],
         visibility = visibility,
     )
 
