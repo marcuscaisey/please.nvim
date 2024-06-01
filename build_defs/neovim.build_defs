@@ -2,7 +2,7 @@
 
 subinclude("///shell//build_defs:shell")
 
-def neovim_toolchain(name: str, version: str, hashes: list = [], visibility: list = ["PUBLIC"]):
+def neovim_toolchain(name:str, version:str, hashes:list=[], visibility:list=["PUBLIC"]):
     """
     Downloads Neovim from GitHub and exposes the nvim binary as the entry point :<name>|nvim.
 
@@ -56,7 +56,7 @@ def neovim_toolchain(name: str, version: str, hashes: list = [], visibility: lis
         building_description = "Installing...",
     )
 
-def neovim_plugin(name: str, srcs: list = [], deps: list = [], help_srcs: list = [], help_opts: list = [], visibility: list = ["PUBLIC"]):
+def neovim_plugin(name:str, srcs:list=[], deps:list=[], help_srcs:list=[], help_opts:list=[], visibility:list=["PUBLIC"]):
     """
     Defines two Neovim plugin targets:
         1. <name> which collects the plugin's files for use by dependent neovim_lua_module and neovim_test targets.
@@ -121,7 +121,7 @@ def neovim_plugin(name: str, srcs: list = [], deps: list = [], help_srcs: list =
         visibility = visibility,
     )
 
-def neovim_lua_module(name: str, srcs: list, deps: list = [], visibility: list = ["PUBLIC"]):
+def neovim_lua_module(name:str, srcs:list, deps:list=[], visibility:list=["PUBLIC"]):
     """
     Defines a Lua module target which collects Lua files for use by dependent neovim_lua_module, neovim_plugin, and
     neovim_test targets.
@@ -140,7 +140,7 @@ def neovim_lua_module(name: str, srcs: list, deps: list = [], visibility: list =
         visibility = visibility,
     )
 
-def neovim_test(name: str, test_file: str, deps: list = [], labels: list = [], data: list | dict = None, env: dict = None, nvim: str = None):
+def neovim_test(name:str, test_file:str, deps:list=[], labels:list=[], data:list|dict=None, env:dict=None, nvim:str=None):
     """
     Defines a Neovim test target which runs a test file inside Neovim using plenary
     (https://github.com/nvim-lua/plenary.nvim).
@@ -240,7 +240,7 @@ def neovim_test(name: str, test_file: str, deps: list = [], labels: list = [], d
         env = env,
     )
 
-def neovim_github_plugin(name: str, repo: str, revision: str, hashes: list = [], visibility: list = ["PUBLIC"]):
+def neovim_github_plugin(name:str, repo:str, revision:str, hashes:list=[], visibility:list=["PUBLIC"]):
     """
     Downloads a Neovim plugin from GitHub for use by dependent neovim_lua_module and neovim_test targets.
 
@@ -283,7 +283,7 @@ def neovim_github_plugin(name: str, repo: str, revision: str, hashes: list = [],
         visibility = visibility,
     )
 
-def neovim_github_tree_sitter_parser(name: str, lang: str, repo: str, revision: str, hashes: list = [], visibility: list = ["PUBLIC"]):
+def neovim_github_tree_sitter_parser(name:str, lang:str, repo:str, revision:str, hashes:list=[], visibility:list=["PUBLIC"]):
     """
     Downloads a tree sitter parser from GitHub and compiles it for use by dependent neovim_lua_module and neovim_test targets.
 
@@ -361,7 +361,7 @@ cc_shared_object(
         visibility = visibility,
     )
 
-def neovim_lemmy_help(name: str, version: str, hashes: list = [], visibility: list = ["PUBLIC"]):
+def neovim_lemmy_help(name:str, version:str, hashes:list=[], visibility:list=["PUBLIC"]):
     """
     Downloads lemmy-help from GitHub.
 
