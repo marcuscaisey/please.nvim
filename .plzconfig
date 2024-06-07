@@ -10,7 +10,6 @@ preloadsubincludes = ///cc//build_defs:c
 
 [BuildConfig]
 nvim-tool = //third_party/neovim:toolchain|nvim
-plenary-plugin = //third_party/neovim:plenary
 lemmy-help-tool = //third_party/neovim:lemmy_help
 
 [Plugin "go"]
