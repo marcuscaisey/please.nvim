@@ -105,11 +105,11 @@ def luarocks_package(name:str, package:str=None, version:str, deps:list=[], visi
             "if [ -d tree/share/lua ]; then cp -r tree/share/lua/*/ _out; fi",
             "if [ -d tree/lib/lua ]; then cp -r tree/lib/lua/*/ _out; fi",
         ],
+        exported_deps = deps,
         output_dirs = ["_out"],
         sandbox = False,
         tools = [":luarocks|luarocks"],
         visibility = visibility,
-        exported_deps = deps,
     )
 
 luarocks_package(
