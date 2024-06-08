@@ -102,8 +102,8 @@ def luarocks_package(name:str, package:str=None, version:str, deps:list=[], visi
         cmd = [
             f"$TOOL --tree=tree install --deps-mode=none {package} {version}",
             "mkdir _out",
-            "if [ -d tree/share/lua ]; then cp -r tree/share/lua/*/ _out; fi",
-            "if [ -d tree/lib/lua ]; then cp -r tree/lib/lua/*/ _out; fi",
+            "if [ -d tree/share/lua ]; then cp -R $(find tree/share/lua -mindepth 2 -maxdepth 2) _out; fi",
+            "if [ -d tree/lib/lua ]; then cp -R $(find tree/lib/lua -mindepth 2 -maxdepth 2) _out; fi",
         ],
         exported_deps = deps,
         output_dirs = ["_out"],
