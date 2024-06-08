@@ -39,7 +39,7 @@ def lua_toolchain(name:str, version:str):
     )
 
 lua_toolchain(
-    name = "toolchain",
+    name = "_toolchain",
     version = "5.1.5",
 )
 
@@ -75,12 +75,12 @@ def luarocks(name:str, version:str):
             "luarocks": f"{name}/bin/luarocks",
         },
         tools = {
-            "lua": ":toolchain|lua",
+            "lua": ":_toolchain|lua",
         },
     )
 
 luarocks(
-    name = "luarocks",
+    name = "_luarocks",
     version = "3.11.1",
 )
 
@@ -108,7 +108,7 @@ def luarocks_package(name:str, package:str=None, version:str, deps:list=[], visi
         exported_deps = deps,
         output_dirs = ["_out"],
         sandbox = False,
-        tools = [":luarocks|luarocks"],
+        tools = [":_luarocks|luarocks"],
         visibility = visibility,
     )
 
