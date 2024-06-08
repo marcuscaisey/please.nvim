@@ -29,6 +29,11 @@ Target = //plugins:shell
 [Plugin "cc"]
 Target = //plugins:cc
 
-[sandbox]
+[Sandbox]
 build = true
 test = true
+
+[Remote]
+URL =
+Instance =
+NumExecutors = 0
