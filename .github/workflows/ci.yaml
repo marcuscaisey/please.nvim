@@ -17,16 +17,6 @@ jobs:
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Run tests
         run: plz test
-  lint-docs:
-    name: Lint Docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout commit
-        uses: actions/checkout@v3
-      - name: Install Please
-        run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
-      - name: Check if help file needs regenerating
-        run: plz run //:please_help_gen_check
   lint-lua:
     name: Lint Lua
     runs-on: ubuntu-latest

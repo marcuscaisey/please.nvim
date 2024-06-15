@@ -99,19 +99,27 @@ def neovim_plugin(name:str, srcs:list=[], deps:list=[], help_srcs:list=[], help_
 
         help_file_path = f"doc/{name}.txt"
         help_gen = sh_cmd(
-            name = f"{name}_help_gen",
+            name = "help_gen",
             deps = [help_file_rule],
             cmd = f"mkdir -p doc && cp $(out_location {help_file_rule}) {help_file_path}",
         )
 
-        sh_cmd(
-            name = f"{name}_help_gen_check",
-            deps = [help_file_rule],
-            cmd = " ".join([
-                f"diff --unified --color=always {help_file_path} $(out_location {help_file_rule})",
-                f'&& echo "\033[32;1m{help_file_path} is up to date." && exit 0',
-                f'|| echo "\n\033[31;1m{help_file_path} needs to be regenerated with \\"plz run //{help_gen}\\"" && exit 1',
-            ]),
+        sh_test(
+            name = "help_gen_test",
+            src = text_file(
+                name = "test_script",
+                content = "\n".join([
+                    f"if ! diff --unified --color=always {help_file_path} $(location {help_file_rule}); then",
+                    f'  echo {help_file_path} needs to be regenerated with "plz run //{help_gen}"',
+                    "  exit 1",
+                    "fi",
+                ]),
+                deps = [help_file_rule],
+            ),
+            data = [
+                help_file_rule,
+                help_file_path,
+            ],
         )
 
     return filegroup(
