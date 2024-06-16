@@ -1,0 +1,24 @@
+From 5187f0ee83418dd7ab5dcb1b9be94848b2657039 Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Sun, 16 Jun 2024 17:57:42 +0100
+Subject: [PATCH] [cdoc_parser.lua] fix imports
+
+---
+ tools/gen_vimdoc/cdoc_parser.lua | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/gen_vimdoc/cdoc_parser.lua b/tools/gen_vimdoc/cdoc_parser.lua
+index 5f0dc7b..67d5af5 100644
+--- a/tools/gen_vimdoc/cdoc_parser.lua
++++ b/tools/gen_vimdoc/cdoc_parser.lua
+@@ -1,5 +1,5 @@
+-local cdoc_grammar = require('scripts.cdoc_grammar')
+-local c_grammar = require('src.nvim.generators.c_grammar')
++local cdoc_grammar = require('tools.gen_vimdoc.cdoc_grammar')
++local c_grammar = require('tools.gen_vimdoc.c_grammar')
+ 
+ --- @class nvim.cdoc.parser.param
+ --- @field name string
+-- 
+2.41.0
+

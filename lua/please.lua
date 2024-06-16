@@ -1,84 +1,3 @@
----@brief [[
----*please.nvim*
----A plugin to make you more productive in Neovim when using Please.
----@brief ]]
-
----@toc please-contents
-
----@mod please-intro INTRODUCTION
----@brief [[
----please.nvim is a plugin which allows you interact with your Please repository
----from the comfort of Neovim. The aim is to remove the need to switch from your
----editor to the shell when performing routine actions.
----
----Features ~
----  * Build, run, test, and debug a target
----  * Display history of previous commands and run any of them again
----  * Jump from a source file to its build target definition
----  * Yank a target's label
----  * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs`
----    files
----  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
----    syntax highlighting
----  * Python tree-sitter parser configured to be used for please files to enable
----    better syntax highlighting and use of all tree-sitter features in build
----    files
----@brief ]]
-
----@mod please-usage USAGE
----@brief [[
----Lua and VimL APIs ~
----please.nvim commands can be called either through the Lua or the VimL API.
----  * Commands are written in Lua and as such the Lua API should be preferred.
----    It can't be guaranteed that all features available through the Lua API
----    will also available through the VimL API.
----  * The VimL API is mostly provided to make it easy to call commands from the
----    command line.
----
----To use the Lua API, you need to import the required module which will usually
----be `please`. For instance, `jump_to_target` is executed with
----`require('please').jump_to_target()`
----
----All available VimL API commands are autocompletable as arguments to the
----`:Please` command. For instance, `jump_to_target` is executed with
----`:Please jump_to_target`
----
----UI Customisation ~
----Some commands may prompt you to either choose from a list of options or input
----some text. For example, when building a file which is an input to multiple
----build targets, you'll be prompted to choose which target to build.
----
----Input and selection prompts are provided by |vim.ui.input()| and
----|vim.ui.select()| respectively. Doing so allows you to customise the
----appearance of them to your taste. See |lua-ui| and the fantastic
----https://github.com/stevearc/dressing.nvim for more information.
----@brief ]]
-
----@mod please-mappings MAPPINGS
----@brief [[
----please.nvim doesn't come with any mappings defined out of the box so that you
----can customise how you use it. Below are a set of mappings for each available
----command to get you started.
---->lua
----  vim.keymap.set('n', '<leader>pb', require('please').build)
----  vim.keymap.set('n', '<leader>pr', require('please').run)
----  vim.keymap.set('n', '<leader>pt', require('please').test)
----  vim.keymap.set('n', '<leader>pct', function()
----    require('please').test({ under_cursor = true })
----  end)
----  vim.keymap.set('n', '<leader>pd', require('please').debug)
----  vim.keymap.set('n', '<leader>pcd', function()
----    require('please').debug({ under_cursor = true })
----  end)
----  vim.keymap.set('n', '<leader>ph', require('please').history)
----  vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
----  vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
----  vim.keymap.set('n', '<leader>py', require('please').yank)
----<
----@brief ]]
-
----@mod please PLEASE COMMANDS
-
 local query = require('please.query')
 local parsing = require('please.parsing')
 local Runner = require('please.Runner')
@@ -125,7 +44,7 @@ local function write_command_history(history)
   assert(f:close())
 end
 
----@private
+---@nodoc
 ---@class please.Command
 ---@field type 'simple' | 'debug'
 ---@field args table
@@ -229,9 +148,8 @@ local function get_repo_root(path)
   return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
 end
 
----If the current file is a `BUILD` file, builds the target which is under
----the cursor. Otherwise, builds the target which takes the current file as
----an input.
+---If the current file is a `BUILD` file, builds the target which is under the cursor. Otherwise, builds the target
+---which takes the current file as an input.
 function please.build()
   logging.log_call('please.build')
 
@@ -253,9 +171,8 @@ function please.build()
   end)
 end
 
----If the current file is a `BUILD` file, run the target which is under the
----cursor. Otherwise, run the target which takes the current file as an
----input.
+---If the current file is a `BUILD` file, run the target which is under the cursor. Otherwise, run the target which
+---takes the current file as an input.
 function please.run()
   logging.log_call('please.run')
 
@@ -288,25 +205,19 @@ function please.run()
   end)
 end
 
----If the current file is a `BUILD` file, test the target which is under the
----cursor. Otherwise, test the target which takes the current file as an
----input.
+---@class please.TestOptions
+---@inlinedoc
+---@field under_cursor boolean run the test under the cursor
+
+---If the current file is a `BUILD` file, test the target which is under the cursor. Otherwise, test the target which
+---takes the current file as an input.
 ---
----Optionally (when in a source file), you can run only the test which is
----under the cursor.
+---Optionally (when in a source file), you can run only the test which is under the cursor.
 ---This is supported for the following languages:
----- Go
----  - test functions
----  - subtests
----  - table tests
----  - testify suite methods
----  - testify suite subtests
----  - testify suite table tests
----- Python
----  - unittest test classes
----  - unittest test methods
----@param opts table|nil available options
----  * {under_cursor} (boolean): run the test under the cursor
+---- Go - test functions, subtests, table tests, testify suite methods, testify suite subtests, testify suite table
+---  tests
+---- Python - unittest test classes, unittest test methods
+---@param opts please.TestOptions? optional keyword arguments
 function please.test(opts)
   logging.log_call('please.test')
 
@@ -371,20 +282,21 @@ local function save_and_run_debug_command(root, lang, args)
   run_debug_command(root, lang, args)
 end
 
----If the current file is a `BUILD` file, debug the target which is under the
----cursor. Otherwise, debug the target which takes the current file as an
----input.
+---@class please.DebugOptions
+---@inlinedoc
+---@field under_cursor boolean debug the test under the cursor
+
+---If the current file is a `BUILD` file, debug the target which is under the cursor. Otherwise, debug the target which
+---takes the current file as an input.
 ---
 ---Debug support is provided by https://github.com/mfussenegger/nvim-dap.
 ---This is supported for the following languages:
 ---- Go (Delve)
 ---- Python (debugpy)
 ---
----Optionally (when in a source file), you can debug only the test which is
----under the cursor. The supported languages and test types are the same as
----for the `please.test`.
----@param opts table|nil available options
----  * {under_cursor} (boolean): debug the test under the cursor
+---Optionally (when in a source file), you can debug only the test which is under the cursor. The supported languages
+---and test types are the same as for [please.test()].
+---@param opts please.DebugOptions? optional keyword arguments
 function please.debug(opts)
   logging.log_call('please.debug')
 
@@ -429,11 +341,13 @@ function please.debug(opts)
 end
 
 ---Run an arbitrary plz command and display the output in a popup.
----@param ... string Arguments to pass to plz
----@usage [[
+---
+---Example:
+---```lua
 ---local please = require('please')
 ---please.command('build', '//foo/bar/...')
----@usage ]]
+---```
+---@param ... string Arguments to pass to plz
 function please.command(...)
   logging.log_call('please.command')
 
@@ -445,8 +359,7 @@ function please.command(...)
   end)
 end
 
----Display a history of previous commands. Selecting one of them will run it
----again.
+---Display a history of previous commands. Selecting one of them will run it again.
 function please.history()
   logging.log_call('please.history')
 

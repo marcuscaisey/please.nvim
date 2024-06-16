@@ -1,0 +1,148 @@
+From 3aa04fd32ac0ce70e4b954acedb640889f9e9aaa Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Sun, 16 Jun 2024 17:51:41 +0100
+Subject: [PATCH] [gen_vimdoc.lua] fix imports
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index dc384c1..1699baf 100755
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -16,9 +16,9 @@
+ ---   parameter is marked as [out].
+ --- - Each function documentation is separated by a single line.
+ 
+-local luacats_parser = require('scripts.luacats_parser')
+-local cdoc_parser = require('scripts.cdoc_parser')
+-local text_utils = require('scripts.text_utils')
++local luacats_parser = require('tools.gen_vimdoc.luacats_parser')
++local cdoc_parser = require('tools.gen_vimdoc.cdoc_parser')
++local text_utils = require('tools.gen_vimdoc.text_utils')
+ 
+ local fmt = string.format
+ 
+-- 
+2.41.0
+
+From d483ddea3cd6aac9064060ea8d623273541c8317 Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Sun, 16 Jun 2024 12:45:10 +0100
+Subject: [PATCH] [gen_vimdoc.lua] output to doc instead of runtime/doc
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index 1699baf..0384e58 100755
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -989,7 +989,7 @@ local function gen_target(cfg)
+     fmt(' vim:tw=78:ts=8:sw=%d:sts=%d:et:ft=help:norl:\n', INDENTATION, INDENTATION)
+   )
+ 
+-  local doc_file = vim.fs.joinpath(base_dir, 'runtime', 'doc', cfg.filename)
++  local doc_file = vim.fs.joinpath('doc', cfg.filename)
+ 
+   if vim.uv.fs_stat(doc_file) then
+     delete_lines_below(doc_file, first_section_tag)
+-- 
+2.41.0
+
+From 7824ee8a4795eb2a44495de224fd7e9a4e37f44f Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Sun, 16 Jun 2024 13:11:03 +0100
+Subject: [PATCH] [gen_vimdoc.lua] don't sort functions
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 14 --------------
+ 1 file changed, 14 deletions(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index 0384e58..19bc7ad 100755
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -793,20 +793,6 @@ local function render_funs(funs, classes, cfg)
+     ret[#ret + 1] = render_fun(f, classes, cfg)
+   end
+ 
+-  -- Sort via prototype. Experimental API functions ("nvim__") sort last.
+-  table.sort(ret, function(a, b)
+-    local a1 = ('\n' .. a):match('\n[a-zA-Z_][^\n]+\n')
+-    local b1 = ('\n' .. b):match('\n[a-zA-Z_][^\n]+\n')
+-
+-    local a1__ = a1:find('^%s*nvim__') and 1 or 0
+-    local b1__ = b1:find('^%s*nvim__') and 1 or 0
+-    if a1__ ~= b1__ then
+-      return a1__ < b1__
+-    end
+-
+-    return a1:lower() < b1:lower()
+-  end)
+-
+   return table.concat(ret)
+ end
+ 
+-- 
+2.41.0
+
+From 450338b9f33578c712980a499496b353cfe270f7 Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Sun, 16 Jun 2024 16:19:41 +0100
+Subject: [PATCH] [gen_vimdoc.lua] accept output and input files as cli args
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 32 ++++++++++++++++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index f31dc01..817a878 100755
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -987,10 +987,38 @@ local function gen_target(cfg)
+   fp:close()
+ end
+ 
++---@param msg string
++local function usage_error(msg)
++  print('Usage: nvim -l gen_vimdoc.lua output input ...')
++  print(msg)
++  os.exit(1)
++end
++
+ local function run()
+-  for _, cfg in vim.spairs(config) do
+-    gen_target(cfg)
++  local output = arg[1]
++  if not output then
++    usage_error('No output file provided')
+   end
++  local inputs = vim.list_slice(arg, 2)
++  if #inputs == 0 then
++    usage_error('No input files provided')
++  end
++
++  gen_target({
++    filename = output,
++    section_order = vim.iter(inputs):map(vim.fs.basename):totable(),
++    files = inputs,
++    section_name = vim.iter(inputs):fold({}, function(acc, file)
++      acc[vim.fs.basename(file)] = file:match('lua/([a-z_][a-z0-9_/]+)%.lua'):gsub('/', '.')
++      return acc
++    end),
++    section_fmt = function(name)
++      return string.format('Lua module: %s', name)
++    end,
++    helptag_fmt = function(name)
++      return name
++    end,
++  })
+ end
+ 
+ run()
+-- 
+2.41.0
+

@@ -1,0 +1,48 @@
+From 44737d04a7e0ab79c57a4c70dc72d1d5e9fe3956 Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Sun, 16 Jun 2024 17:59:47 +0100
+Subject: [PATCH] [luacats_parser.lua] fix imports
+
+---
+ tools/gen_vimdoc/luacats_parser.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gen_vimdoc/luacats_parser.lua b/tools/gen_vimdoc/luacats_parser.lua
+index e73a421..a92cd47 100644
+--- a/tools/gen_vimdoc/luacats_parser.lua
++++ b/tools/gen_vimdoc/luacats_parser.lua
+@@ -1,4 +1,4 @@
+-local luacats_grammar = require('scripts.luacats_grammar')
++local luacats_grammar = require('tools.gen_vimdoc.luacats_grammar')
+ 
+ --- @class nvim.luacats.parser.param
+ --- @field name string
+-- 
+2.41.0
+
+From 62bd8e3776da61ed7666fe8dfe9412e0366bbb16 Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Sun, 16 Jun 2024 15:25:29 +0100
+Subject: [PATCH] [luacats_parser.lua] expect modules to be in root lua/
+ directory
+
+---
+ tools/gen_vimdoc/luacats_parser.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gen_vimdoc/luacats_parser.lua b/tools/gen_vimdoc/luacats_parser.lua
+index a92cd47..b8e1c5c 100644
+--- a/tools/gen_vimdoc/luacats_parser.lua
++++ b/tools/gen_vimdoc/luacats_parser.lua
+@@ -484,7 +484,7 @@ function M.parse_str(str, filename)
+   local mod_return = determine_modvar(str)
+ 
+   --- @type string
+-  local module = filename:match('.*/lua/([a-z_][a-z0-9_/]+)%.lua') or filename
++  local module = filename:match('lua/([a-z_][a-z0-9_/]+)%.lua') or filename
+   module = module:gsub('/', '.')
+ 
+   local classvars = {} --- @type table<string,string>
+-- 
+2.41.0
+

@@ -1,54 +1,48 @@
+*please.txt* A plugin to make you more productive in Neovim when using Please.
 *please.nvim*
-A plugin to make you more productive in Neovim when using Please.
+                                       Type |gO| to see the table of contents.
 
 ==============================================================================
-Table of Contents                                              *please-contents*
-
-INTRODUCTION ···················································· |please-intro|
-USAGE ··························································· |please-usage|
-MAPPINGS ····················································· |please-mappings|
-PLEASE COMMANDS ······················································· |please|
-LOGGING COMMANDS ·············································· |please.logging|
-
-==============================================================================
-INTRODUCTION                                                      *please-intro*
+INTRODUCTION                                                    *please-intro*
 
 please.nvim is a plugin which allows you interact with your Please repository
 from the comfort of Neovim. The aim is to remove the need to switch from your
 editor to the shell when performing routine actions.
 
 Features ~
-  * Build, run, test, and debug a target
-  * Display history of previous commands and run any of them again
-  * Jump from a source file to its build target definition
-  * Yank a target's label
-  * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs`
-    files
-  * `ini` configured as the `filetype` for `.plzconfig` files to enable better
-    syntax highlighting
-  * Python tree-sitter parser configured to be used for please files to enable
+  • Build, run, test, and debug a target
+  • Display history of previous commands and run any of them again
+  • Jump from a source file to its build target definition
+  • Yank a target's label
+  • `please` configured as the 'filetype' for `BUILD`, `BUILD.plz`, and
+    `*.build_defs` files
+  • `ini` configured as the 'filetype' for `.plzconfig` files to enable better
+  • syntax highlighting
+  • Python tree-sitter parser configured to be used for please files to enable
     better syntax highlighting and use of all tree-sitter features in build
     files
 
 ==============================================================================
-USAGE                                                             *please-usage*
-
+USAGE                                                           *please-usage*
+                                                                     *:Please*
 Lua and VimL APIs ~
 please.nvim commands can be called either through the Lua or the VimL API.
-  * Commands are written in Lua and as such the Lua API should be preferred.
+  • Commands are written in Lua and as such the Lua API should be preferred.
     It can't be guaranteed that all features available through the Lua API
     will also available through the VimL API.
-  * The VimL API is mostly provided to make it easy to call commands from the
+  • The VimL API is mostly provided to make it easy to call commands from the
     command line.
 
 To use the Lua API, you need to import the required module which will usually
-be `please`. For instance, `jump_to_target` is executed with
-`require('please').jump_to_target()`
-
+be `please`. For instance, |please.jump_to_target()| is executed with
+>lua
+    require('please').jump_to_target()
+<
 All available VimL API commands are autocompletable as arguments to the
-`:Please` command. For instance, `jump_to_target` is executed with
-`:Please jump_to_target`
-
+`:Please` command. For instance, |please.jump_to_target()| is executed with
+>
+    :Please jump_to_target
+<
 UI Customisation ~
 Some commands may prompt you to either choose from a list of options or input
 some text. For example, when building a file which is an input to multiple
@@ -56,113 +50,96 @@ build targets, you'll be prompted to choose which target to build.
 
 Input and selection prompts are provided by |vim.ui.input()| and
 |vim.ui.select()| respectively. Doing so allows you to customise the
-appearance of them to your taste. See |lua-ui| and the fantastic
+appearance of them to your taste. See |vim.ui| and the fantastic
 https://github.com/stevearc/dressing.nvim for more information.
 
 ==============================================================================
-MAPPINGS                                                       *please-mappings*
+MAPPINGS                                                     *please-mappings*
 
 please.nvim doesn't come with any mappings defined out of the box so that you
 can customise how you use it. Below are a set of mappings for each available
 command to get you started.
 >lua
-  vim.keymap.set('n', '<leader>pb', require('please').build)
-  vim.keymap.set('n', '<leader>pr', require('please').run)
-  vim.keymap.set('n', '<leader>pt', require('please').test)
-  vim.keymap.set('n', '<leader>pct', function()
-    require('please').test({ under_cursor = true })
-  end)
-  vim.keymap.set('n', '<leader>pd', require('please').debug)
-  vim.keymap.set('n', '<leader>pcd', function()
-    require('please').debug({ under_cursor = true })
-  end)
-  vim.keymap.set('n', '<leader>ph', require('please').history)
-  vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
-  vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
-  vim.keymap.set('n', '<leader>py', require('please').yank)
+    vim.keymap.set('n', '<leader>pb', require('please').build)
+    vim.keymap.set('n', '<leader>pr', require('please').run)
+    vim.keymap.set('n', '<leader>pt', require('please').test)
+    vim.keymap.set('n', '<leader>pct', function()
+      require('please').test({ under_cursor = true })
+    end)
+    vim.keymap.set('n', '<leader>pd', require('please').debug)
+    vim.keymap.set('n', '<leader>pcd', function()
+      require('please').debug({ under_cursor = true })
+    end)
+    vim.keymap.set('n', '<leader>ph', require('please').history)
+    vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
+    vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
+    vim.keymap.set('n', '<leader>py', require('please').yank)
 <
-
 ==============================================================================
-PLEASE COMMANDS                                                         *please*
+Lua module: please                                                    *please*
 
-please.build()                                                    *please.build*
+build()                                                       *please.build()*
     If the current file is a `BUILD` file, builds the target which is under
     the cursor. Otherwise, builds the target which takes the current file as
     an input.
 
-
-please.run()                                                        *please.run*
+run()                                                           *please.run()*
     If the current file is a `BUILD` file, run the target which is under the
     cursor. Otherwise, run the target which takes the current file as an
     input.
 
-
-please.test({opts})                                                *please.test*
+test({opts})                                                   *please.test()*
     If the current file is a `BUILD` file, test the target which is under the
     cursor. Otherwise, test the target which takes the current file as an
     input.
 
     Optionally (when in a source file), you can run only the test which is
-    under the cursor.
-    This is supported for the following languages:
-    - Go
-      - test functions
-      - subtests
-      - table tests
-      - testify suite methods
-      - testify suite subtests
-      - testify suite table tests
-    - Python
-      - unittest test classes
-      - unittest test methods
+    under the cursor. This is supported for the following languages:
+    • Go - test functions, subtests, table tests, testify suite methods,
+      testify suite subtests, testify suite table tests
+    • Python - unittest test classes, unittest test methods
 
     Parameters: ~
-        {opts} (table|nil) available options
-          * {under_cursor} (boolean): run the test under the cursor
+      • {opts}  (`table?`) optional keyword arguments
+                • {under_cursor} (`boolean`) run the test under the cursor
 
-
-please.debug({opts})                                              *please.debug*
+debug({opts})                                                 *please.debug()*
     If the current file is a `BUILD` file, debug the target which is under the
     cursor. Otherwise, debug the target which takes the current file as an
     input.
 
     Debug support is provided by https://github.com/mfussenegger/nvim-dap.
     This is supported for the following languages:
-    - Go (Delve)
-    - Python (debugpy)
+    • Go (Delve)
+    • Python (debugpy)
 
     Optionally (when in a source file), you can debug only the test which is
     under the cursor. The supported languages and test types are the same as
-    for the `please.test`.
+    for |please.test()|.
 
     Parameters: ~
-        {opts} (table|nil) available options
-          * {under_cursor} (boolean): debug the test under the cursor
+      • {opts}  (`table?`) optional keyword arguments
+                • {under_cursor} (`boolean`) debug the test under the cursor
 
-
-please.command({...})                                           *please.command*
+command({...})                                              *please.command()*
     Run an arbitrary plz command and display the output in a popup.
 
-    Parameters: ~
-        {...} (string) Arguments to pass to plz
-
-    Usage: ~
->lua
+    Example: >lua
         local please = require('please')
         please.command('build', '//foo/bar/...')
 <
 
+    Parameters: ~
+      • {...}  (`string`) Arguments to pass to plz
 
-please.history()                                                *please.history*
+history()                                                   *please.history()*
     Display a history of previous commands. Selecting one of them will run it
     again.
 
-
-please.maximise_popup()                                  *please.maximise_popup*
+maximise_popup()                                     *please.maximise_popup()*
     Maximises the popup which was most recently quit or minimised.
 
-
-please.jump_to_target()                                  *please.jump_to_target*
+jump_to_target()                                     *please.jump_to_target()*
     Jumps to the location of the build target which takes the current file as
     an input.
 
@@ -170,20 +147,19 @@ please.jump_to_target()                                  *please.jump_to_target*
     found which should be the case for all targets except for those with names
     which are generated when the `BUILD` file is executed.
 
-
-please.yank()                                                      *please.yank*
-    If the current file is a `BUILD` file, yank the label of the target which is
-    under the cursor. Otherwise, yank the label of the target which takes the
-    current file as an input.
+yank()                                                         *please.yank()*
+    If the current file is a `BUILD` file, yank the label of the target which
+    is under the cursor. Otherwise, yank the label of the target which takes
+    the current file as an input.
 
 
 ==============================================================================
-LOGGING COMMANDS                                                *please.logging*
+Lua module: please.logging                                    *please.logging*
 
-logging.toggle_debug()                             *please.logging.toggle_debug*
+toggle_debug()                                 *please.logging.toggle_debug()*
     Toggles debug logs containing which functions are being called with which
     arguments. This should provide enough information to debug most issues. To
-    toggle debug logs from the command line, use `:Please toggle_debug_logs`
+    toggle debug logs from the command line, use `:Please toggle_debug_logs`.
 
 
-vim:tw=78:ts=8:noet:ft=help:norl:
+ vim:tw=78:ts=8:sw=4:sts=4:et:ft=help:norl:
