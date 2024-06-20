@@ -60,9 +60,7 @@ function RunnerSpy:minimise() end
 function RunnerSpy:on_success() end
 
 function RunnerSpy:assert_called_with(root, args)
-  if not self._called then
-    error('Runner:new has not been called')
-  end
+  assert.is_true(self._called, 'Runner:new has not been called')
   assert.equal(root, self._root, 'incorrect root passed to Runner:new')
   assert.same(args, self._args, 'incorrect args passed to Runner:new')
 end
@@ -105,15 +103,14 @@ end
 
 function SelectFake:choose_item(item)
   self:assert_called()
-  if not vim.tbl_contains(self._formatted_items, item) then
-    error(
-      string.format(
-        'cannot choose item "%s" which was not passed to vim.ui.select, available choices are: %s',
-        item,
-        vim.inspect(self._formatted_items)
-      )
+  assert.is_true(
+    vim.tbl_contains(self._formatted_items, item),
+    string.format(
+      'cannot choose item "%s" which was not passed to vim.ui.select, available choices are: %s',
+      item,
+      vim.inspect(self._formatted_items)
     )
-  end
+  )
   for i, v in ipairs(self._formatted_items) do
     if v == item then
       self._on_choice(self._items[i], i)
