@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@main
       - name: Install Please
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Run tests
@@ -22,19 +22,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@main
       - name: Lint with Stylua
-        uses: JohnnyMorganz/stylua-action@v2
+        uses: JohnnyMorganz/stylua-action@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          version: 0.14.1
+          version: latest
           args: --check --color always .
   lint-build:
     name: Lint BUILD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@main
       - name: Install Please
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Lint with plz format
