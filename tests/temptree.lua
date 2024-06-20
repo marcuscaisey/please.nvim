@@ -79,7 +79,8 @@ local function make_temp_dir()
   return tempname
 end
 
----Creates a file tree in the Neovim [tempdir]. When Neovim exits, the [tempdir] and all its contents will be deleted.
+---Creates a file tree in a directory in the Neovim [tempdir]. When Neovim exits, the [tempdir] and all its contents
+---will be deleted so you don't have to worry about cleaning up any directories or files created by this function.
 ---The tree should be provided as a table in the following format:
 ---```lua
 ---{
@@ -99,7 +100,7 @@ end
 ---    either the contents to write to the file or the file tree to create in the directory
 ---File contents are written with common leading whitespace removed.
 ---@param tree tests.temptree.Tree
----@return string: the root of the temporary file tree
+---@return string root: root of the created file tree
 function M.create(tree)
   local temp_dir = make_temp_dir()
   create_file_tree(temp_dir, tree)

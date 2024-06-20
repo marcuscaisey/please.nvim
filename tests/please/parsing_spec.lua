@@ -15,7 +15,7 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_filepath = 'BUILD',
+      expected_file = 'BUILD',
     },
     {
       name = 'should return location of a BUILD file in a child dir of the repo',
@@ -31,7 +31,7 @@ describe('locate_build_target', function()
         },
       },
       label = '//foo:foo',
-      expected_filepath = 'foo/BUILD',
+      expected_file = 'foo/BUILD',
     },
     {
       name = 'should return location of a BUILD.plz file',
@@ -45,7 +45,7 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_filepath = 'BUILD.plz',
+      expected_file = 'BUILD.plz',
     },
     {
       name = 'should not return directory which matches BUILD file name',
@@ -60,7 +60,7 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_filepath = 'BUILD.plz',
+      expected_file = 'BUILD.plz',
     },
     {
       name = 'should return error if pkg path exists but BUILD or BUILD.plz file does not',
@@ -145,20 +145,19 @@ describe('locate_build_target', function()
     it(case.name, function()
       local root = temptree.create(case.tree)
 
-      local filepath, position, err = parsing.locate_build_target(root, case.label)
+      local target, err = parsing.locate_build_target(root, case.label)
 
-      if case.expected_filepath then
-        assert.equal(root .. '/' .. case.expected_filepath, filepath, 'incorrect filepath')
+      if case.expected_file then
+        assert.equal(root .. '/' .. case.expected_file, target and target.file, 'incorrect file')
       end
 
       if case.expected_position then
-        assert.same(case.expected_position, position, 'incorrect position')
+        assert.same(case.expected_position, target and target.position, 'incorrect position')
       end
 
       if case.expected_err then
         assert.equal(case.expected_err, err, 'incorrect error')
-        assert.is_nil(filepath, 'expected no filepath')
-        assert.is_nil(position, 'expected no position')
+        assert.is_nil(target, 'expected no target')
       else
         assert.is_nil(err, 'expected no error')
       end
@@ -1209,20 +1208,19 @@ describe('get_target_at_cursor', function()
     vim.cmd('edit ' .. root .. '/' .. case.file)
     vim.api.nvim_win_set_cursor(0, case.cursor_position)
 
-    local label, rule, err = parsing.get_target_at_cursor(root)
+    local target, err = parsing.get_target_at_cursor(root)
 
     if case.expected_label then
-      assert.equal(case.expected_label, label, 'incorrect label')
+      assert.equal(case.expected_label, target and target.label, 'incorrect label')
     end
     if case.expected_rule then
-      assert.equal(case.expected_rule, rule, 'incorrect rule')
+      assert.equal(case.expected_rule, target and target.rule, 'incorrect rule')
     end
 
     if case.expected_err then
       assert.is_not_nil(err, 'expected error')
       assert.equal(case.expected_err, err, 'incorrect error')
-      assert.is_nil(label, 'expected no label')
-      assert.is_nil(rule, 'expected no rule')
+      assert.is_nil(target, 'expected no target')
     else
       assert.is_nil(err, 'expected no error')
     end

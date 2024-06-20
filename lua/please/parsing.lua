@@ -63,12 +63,12 @@ local function ts_range_to_nvim_range(ts_start_row, ts_start_col)
   return { ts_start_row + 1, ts_start_col }
 end
 
----Returns the location of a build target. If the location of the target in the BUILD file can't be found (might be
----dynamically created), then position will be {1, 0}.
+---Returns the BUILD file containing a target and its (1, 0)-based position in that file.
+---If the location of the target in the BUILD file can't be found (it might be dynamically created), then position will
+---be {1, 0}.
 ---@param root string an absolute path to the repo root
 ---@param label string: a build label of the form //path/to/pkg:target
----@return string?: an absolute path to the BUILD file
----@return number[]?: the position that the build target definition starts as a (1, 0)-based (line, col) tuple
+---@return {file: string, position: [number, number]}?
 ---@return string? errmsg
 function parsing.locate_build_target(root, label)
   logging.log_call('parsing.locate_build_target')
@@ -92,15 +92,15 @@ function parsing.locate_build_target(root, label)
         local name = query.captures[id]
         if name == 'target' then
           local ts_start_row, ts_start_col = node:range()
-          return filepath, ts_range_to_nvim_range(ts_start_row, ts_start_col)
+          return { file = filepath, position = ts_range_to_nvim_range(ts_start_row, ts_start_col) }
         end
       end
 
-      return filepath, { 1, 0 }
+      return { file = filepath, position = { 1, 0 } }
     end
   end
 
-  return nil, nil, string.format('no build file exists for package "%s"', pkg)
+  return nil, string.format('no build file exists for package "%s"', pkg)
 end
 
 -- extracts the captured nodes from a match returned from Query:iter_matches
@@ -455,16 +455,9 @@ local parsers_by_root_node_type_by_filetype = {
 
 ---Returns the test at the current cursor position.
 ---Current supported languages are:
----- Go
----  - test functions
----  - subtests
----  - table tests
----  - testify suite methods
----  - testify suite subtests
----  - testify suite table tests
----- Python
----  - unittest test classes
----  - unittest test methods
+---- Go - test functions, subtests, table tests, testify suite methods, testify suite subtests, testify suite table
+---       tests
+---- Python - unittest test classes, unittest test methods
 ---@return {name:string, selector:string}?
 ---@return string? errmsg
 function parsing.get_test_at_cursor()
@@ -512,10 +505,8 @@ end
 
 ---Returns the label and rule of the build target under the cursor.
 ---@param root string: an absolute path to the repo root
----@return string?: a build label
----@return string?: a build rule
+---@return {label: string, rule: string}?
 ---@return string? errmsg
--- TODO: return a table instead of multiple values
 function parsing.get_target_at_cursor(root)
   logging.log_call('parsing.get_target_at_cursor')
 
@@ -536,11 +527,11 @@ function parsing.get_target_at_cursor(root)
       end
       local rule = vim.treesitter.get_node_text(captures.rule, 0)
       local build_file = vim.api.nvim_buf_get_name(0)
-      return build_label(root, build_file, name), rule, nil
+      return { label = build_label(root, build_file, name), rule = rule }
     end
   end
 
-  return nil, nil, 'cursor is not in a build target definition'
+  return nil, 'cursor is not in a build target definition'
 end
 
 return parsing

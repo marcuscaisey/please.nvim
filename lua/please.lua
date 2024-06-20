@@ -159,8 +159,8 @@ function please.build()
 
     local labels
     if vim.bo.filetype == 'please' then
-      local label = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
+      local target = assert(parsing.get_target_at_cursor(root))
+      labels = { target.label }
     else
       labels = assert(query.whatinputs(root, filepath))
     end
@@ -182,8 +182,8 @@ function please.run()
 
     local labels
     if vim.bo.filetype == 'please' then
-      local label = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
+      local target = assert(parsing.get_target_at_cursor(root))
+      labels = { target.label }
     else
       labels = assert(query.whatinputs(root, filepath))
     end
@@ -240,8 +240,8 @@ function please.test(opts)
       labels = assert(query.whatinputs(root, filepath))
     else
       if vim.bo.filetype == 'please' then
-        local label = assert(parsing.get_target_at_cursor(root))
-        labels = { label }
+        local target = assert(parsing.get_target_at_cursor(root))
+        labels = { target.label }
       else
         labels = assert(query.whatinputs(root, filepath))
       end
@@ -321,9 +321,9 @@ function please.debug(opts)
       lang = vim.bo.filetype
     else
       if vim.bo.filetype == 'please' then
-        local label, rule = assert(parsing.get_target_at_cursor(root))
-        labels = { label }
-        lang = rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
+        local target = assert(parsing.get_target_at_cursor(root))
+        labels = { target.label }
+        lang = target.rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
       else
         labels = assert(query.whatinputs(root, filepath))
         lang = vim.bo.filetype
@@ -418,10 +418,10 @@ function please.jump_to_target()
     local root = assert(get_repo_root(filepath))
     local labels = assert(query.whatinputs(root, filepath))
     select_if_many(labels, { prompt = 'Select target to jump to' }, function(label)
-      local target_filepath, position = assert(parsing.locate_build_target(root, label))
-      logging.debug('opening %s at %s', target_filepath, vim.inspect(position))
-      vim.cmd('edit ' .. target_filepath)
-      vim.api.nvim_win_set_cursor(0, position)
+      local target = assert(parsing.locate_build_target(root, label))
+      logging.debug('opening %s at %s', target.file, vim.inspect(target.position))
+      vim.cmd('edit ' .. target.file)
+      vim.api.nvim_win_set_cursor(0, target.position)
     end)
   end)
 end
@@ -438,8 +438,8 @@ function please.yank()
 
     local labels = {}
     if vim.bo.filetype == 'please' then
-      local label = assert(parsing.get_target_at_cursor(root))
-      labels = { label }
+      local target = assert(parsing.get_target_at_cursor(root))
+      labels = { target.label }
     else
       labels = assert(query.whatinputs(root, filepath))
     end

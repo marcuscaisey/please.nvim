@@ -66,8 +66,8 @@ local function format(s, ...)
   return string.format(s, ...)
 end
 
----@param bufnr integer Buffer to display.
----@return integer winid ID of the window.
+---@param bufnr integer
+---@return integer winid
 local function open_win(bufnr)
   local width_pct = 0.9
   local height_pct = 0.9
