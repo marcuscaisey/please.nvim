@@ -99,7 +99,7 @@ end
 
 function SelectFake:assert_prompt(prompt)
   self:assert_called()
-  assert.not_nil(self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
+  assert.is_not_nil(self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
   assert.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.select')
 end
 
@@ -144,7 +144,7 @@ end
 
 function InputFake:assert_prompt(prompt)
   self:assert_called()
-  assert.not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.input')
+  assert.is_not_nil(self._opts.prompt, 'expected prompt opt passed to vim.ui.input')
   assert.equal(prompt, self._opts.prompt, 'incorrect prompt opt passed to vim.ui.input')
 end
 

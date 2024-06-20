@@ -13,8 +13,9 @@
       "${3rd}/busted/library",
       "${3rd}/luassert/library",
       "${3rd}/luv/library",
+      "lua",
       "plz-out/nvim",
-      "lua"
+      "third_party/lua/library"
     ]
   }
 }
