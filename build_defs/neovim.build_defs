@@ -170,6 +170,7 @@ def neovim_test(name:str, test_file:str, deps:list=[], labels:list=[], data:list
         ],
         labels = labels,
         cmd = "$TOOL z -d -n -i . -o $OUT",
+        srcs = [test_file],
         outs = ["deps.zip"],
         deps = deps + ["//third_party/lua:busted"],
         tools = [CONFIG.ARCAT_TOOL],
