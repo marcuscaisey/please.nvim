@@ -1,28 +1,52 @@
-local strings = require('plenary.strings')
-local Path = require('plenary.path')
-
 local M = {}
+
+---@param path string
+local function mkdir(path)
+  local current_path = path:match('^/') and '/' or ''
+  for component in path:gmatch('[^/]+') do
+    if current_path == '' then
+      current_path = component
+    else
+      current_path = vim.fs.joinpath(current_path, component)
+    end
+    local success, err, err_name = vim.uv.fs_mkdir(current_path, 448) -- 448 = 0o700
+    assert(success or err_name == 'EEXIST', err)
+  end
+end
+
+---@param s string
+---@return string
+local function dedent(s)
+  local lines = vim.split(s, '\n')
+  local min_indent = math.huge
+  for _, line in ipairs(lines) do
+    local indent = line:match('^%s*')
+    if indent ~= line then
+      min_indent = math.min(min_indent, #indent)
+    end
+  end
+  local dedented_lines = {}
+  for _, line in ipairs(lines) do
+    table.insert(dedented_lines, line:sub(min_indent + 1))
+  end
+  return table.concat(dedented_lines, '\n')
+end
 
 local function create_file_tree(root, tree, contents)
   if type(tree) == 'string' then
     local path_tail = tree
     if path_tail:match('/$') then
-      local dir_path = Path:new(root, path_tail)
-      dir_path:mkdir()
+      local dir_path = vim.fs.joinpath(root, path_tail)
+      mkdir(dir_path)
       if contents then
         create_file_tree(dir_path, contents)
       end
     else
-      local file_path = Path:new(root, path_tail)
-      file_path:touch()
-      if contents then
-        -- remove trailing empty lines
-        -- this needs to be done before dedenting otherwise the blank line will count as leading whitespace
-        contents = contents:match('^(.+\n?)%s*$')
-        -- remove common leading whitespace
-        contents = strings.dedent(contents)
-        file_path:write(strings.dedent(contents), 'w')
-      end
+      local file_path = vim.fs.joinpath(root, path_tail)
+      local f = assert(io.open(file_path, 'w'))
+      contents = dedent(contents or '')
+      assert(f:write(contents))
+      assert(f:close())
     end
     return
   end
@@ -41,16 +65,16 @@ local function create_file_tree(root, tree, contents)
   end
 end
 
-local function get_temp_dir()
-  -- tmpname gives us an OS agnostic way of getting a unique file in the temporary directory. We want a temporary
-  -- directory though, so we'll delete the temporary file and create a temporary directory with the same name.
-  local temp_dir = Path:new(os.tmpname())
-  temp_dir:rm()
-  temp_dir:mkdir()
-  return temp_dir
+---@return string
+local function make_temp_dir()
+  local tempname = vim.fn.tempname()
+  assert(vim.uv.fs_mkdir(tempname, 448)) -- 448 = 0o700
+  return tempname
 end
 
----Creates a file tree in a temporary directory. The tree should be provided as a table in the following format:
+---Creates a file tree in the Neovim |tempdir|. When Neovim exits, the temporary directory and all its contents will be
+---deleted.
+---The tree should be provided as a table in the following format:
 ---@param tree table: the file tree to create provided in the following format:
 ---{
 ---  'empty_file',
@@ -68,15 +92,11 @@ end
 ---either the contents to write to the file or the file tree to create in the directory
 ---File contents are written with common leading whitespace and blank final lines removed.
 ---@return string: the root of the temporary file tree
----@return function: a function which tears down the file tree when called
 function M.create(tree)
-  local temp_dir = get_temp_dir()
+  local temp_dir = make_temp_dir()
   create_file_tree(temp_dir, tree)
-  local function teardown_func()
-    temp_dir:rm({ recursive = true })
-  end
   -- resolve to remove any symlinks (on macOS /tmp is linked to /private/tmp)
-  return vim.fn.resolve(temp_dir.filename), teardown_func
+  return vim.fn.resolve(temp_dir)
 end
 
 return M

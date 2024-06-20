@@ -3,6 +3,6 @@ neovim_test(
     test_file = "parsing_spec.lua",
     deps = [
         "//:please",
-        "//tests/utils:temptree",
+        "//tests:temptree",
     ],
 )

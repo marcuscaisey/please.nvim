@@ -8,7 +8,12 @@ neovim_test(
     },
     test_file = "please_spec.lua",
     deps = [
+        ":temptree",
         "//:please",
-        "//tests/utils:temptree",
     ],
+)
+
+neovim_lua_module(
+    name = "temptree",
+    srcs = ["temptree.lua"],
 )

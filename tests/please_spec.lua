@@ -1,7 +1,7 @@
 local stub = require('luassert.stub')
 local please = require('please')
 local Runner = require('please.Runner')
-local temptree = require('tests.utils.temptree')
+local temptree = require('tests.temptree')
 
 -- require('please.logging').toggle_debug()
 
@@ -182,7 +182,7 @@ describe('build', function()
 
   describe('in source file', function()
     it('should build target which uses file as input', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
 
       -- GIVEN we're editing a file
@@ -191,12 +191,10 @@ describe('build', function()
       please.build()
       -- THEN the target which the file is an input for is built
       runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
-
-      teardown_tree()
     end)
 
     it('should add entry to command history', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -212,12 +210,10 @@ describe('build', function()
       select_fake:choose_item('plz build //:foo1_and_foo2')
       -- THEN the target is built again
       runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
-
-      teardown_tree()
     end)
 
     it('should prompt user to choose which target to build if there is more than one', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -232,14 +228,12 @@ describe('build', function()
       select_fake:choose_item('//:foo1_and_foo2')
       -- THEN the target is built
       runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
-
-      teardown_tree()
     end)
   end)
 
   describe('in BUILD file', function()
     it('should build target under cursor', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
@@ -249,12 +243,10 @@ describe('build', function()
       please.build()
       -- THEN the target under the cursor is built
       runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
-
-      teardown_tree()
     end)
 
     it('should add entry to command history', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -271,8 +263,6 @@ describe('build', function()
       select_fake:choose_item('plz build //:foo1_and_foo2')
       -- THEN the target is built again
       runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
-
-      teardown_tree()
     end)
   end)
 end)
@@ -302,7 +292,7 @@ describe('run', function()
 
   describe('in source file', function()
     it('should run target which uses file as input', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local input_fake = InputFake:new()
 
@@ -316,12 +306,10 @@ describe('run', function()
       input_fake:enter_input('--foo foo --bar bar')
       -- THEN the target which the file is an input for is run with those arguments
       runner_spy:assert_called_with(root, { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' })
-
-      teardown_tree()
     end)
 
     it('should add entry to command history', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local input_fake = InputFake:new()
       local select_fake = SelectFake:new()
@@ -339,12 +327,10 @@ describe('run', function()
       select_fake:choose_item('plz run //:foo1_and_foo2 -- --foo foo --bar bar')
       -- THEN the target is run again with the same arguments
       runner_spy:assert_called_with(root, { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' })
-
-      teardown_tree()
     end)
 
     it('should prompt user to choose which target to run if there is more than one', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
       local input_fake = InputFake:new()
@@ -364,14 +350,12 @@ describe('run', function()
       input_fake:enter_input('--foo foo --bar bar')
       -- THEN the target is run with those arguments
       runner_spy:assert_called_with(root, { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' })
-
-      teardown_tree()
     end)
   end)
 
   describe('in BUILD file', function()
     it('should run target under cursor', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local input_fake = InputFake:new()
 
@@ -386,12 +370,10 @@ describe('run', function()
       input_fake:enter_input('--foo foo --bar bar')
       -- THEN the target is run with those arguments
       runner_spy:assert_called_with(root, { 'run', '//:foo1', '--', '--foo', 'foo', '--bar', 'bar' })
-
-      teardown_tree()
     end)
 
     it('should add entry to command history', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local input_fake = InputFake:new()
       local select_fake = SelectFake:new()
@@ -410,13 +392,11 @@ describe('run', function()
       select_fake:choose_item('plz run //:foo1 -- --foo foo --bar bar')
       -- THEN the target is run again with the same arguments
       runner_spy:assert_called_with(root, { 'run', '//:foo1', '--', '--foo', 'foo', '--bar', 'bar' })
-
-      teardown_tree()
     end)
   end)
 
   it('should not include program args in command history entry when none are passed as input', function()
-    local root, teardown_tree = create_temp_tree()
+    local root = create_temp_tree()
     local input_fake = InputFake:new()
     local select_fake = SelectFake:new()
 
@@ -430,8 +410,6 @@ describe('run', function()
     -- THEN the command history entry should not include the empty program args
     select_fake:assert_prompt('Pick command to run again')
     select_fake:assert_items({ 'plz run //:foo1' })
-
-    teardown_tree()
   end)
 end)
 
@@ -486,7 +464,7 @@ describe('test', function()
 
   describe('in source file', function()
     it('should test target which uses file as input', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
 
       -- GIVEN we're editing a file
@@ -495,12 +473,10 @@ describe('test', function()
       please.test()
       -- THEN the target which the file is an input for is tested
       runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test' })
-
-      teardown_tree()
     end)
 
     it('should add entry to command history', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -516,12 +492,10 @@ describe('test', function()
       select_fake:choose_item('plz test //foo:foo1_and_foo2_test')
       -- THEN the target is tested again
       runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test' })
-
-      teardown_tree()
     end)
 
     it('should prompt user to choose which target to test if there is more than one', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -536,13 +510,11 @@ describe('test', function()
       select_fake:choose_item('//foo:foo1_and_foo2_test')
       -- THEN the test is run
       runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test' })
-
-      teardown_tree()
     end)
 
     describe('with under_cursor=true', function()
       it('should run test under the cursor', function()
-        local root, teardown_tree = create_temp_tree()
+        local root = create_temp_tree()
         local runner_spy = RunnerSpy:new()
 
         -- GIVEN we're editing a test file and the cursor is inside a test function
@@ -552,12 +524,10 @@ describe('test', function()
         please.test({ under_cursor = true })
         -- THEN the test under the cursor is tested
         runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
-
-        teardown_tree()
       end)
 
       it('should add entry to command history', function()
-        local root, teardown_tree = create_temp_tree()
+        local root = create_temp_tree()
         local runner_spy = RunnerSpy:new()
         local select_fake = SelectFake:new()
 
@@ -574,12 +544,10 @@ describe('test', function()
         select_fake:choose_item('plz test //foo:foo1_and_foo2_test ^TestFails$')
         -- THEN the test is run again
         runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
-
-        teardown_tree()
       end)
 
       it('should prompt user to choose which target to test if there is more than one', function()
-        local root, teardown_tree = create_temp_tree()
+        local root = create_temp_tree()
         local runner_spy = RunnerSpy:new()
         local select_fake = SelectFake:new()
 
@@ -595,15 +563,13 @@ describe('test', function()
         select_fake:choose_item('//foo:foo1_and_foo2_test')
         -- THEN the test is run
         runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
-
-        teardown_tree()
       end)
     end)
   end)
 
   describe('in BUILD file', function()
     it('should test target under cursor', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
@@ -613,12 +579,10 @@ describe('test', function()
       please.test()
       -- THEN the target is tested
       runner_spy:assert_called_with(root, { 'test', '//foo:foo1_test' })
-
-      teardown_tree()
     end)
 
     it('should add entry to command history', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -635,8 +599,6 @@ describe('test', function()
       select_fake:choose_item('plz test //foo:foo1_test')
       -- THEN the target is tested again
       runner_spy:assert_called_with(root, { 'test', '//foo:foo1_test' })
-
-      teardown_tree()
     end)
   end)
 end)
@@ -692,7 +654,7 @@ describe('debug', function()
 
   describe('in source file', function()
     it('should build target which uses file as input with dbg config', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
 
       -- GIVEN we're editing a file
@@ -701,12 +663,10 @@ describe('debug', function()
       please.debug()
       -- THEN the target which the file is an input for is built with dbg config
       runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
-
-      teardown_tree()
     end)
 
     it('should add entry to command history', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -722,12 +682,10 @@ describe('debug', function()
       select_fake:choose_item('plz debug //foo:foo1_and_foo2_test')
       -- THEN the target is built again with dbg config
       runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
-
-      teardown_tree()
     end)
 
     it('should prompt user to choose which target to debug if there is more than one', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -742,13 +700,11 @@ describe('debug', function()
       select_fake:choose_item('//foo:foo1_and_foo2_test')
       -- THEN the target is built with dbg config
       runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
-
-      teardown_tree()
     end)
 
     describe('with under_cursor=true', function()
       it('should build target which uses file as input with dbg config', function()
-        local root, teardown_tree = create_temp_tree()
+        local root = create_temp_tree()
         local runner_spy = RunnerSpy:new()
 
         -- GIVEN we're editing a test file and the cursor is inside a test function
@@ -758,12 +714,10 @@ describe('debug', function()
         please.debug({ under_cursor = true })
         -- THEN the test target is built with dbg config
         runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
-
-        teardown_tree()
       end)
 
       it('should add entry to command history', function()
-        local root, teardown_tree = create_temp_tree()
+        local root = create_temp_tree()
         local runner_spy = RunnerSpy:new()
         local select_fake = SelectFake:new()
 
@@ -780,12 +734,10 @@ describe('debug', function()
         select_fake:choose_item('plz debug //foo:foo1_and_foo2_test ^TestFails$')
         -- THEN the test target is built with dbg config
         runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
-
-        teardown_tree()
       end)
 
       it('should prompt user to choose which target to debug if there is more than one', function()
-        local root, teardown_tree = create_temp_tree()
+        local root = create_temp_tree()
         local runner_spy = RunnerSpy:new()
         local select_fake = SelectFake:new()
 
@@ -801,15 +753,13 @@ describe('debug', function()
         select_fake:choose_item('//foo:foo1_and_foo2_test')
         -- THEN the target is built again with dbg config
         runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
-
-        teardown_tree()
       end)
     end)
   end)
 
   describe('in BUILD file', function()
     it('should build target under cursor with dbg config', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
@@ -819,12 +769,10 @@ describe('debug', function()
       please.debug()
       -- THEN the target is built with dbg config
       runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
-
-      teardown_tree()
     end)
 
     it('should add entry to command history', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local runner_spy = RunnerSpy:new()
       local select_fake = SelectFake:new()
 
@@ -841,8 +789,6 @@ describe('debug', function()
       select_fake:choose_item('plz debug //foo:foo1_test')
       -- THEN the target is built with dbg config
       runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
-
-      teardown_tree()
     end)
   end)
 end)
@@ -862,7 +808,7 @@ describe('command', function()
   end
 
   it('should call plz with the provided arguments', function()
-    local root, teardown_tree = create_temp_tree()
+    local root = create_temp_tree()
     local runner_spy = RunnerSpy:new()
 
     -- GIVEN we're editing a file
@@ -871,12 +817,10 @@ describe('command', function()
     please.command('build', '//:foo')
     -- THEN plz is called with those arguments
     runner_spy:assert_called_with(root, { 'build', '//:foo' })
-
-    teardown_tree()
   end)
 
   it('should add entry to command history', function()
-    local root, teardown_tree = create_temp_tree()
+    local root = create_temp_tree()
     local runner_spy = RunnerSpy:new()
     local select_fake = SelectFake:new()
 
@@ -892,8 +836,6 @@ describe('command', function()
     select_fake:choose_item('plz build //:foo')
     -- THEN the command is run again
     runner_spy:assert_called_with(root, { 'build', '//:foo' })
-
-    teardown_tree()
   end)
 end)
 
@@ -924,7 +866,7 @@ describe('history', function()
   end
 
   it('should order items from most to least recent', function()
-    local root, teardown_tree = create_temp_tree()
+    local root = create_temp_tree()
     local select_fake = SelectFake:new()
 
     -- GIVEN we've yanked the label of three targets, one after the other
@@ -936,12 +878,10 @@ describe('history', function()
     please.history()
     -- THEN the commands to build each label are ordered from most to least recent
     select_fake:assert_items({ 'plz build //:foo3', 'plz build //:foo2', 'plz build //:foo1' })
-
-    teardown_tree()
   end)
 
   it('should move rerun command to the top of history', function()
-    local root, teardown_tree = create_temp_tree()
+    local root = create_temp_tree()
     local select_fake = SelectFake:new()
 
     -- GIVEN we've built three targets, one after the other
@@ -957,8 +897,6 @@ describe('history', function()
     -- THEN it has been moved to the top of the history
     please.history()
     select_fake:assert_items({ 'plz build //:foo2', 'plz build //:foo3', 'plz build //:foo1' })
-
-    teardown_tree()
   end)
 end)
 
@@ -986,7 +924,7 @@ describe('jump_to_target', function()
   end
 
   it('should jump from file to build target which uses it as an input', function()
-    local root, teardown_tree = create_temp_tree()
+    local root = create_temp_tree()
 
     -- GIVEN we're editing a file
     vim.cmd('edit ' .. root .. '/foo2.txt')
@@ -996,12 +934,10 @@ describe('jump_to_target', function()
     assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
     assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
-
-    teardown_tree()
   end)
 
   it('should prompt user to choose which target to jump to if there is more than one', function()
-    local root, teardown_tree = create_temp_tree()
+    local root = create_temp_tree()
     local select_fake = SelectFake:new()
 
     -- GIVEN we're editing a file referenced by multiple BUILD targets
@@ -1017,8 +953,6 @@ describe('jump_to_target', function()
     assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
     assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
-
-    teardown_tree()
   end)
 end)
 
@@ -1047,7 +981,7 @@ describe('yank', function()
 
   describe('in source file', function()
     it('should yank label of target which uses file as input', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
 
       -- GIVEN we're editing a file
       vim.cmd('edit ' .. root .. '/foo2.txt')
@@ -1056,12 +990,10 @@ describe('yank', function()
       -- THEN the label of the target which the file is an input for is yanked into the " and * registers
       assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
       assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
-
-      teardown_tree()
     end)
 
     it("should prompt user to choose which target's label to yank if there is more than one", function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
       local select_fake = SelectFake:new()
 
       -- GIVEN we're editing a file referenced by multiple build targets
@@ -1076,14 +1008,12 @@ describe('yank', function()
       -- THEN the label is yanked into the " and * registers
       assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
       assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
-
-      teardown_tree()
     end)
   end)
 
   describe('in BUILD file', function()
     it('should yank target under cursor', function()
-      local root, teardown_tree = create_temp_tree()
+      local root = create_temp_tree()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
       vim.cmd('edit ' .. root .. '/BUILD')
@@ -1095,8 +1025,6 @@ describe('yank', function()
       local star = vim.fn.getreg('*')
       assert.equal('//:foo1', unnamed, 'incorrect value in " register')
       assert.equal('//:foo1', star, 'incorrect value in * register')
-
-      teardown_tree()
     end)
   end)
 end)

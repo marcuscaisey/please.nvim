@@ -1,4 +1,4 @@
-local temptree = require('tests.utils.temptree')
+local temptree = require('tests.temptree')
 local parsing = require('please.parsing')
 
 describe('locate_build_target', function()
@@ -143,7 +143,7 @@ describe('locate_build_target', function()
 
   for _, case in ipairs(test_cases) do
     it(case.name, function()
-      local root, teardown_tree = temptree.create(case.tree)
+      local root = temptree.create(case.tree)
 
       local filepath, position, err = parsing.locate_build_target(root, case.label)
 
@@ -162,8 +162,6 @@ describe('locate_build_target', function()
       else
         assert.is_nil(err, 'expected no error')
       end
-
-      teardown_tree()
     end)
   end
 end)
@@ -174,7 +172,7 @@ describe('get_test_at_cursor', function()
   local function run_tests(test_cases)
     for _, tc in ipairs(test_cases) do
       it(tc.name, function()
-        local root, teardown_tree = temptree.create({
+        local root = temptree.create({
           ['test_file'] = tc.file,
         })
 
@@ -186,8 +184,6 @@ describe('get_test_at_cursor', function()
 
         assert.is_nil(err, 'expected no error to be returned')
         assert.same(tc.expected_test, test, 'incorrect test returned')
-
-        teardown_tree()
       end)
     end
   end
@@ -1175,7 +1171,7 @@ describe('get_test_at_cursor', function()
   end)
 
   it('returns error if language of file is not supported', function()
-    local root, teardown_tree = temptree.create({
+    local root = temptree.create({
       ['hello.rb'] = 'puts "Hello, World!"', -- ruby
     })
 
@@ -1185,12 +1181,10 @@ describe('get_test_at_cursor', function()
 
     assert.equal(err, 'finding tests is not supported for ruby files')
     assert.is_nil(tests, 'expected no tests to be returned')
-
-    teardown_tree()
   end)
 
   it('returns error if cursor is not in a test', function()
-    local root, teardown_tree = temptree.create({
+    local root = temptree.create({
       ['foo_test.go'] = [[
         func Func() {
             fmt.Println("foo")
@@ -1205,14 +1199,12 @@ describe('get_test_at_cursor', function()
 
     assert.equal(err, 'cursor is not in a test')
     assert.is_nil(tests, 'expected no tests to be returned')
-
-    teardown_tree()
   end)
 end)
 
 describe('get_target_at_cursor', function()
   local function run_test(case)
-    local root, teardown_tree = temptree.create(case.tree)
+    local root = temptree.create(case.tree)
 
     vim.cmd('edit ' .. root .. '/' .. case.file)
     vim.api.nvim_win_set_cursor(0, case.cursor_position)
@@ -1234,8 +1226,6 @@ describe('get_target_at_cursor', function()
     else
       assert.is_nil(err, 'expected no error')
     end
-
-    teardown_tree()
   end
 
   describe('should return label and rule of target when cursor is inside build target definition', function()

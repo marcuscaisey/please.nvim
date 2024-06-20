@@ -4,12 +4,6 @@ neovim_toolchain(
 )
 
 neovim_github_plugin(
-    name = "plenary",
-    repo = "nvim-lua/plenary.nvim",
-    revision = "69d0a92d4cddd847fec10b29d7366e423df62eb8",
-)
-
-neovim_github_plugin(
     name = "nvim_dap",
     repo = "mfussenegger/nvim-dap",
     revision = "922ebc75c2fa9305e36402fbd8c984c8638770a0",
