@@ -69,7 +69,7 @@ end
 ---@param label string: a build label of the form //path/to/pkg:target
 ---@return string?: an absolute path to the BUILD file
 ---@return number[]?: the position that the build target definition starts as a (1, 0)-based (line, col) tuple
----@return string|nil: error if any, this should be checked before using the other return values
+---@return string? errmsg
 function parsing.locate_build_target(root, label)
   logging.log_call('parsing.locate_build_target')
 
@@ -465,8 +465,8 @@ local parsers_by_root_node_type_by_filetype = {
 ---- Python
 ---  - unittest test classes
 ---  - unittest test methods
----@return {name:string, selector:string}? tests
----@return string? error if any, this should be checked before using the tests
+---@return {name:string, selector:string}?
+---@return string? errmsg
 function parsing.get_test_at_cursor()
   logging.log_call('please.parsing.get_test_at_cursor')
 
@@ -514,7 +514,7 @@ end
 ---@param root string: an absolute path to the repo root
 ---@return string?: a build label
 ---@return string?: a build rule
----@return string|nil: error if any, this should be checked before using the label and rule
+---@return string? errmsg
 -- TODO: return a table instead of multiple values
 function parsing.get_target_at_cursor(root)
   logging.log_call('parsing.get_target_at_cursor')

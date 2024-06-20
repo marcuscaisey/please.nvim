@@ -25,8 +25,8 @@ end
 ---Wrapper around plz query whatinputs which returns the labels of the build targets which a file is an input for.
 ---@param root string: absolute path to repo root
 ---@param filepath string: absolute path to file
----@return string[]?: build target labels
----@return string?: error if any
+---@return string[]?
+---@return string? errmsg
 function query.whatinputs(root, filepath)
   logging.log_call('query.whatinputs')
 
@@ -42,8 +42,8 @@ end
 ---@param root string: absolute path to the repo root
 ---@param label string: a build label
 ---@param field string: field name
----@return string?: value of the field
----@return string?: error
+---@return string?
+---@return string? errmsg
 function query.print_field(root, label, field)
   logging.log_call('query.print')
 
@@ -59,7 +59,7 @@ end
 ---@param root string: absolute path to the repo root
 ---@param label string: a build label
 ---@return boolean?
----@return string?: error if any, this should be checked before using the result
+---@return string? errmsg
 function query.is_target_sandboxed(root, label)
   logging.log_call('query.is_target_sandboxed')
 
@@ -82,8 +82,8 @@ end
 ---Wrapper around plz query config which returns the value of the given option.
 ---@param root string: absolute path to the repo root
 ---@param option string: option name
----@return string[]?: value of the option
----@return string?: error if any, this should be checked before using the result
+---@return string[]?
+---@return string? errmsg
 function query.config(root, option)
   logging.log_call('query.config')
 
@@ -98,8 +98,8 @@ end
 ---Wrapper around plz query output which returns the output of the given build target.
 ---@param root string: absolute path to the repo root
 ---@param target string: build target label
----@return string?: output of the target
----@return string?: error if any, this should be checked before using the result
+---@return string?
+---@return string? errmsg
 function query.output(root, target)
   logging.log_call('query.output')
 

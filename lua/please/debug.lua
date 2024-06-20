@@ -103,7 +103,7 @@ function M.setup()
 end
 
 ---@param root string
----@return string? goroot
+---@return string?
 ---@return string? errmsg
 local function plz_goroot(root)
   local gotools, err = query.config(root, 'plugin.go.gotool')
