@@ -1,5 +1,9 @@
 local M = {}
 
+---@class tests.temptree.Tree
+---@field [number] string
+---@field [string] string | tests.temptree.Tree
+
 ---@param path string
 local function mkdir(path)
   local current_path = path:match('^/') and '/' or ''
@@ -32,6 +36,9 @@ local function dedent(s)
   return table.concat(dedented_lines, '\n')
 end
 
+---@param root string
+---@param tree tests.temptree.Tree | string
+---@param contents string | nil
 local function create_file_tree(root, tree, contents)
   if type(tree) == 'string' then
     local path_tail = tree
@@ -72,10 +79,9 @@ local function make_temp_dir()
   return tempname
 end
 
----Creates a file tree in the Neovim |tempdir|. When Neovim exits, the temporary directory and all its contents will be
----deleted.
+---Creates a file tree in the Neovim [tempdir]. When Neovim exits, the [tempdir] and all its contents will be deleted.
 ---The tree should be provided as a table in the following format:
----@param tree table: the file tree to create provided in the following format:
+---```lua
 ---{
 ---  'empty_file',
 ---  ['file'] = 'contents',
@@ -85,12 +91,14 @@ end
 ---    ['another_file'] = 'more contents',
 ---  },
 ---}
----elements of the tree are either:
----- string values representing an empty file or directory to be created, depending on whether the string ends in / or
----not
----- key value pairs where again the key is a string representing a file or directory to be created and the value is
----either the contents to write to the file or the file tree to create in the directory
----File contents are written with common leading whitespace and blank final lines removed.
+---```
+---Elements of the tree are either:
+---  - string values representing an empty file or directory to be created, depending on whether the string ends in / or
+---    not
+---  - key value pairs where again the key is a string representing a file or directory to be created and the value is
+---    either the contents to write to the file or the file tree to create in the directory
+---File contents are written with common leading whitespace removed.
+---@param tree tests.temptree.Tree
 ---@return string: the root of the temporary file tree
 function M.create(tree)
   local temp_dir = make_temp_dir()
