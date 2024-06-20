@@ -48,6 +48,7 @@ def neovim_toolchain(name:str, version:str, hashes:list=[], visibility:list=["PU
         entry_points = {
             "nvim": f"{name}/bin/nvim",
         },
+        binary = True,
         deps = [lua],
         output_is_complete = True,
         visibility = visibility,
@@ -162,18 +163,22 @@ def neovim_test(name:str, test_file:str, deps:list=[], labels:list=[], data:list
         example = "//third_party/neovim:toolchain|nvim",
     )
 
-    return gentest(
-        name = name,
-        test_cmd = [
-            "$TOOLS_ARCAT x $TEST",
-            "$TOOLS_NVIM -u $DATA_INIT -l $DATA_RUNNER $DATA_FILE | sed '/./,$!d' > $RESULTS_FILE",
-        ],
-        labels = labels,
+    deps_rule = genrule(
+        name = tag(name, "deps"),
         cmd = "$TOOL z -d -n -i . -o $OUT",
         srcs = [test_file],
         outs = ["deps.zip"],
         deps = deps + ["//third_party/lua:busted"],
         tools = [CONFIG.ARCAT_TOOL],
+    )
+
+    return gentest(
+        name = name,
+        test_cmd = [
+            "$TOOLS_ARCAT x $DATA_DEPS",
+            "$TOOLS_NVIM -u $DATA_INIT -l $DATA_RUNNER $DATA_FILE | sed '/./,$!d' > $RESULTS_FILE",
+        ],
+        labels = labels,
         test_tools = {
             "arcat": CONFIG.ARCAT_TOOL,
             "nvim": nvim,
@@ -183,6 +188,7 @@ def neovim_test(name:str, test_file:str, deps:list=[], labels:list=[], data:list
             "runner": "//build_defs:neovim_test_runner",
             "init": "//build_defs:neovim_test_init",
             "data": data,
+            "deps": deps_rule,
         },
         env = env,
     )
