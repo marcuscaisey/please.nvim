@@ -7,6 +7,7 @@ vim.cmd.highlight('PleaseNvimRunnerBannerHelp guifg=Pink')
 
 ---A plz command runner that displays its output in a floating window.
 ---@class please.Runner
+---@nodoc
 ---@field private _root string
 ---@field private _args string[]
 ---@field private _bufnr integer?

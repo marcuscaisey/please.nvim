@@ -1,19 +1,19 @@
 neovim_test(
     name = "please_spec",
+    src = "please_spec.lua",
     data = [
         "//third_party/please:plz",
     ],
     env = {
         "PLEASE_NVIM_PLZ": "third_party/please/plz",
     },
-    test_file = "please_spec.lua",
     deps = [
         ":temptree",
         "//:please",
     ],
 )
 
-neovim_lua_module(
+neovim_library(
     name = "temptree",
     srcs = ["temptree.lua"],
 )
