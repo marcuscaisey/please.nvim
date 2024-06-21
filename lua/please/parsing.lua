@@ -200,16 +200,18 @@ local function check_parser_installed(filetype)
   end
 end
 
----Wrapper around TSNode:iter_matches which returns the captures for each match.
+---Wrapper around Query:iter_matches which returns the captures for each match.
 ---@param query vim.treesitter.Query
 ---@param bufnr integer
 ---@param node TSNode
----@param opts table|nil Options:
+---@param opts? table Optional keyword arguments:
 ---   - max_start_depth (integer) if non-zero, sets the maximum start depth
 ---     for each match. This is used to prevent traversing too deep into a tree.
----     Requires treesitter >= 0.20.9.
----@return fun(): table<string, TSNode>?
+---   - match_limit (integer) Set the maximum number of in-progress matches (Default: 256).
+---@return fun(): table<string, TSNode[]>?
 local function iter_match_captures(query, bufnr, node, opts)
+  opts = opts or {}
+  opts.all = true
   local iter = query:iter_matches(node, bufnr, nil, nil, opts)
   return function()
     local _, match = iter()
@@ -217,9 +219,9 @@ local function iter_match_captures(query, bufnr, node, opts)
       return nil
     end
     local captures = {}
-    for id, capture in pairs(match) do
+    for id, nodes in pairs(match) do
       local name = query.captures[id]
-      captures[name] = capture
+      captures[name] = nodes
     end
     return captures
   end
@@ -259,8 +261,8 @@ function parsing.locate_build_target(root, label)
       local build_target_query = vim.treesitter.query.parse('python', queries.python.build_target)
 
       for captures in iter_match_captures(build_target_query, bufnr, tree:root()) do
-        if vim.treesitter.get_node_text(captures.name, bufnr):sub(2, -2) == name then -- remove the quotes
-          local ts_start_row, ts_start_col = captures.target:range()
+        if vim.treesitter.get_node_text(captures.name[1], bufnr):sub(2, -2) == name then -- remove the quotes
+          local ts_start_row, ts_start_col = captures.target[1]:range()
           return { file = filepath, position = ts_range_to_nvim_range(ts_start_row, ts_start_col) }
         end
       end
@@ -297,9 +299,9 @@ function parsing.get_target_at_cursor(root)
   local tree = vim.treesitter.get_parser(0, 'python'):parse()[1]
   local build_target_query = vim.treesitter.query.parse('python', queries.python.build_target)
   for captures in iter_match_captures(build_target_query, 0, tree:root()) do
-    if cursor_in_node_range(captures.target) then
-      local name = vim.treesitter.get_node_text(captures.name, 0):sub(2, -2) -- remove the quotes
-      local rule = vim.treesitter.get_node_text(captures.rule, 0)
+    if cursor_in_node_range(captures.target[1]) then
+      local name = vim.treesitter.get_node_text(captures.name[1], 0):sub(2, -2) -- remove the quotes
+      local rule = vim.treesitter.get_node_text(captures.rule[1], 0)
       local build_file = vim.api.nvim_buf_get_name(0)
       return { label = build_label(root, build_file, name), rule = rule }
     end
@@ -365,28 +367,28 @@ function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
 
   local subtest_query = vim.treesitter.query.parse('go', queries.go.subtest)
   for captures in iter_match_captures(subtest_query, 0, parent_body, { max_start_depth = 1 }) do
-    local subtest_receiver = vim.treesitter.get_node_text(captures.receiver, 0)
+    local subtest_receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
     if subtest_receiver == receiver then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
       -- underscores to match how the Go test runner displays test names.
-      local subtest_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
+      local subtest_name = vim.treesitter.get_node_text(captures.name[1], 0):match('"(.+)"'):gsub(' ', '_')
       local name = parent_name .. '/' .. subtest_name
       local selector = parent_selector .. '/^' .. subtest_name .. '$'
-      local children = parse_go_subtests(name, selector, subtest_receiver, captures.body)
-      table.insert(subtests, Test:new(name, selector, captures.subtest, children))
+      local children = parse_go_subtests(name, selector, subtest_receiver, captures.body[1])
+      table.insert(subtests, Test:new(name, selector, captures.subtest[1], children))
     end
   end
 
   local table_test_query = vim.treesitter.query.parse('go', queries.go.table_test)
   for captures in iter_match_captures(table_test_query, 0, parent_body, { max_start_depth = 1 }) do
-    local subtest_receiver = vim.treesitter.get_node_text(captures.receiver, 0)
+    local subtest_receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
     if subtest_receiver == receiver then
       -- The subtest's name will be surrounded with " since it's a string. We also have to replace the spaces with
       -- underscores to match how the Go test runner displays test names.
-      local test_case_name = vim.treesitter.get_node_text(captures.name, 0):match('"(.+)"'):gsub(' ', '_')
+      local test_case_name = vim.treesitter.get_node_text(captures.name[1], 0):match('"(.+)"'):gsub(' ', '_')
       local name = parent_name .. '/' .. test_case_name
       local selector = parent_selector .. '/^' .. test_case_name .. '$'
-      table.insert(subtests, Test:new(name, selector, captures.test_case))
+      table.insert(subtests, Test:new(name, selector, captures.test_case[1]))
     end
   end
 
@@ -398,11 +400,11 @@ end
 local function parse_go_test_func(root_node)
   local test_func_query = vim.treesitter.query.parse('go', queries.go.test_func)
   for captures in iter_match_captures(test_func_query, 0, root_node) do
-    local name = vim.treesitter.get_node_text(captures.name, 0)
+    local name = vim.treesitter.get_node_text(captures.name[1], 0)
     local selector = '^' .. name .. '$'
-    local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
-    local children = parse_go_subtests(name, selector, receiver, captures.body)
-    return Test:new(name, selector, captures.test, children)
+    local receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
+    local children = parse_go_subtests(name, selector, receiver, captures.body[1])
+    return Test:new(name, selector, captures.test[1], children)
   end
 end
 
@@ -411,17 +413,17 @@ end
 local function parse_go_test_suite_method(root_node)
   local test_suite_method_query = vim.treesitter.query.parse('go', queries.go.test_suite_method)
   for captures in iter_match_captures(test_suite_method_query, 0, root_node) do
-    local name = vim.treesitter.get_node_text(captures.name, 0)
+    local name = vim.treesitter.get_node_text(captures.name[1], 0)
     local selector = '/^' .. name .. '$'
-    local receiver = vim.treesitter.get_node_text(captures.receiver, 0)
-    local receiver_type = vim.treesitter.get_node_text(captures.receiver_type, 0)
+    local receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
+    local receiver_type = vim.treesitter.get_node_text(captures.receiver_type[1], 0)
 
     local tree = vim.treesitter.get_parser(0, vim.bo.filetype):parse()[1]
     local suite_names = {}
     local test_suite_query = vim.treesitter.query.parse('go', queries.go.test_suite)
     for test_suite_captures in iter_match_captures(test_suite_query, 0, tree:root()) do
-      if vim.treesitter.get_node_text(test_suite_captures.suite_type, 0) == receiver_type then
-        table.insert(suite_names, vim.treesitter.get_node_text(test_suite_captures.name, 0))
+      if vim.treesitter.get_node_text(test_suite_captures.suite_type[1], 0) == receiver_type then
+        table.insert(suite_names, vim.treesitter.get_node_text(test_suite_captures.name[1], 0))
       end
     end
     -- If there 0 suite names, then obviously we can't prefix the name and selector.
@@ -432,8 +434,8 @@ local function parse_go_test_suite_method(root_node)
       name = suite_name .. '/' .. name
       selector = '^' .. suite_name .. '$' .. selector
     end
-    local children = parse_go_subtests(name, selector, receiver, captures.body)
-    return Test:new(name, selector, captures.test, children)
+    local children = parse_go_subtests(name, selector, receiver, captures.body[1])
+    return Test:new(name, selector, captures.test[1], children)
   end
 end
 
@@ -443,12 +445,12 @@ local function parse_python_unittest_methods(root_node)
   local test ---@type please.parsing.Test
   local unittest_methods_query = vim.treesitter.query.parse('python', queries.python.unittest_methods)
   for captures in iter_match_captures(unittest_methods_query, 0, root_node) do
-    local class_name = vim.treesitter.get_node_text(captures.class_name, 0)
+    local class_name = vim.treesitter.get_node_text(captures.class_name[1], 0)
     if not test then
-      test = Test:new(class_name, class_name, captures.class)
+      test = Test:new(class_name, class_name, captures.class[1])
     end
-    local name = class_name .. '.' .. vim.treesitter.get_node_text(captures.name, 0)
-    table.insert(test.children, Test:new(name, name, captures.test))
+    local name = class_name .. '.' .. vim.treesitter.get_node_text(captures.name[1], 0)
+    table.insert(test.children, Test:new(name, name, captures.test[1]))
   end
   return test
 end
