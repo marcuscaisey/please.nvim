@@ -12,6 +12,7 @@ editor to the shell when performing routine actions.
 Features ~
   • Build, run, test, and debug a target
   • Display history of previous commands and run any of them again
+  • Set the profile to use
   • Jump from a source file to its build target definition
   • Yank a target's label
   • `please` configured as the 'filetype' for `BUILD`, `BUILD.plz`, and
@@ -71,6 +72,7 @@ command to get you started.
       require('please').debug({ under_cursor = true })
     end)
     vim.keymap.set('n', '<leader>ph', require('please').history)
+    vim.keymap.set('n', '<leader>pp', require('please').set_profile)
     vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
     vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
     vim.keymap.set('n', '<leader>py', require('please').yank)
@@ -135,6 +137,12 @@ command({...})                                              *please.command()*
 history()                                                   *please.history()*
     Display a history of previous commands. Selecting one of them will run it
     again.
+
+set_profile()                                           *please.set_profile()*
+    Sets the profile that will be used by |please.build()|, |please.run()|,
+    |please.test()|, |please.debug()|, and |please.command()|. Profiles will
+    be searched for in `/etc/please`, `~/.config/please`, and the current
+    repository.
 
 maximise_popup()                                     *please.maximise_popup()*
     Maximises the popup which was most recently quit or minimised.

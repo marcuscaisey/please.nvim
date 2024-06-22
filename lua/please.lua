@@ -6,9 +6,25 @@ local debug = require('please.debug')
 
 local please = {}
 
+local default_profile = os.getenv('PLZ_CONFIG_PROFILE')
+
+---@type table<string, string?>
+local profiles_by_root = setmetatable({}, {
+  __index = function()
+    return default_profile
+  end,
+})
+
 local current_runner ---@type please.Runner?
 
+---@param root string
+---@param args string[]
 local function new_runner(root, args)
+  local profile = profiles_by_root[root]
+  if profile then
+    table.insert(args, 1, '--profile')
+    table.insert(args, 2, profile)
+  end
   local runner = Runner:new(root, args)
   if current_runner then
     current_runner:stop()
@@ -392,6 +408,56 @@ end
 function please.action_history()
   vim.deprecate('please.action_history', 'please.history', 'v1.0.0', 'please.nvim')
   please.history()
+end
+
+---Sets the profile that will be used by [please.build()], [please.run()], [please.test()], [please.debug()], and
+---[please.command()]. Profiles will be searched for in `/etc/please`, `~/.config/please`, and the current repository.
+function please.set_profile()
+  logging.log_call('please.profile')
+
+  logging.log_errors('Failed to set profile', function()
+    local filepath = assert(get_filepath())
+    local root = assert(get_repo_root(filepath))
+
+    local profiles = {} ---@type string[]
+
+    for dir, profile_pattern in pairs({
+      [root] = '%.plzconfig%.(.+)',
+      ['/etc/please'] = 'plzconfig%.(.+)',
+      ['~/.config/please'] = 'plzconfig%.(.+)',
+    }) do
+      for name, type in vim.fs.dir(dir) do
+        if type == 'file' then
+          local profile = name:match(profile_pattern)
+          if profile then
+            table.insert(profiles, profile)
+          end
+        end
+      end
+    end
+
+    assert(#profiles > 0, 'no profiles found')
+
+    table.sort(profiles)
+
+    table.insert(profiles, 1, '')
+
+    select(profiles, {
+      prompt = string.format('Select profile (Current: %s)', profiles_by_root[root] or 'unset'),
+      format_item = function(item)
+        if item == '' then
+          return string.format('Default (%s)', default_profile or 'unset')
+        end
+        return item
+      end,
+    }, function(item)
+      if item == '' then
+        profiles_by_root[root] = nil
+      else
+        profiles_by_root[root] = item
+      end
+    end)
+  end)
 end
 
 ---Maximises the popup which was most recently quit or minimised.
