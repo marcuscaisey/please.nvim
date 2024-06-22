@@ -2,11 +2,12 @@
 please.nvim is a plugin which allows you interact with your Please repository from the comfort of Neovim. The aim is to remove the need to switch from your editor to the shell when performing routine actions.
 
 ## Features
-  * Build, run, test, and debug a target
-  * Display history of previous commands and run any of them again
-  * Set the profile to use
-  * Jump from a source file to its build target definition
-  * Yank a target's label
+  * Build, run, test, and debug a target with `please.build()`, `please.run()`, `please.test()`, and
+    `please.debug()`.
+  * Display history of previous commands and run any of them again with `please.history()`.
+  * Set the profile to use with `please.set_profile()`.
+  * Jump from a source file to its build target definition with `please.jump_to_target()`.
+  * Yank a target's label with `please.yank()`.
   * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs` files
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
   * Python tree-sitter parser configured to be used for please files to enable better syntax
@@ -50,7 +51,7 @@ call dein#add('marcuscaisey/please.nvim')
 - [dressing.nvim](https://github.com/stevearc/dressing.nvim) - Pairs with telescope.nvim to
   provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`).
 - [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug Adapter Protocol client
-  implementation for Neovim. **This is required to use debug with please.nvim.**
+  implementation for Neovim. **This is required to use `please.debug()`.**
 - [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - UI for nvim-dap.
 
 ### `nvim-treesitter` configuration
