@@ -429,7 +429,7 @@ function please.set_profile()
       for name, type in vim.fs.dir(dir) do
         if type == 'file' then
           local profile = name:match(profile_pattern)
-          if profile then
+          if profile and not (dir == root and name == '.plzconfig.local') then
             table.insert(profiles, profile)
           end
         end
