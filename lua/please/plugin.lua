@@ -30,20 +30,13 @@ end
 -- create the Please user command
 local function create_user_command()
   local cmds = {
-    build = please.build,
-    run = please.run,
-    test = please.test,
-    debug = please.debug,
-    command = please.command,
-    history = please.history,
-    action_history = please.action_history,
-    maximise_popup = please.maximise_popup,
     restore_popup = popup.restore,
-    jump_to_target = please.jump_to_target,
-    yank = please.yank,
     toggle_debug_logs = logging.toggle_debug,
     reload = M.reload,
   }
+  for k, v in pairs(please) do
+    cmds[k] = v
+  end
   local cmd_name_to_opts = {
     test = { 'under_cursor' },
     debug = { 'under_cursor' },
