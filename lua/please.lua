@@ -441,12 +441,13 @@ function please.set_profile()
     table.sort(profiles)
 
     table.insert(profiles, 1, '')
+    table.insert(profiles, 2, 'unset')
 
     select(profiles, {
-      prompt = string.format('Select profile (Current: %s)', profiles_by_root[root] or 'unset'),
+      prompt = string.format('Select profile (Current: %s)', profiles_by_root[root] or 'no profile'),
       format_item = function(item)
         if item == '' then
-          return string.format('Default (%s)', default_profile or 'unset')
+          return string.format('Default (%s)', default_profile or 'no profile')
         end
         return item
       end,
