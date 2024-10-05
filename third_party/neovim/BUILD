@@ -1,6 +1,6 @@
 neovim_toolchain(
     name = "toolchain",
-    version = "0.10.0",
+    version = "v0.10.0",
 )
 
 github_neovim_plugin(
