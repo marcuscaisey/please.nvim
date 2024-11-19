@@ -122,6 +122,10 @@ function SelectFake:assert_called()
   assert.is_true(self._called, 'vim.ui.select has not been called')
 end
 
+function SelectFake:assert_not_called()
+  assert.is_false(self._called, 'vim.ui.select has been called')
+end
+
 InputFake = {}
 InputFake.__index = InputFake
 
@@ -914,6 +918,48 @@ describe('history', function()
     select_fake:assert_items({ 'plz build //:foo3', 'plz build //:foo2' })
 
     please.setup({ max_history_items = 20 })
+  end)
+end)
+
+describe('clear_history', function()
+  local function create_temp_tree()
+    return temptree.create({
+      '.plzconfig',
+      BUILD = [[
+        export_file(
+            name = "foo1",
+            src = "foo1.txt",
+        )
+
+        export_file(
+            name = "foo2",
+            src = "foo2.txt",
+        )
+      ]],
+      ['foo1.txt'] = 'foo1 content',
+      ['foo2.txt'] = 'foo2 content',
+    })
+  end
+
+  it('should delete all stored commands', function()
+    local root = create_temp_tree()
+    local select_fake = SelectFake:new()
+
+    -- GIVEN we've built a target
+    vim.cmd('edit ' .. root .. '/' .. 'foo1.txt')
+    please.build()
+    -- WHEN we call clear_history
+    please.clear_history()
+    -- THEN history does not prompt for a command to run again because the stored commands have been deleted
+    please.history()
+    select_fake:assert_not_called()
+    -- WHEN we build another target
+    vim.cmd('edit ' .. root .. '/' .. 'foo2.txt')
+    please.build()
+    -- WHEN we call history
+    please.history()
+    -- THEN the command to build the new target is the only one displayed
+    select_fake:assert_items({ 'plz build //:foo2' })
   end)
 end)
 

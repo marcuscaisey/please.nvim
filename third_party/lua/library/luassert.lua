@@ -5,6 +5,11 @@
 ---@param msg string? An optional message to display if the assertion fails.
 function assert.is_true(value, msg) end
 
+---Assert that `value == false`.
+---@param value any The value to confirm is `false`.
+---@param msg string? An optional message to display if the assertion fails.
+function assert.is_false(value, msg) end
+
 ---Assert that `type(value) == "nil"`.
 ---@param value any The value to confirm is of type `nil`.
 ---@param msg string? An optional message to display if the assertion fails.

@@ -436,6 +436,24 @@ function please.history()
   end)
 end
 
+---Clears the command history for the current repository.
+function please.clear_history()
+  logging.log_call('please.clear_history')
+
+  logging.log_errors('Failed to clear command history', function ()
+    local path = get_filepath() or assert(vim.uv.cwd())
+    local root = assert(get_repo_root(path))
+
+    local history = read_command_history()
+    if not history[root] then
+      return
+    end
+
+    history[root] = nil
+    write_command_history(history)
+  end)
+end
+
 ---@private
 function please.action_history()
   vim.deprecate('please.action_history', 'please.history', 'v1.0.0', 'please.nvim')

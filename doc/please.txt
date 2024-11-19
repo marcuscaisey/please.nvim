@@ -81,6 +81,7 @@ command to get you started.
       require('please').debug({ under_cursor = true })
     end)
     vim.keymap.set('n', '<leader>ph', require('please').history)
+    vim.keymap.set('n', '<leader>pch', require('please').clear_history)
     vim.keymap.set('n', '<leader>pp', require('please').set_profile)
     vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
     vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
@@ -162,6 +163,9 @@ command({...})                                              *please.command()*
 history()                                                   *please.history()*
     Display a history of previous commands. Selecting one of them will run it
     again.
+
+clear_history()                                       *please.clear_history()*
+    Clears the command history for the current repository.
 
 set_profile()                                           *please.set_profile()*
     Sets the profile that will be used by |please.build()|, |please.run()|,
