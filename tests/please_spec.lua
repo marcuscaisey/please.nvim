@@ -866,7 +866,7 @@ describe('history', function()
     local root = create_temp_tree()
     local select_fake = SelectFake:new()
 
-    -- GIVEN we've yanked the label of three targets, one after the other
+    -- GIVEN we've built three targets, one after the other
     for _, filename in ipairs({ 'foo1.txt', 'foo2.txt', 'foo3.txt' }) do
       vim.cmd('edit ' .. root .. '/' .. filename)
       please.build()
@@ -894,6 +894,26 @@ describe('history', function()
     -- THEN it has been moved to the top of the history
     please.history()
     select_fake:assert_items({ 'plz build //:foo2', 'plz build //:foo3', 'plz build //:foo1' })
+  end)
+
+  it('should display the n most recent items', function()
+    local root = create_temp_tree()
+    local select_fake = SelectFake:new()
+
+    -- GIVEN we've built three targets, one after the other
+    please.setup({ max_history_items = 2 })
+    for _, filename in ipairs({ 'foo1.txt', 'foo2.txt', 'foo3.txt' }) do
+      vim.cmd('edit ' .. root .. '/' .. filename)
+      print('TEST')
+      please.build()
+    end
+    please.setup({ max_history_items = 20 })
+    -- WHEN we call history
+    please.history()
+    -- THEN the commands to build the two most recently built target are ordered from most to least recent
+    select_fake:assert_items({ 'plz build //:foo3', 'plz build //:foo2' })
+
+    please.setup({ max_history_items = 20 })
   end)
 end)
 

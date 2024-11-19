@@ -58,6 +58,12 @@ appearance of them to your taste. See |vim.ui| and the fantastic
 https://github.com/stevearc/dressing.nvim for more information.
 
 ==============================================================================
+SETUP                                                           *please-setup*
+
+please.nvim does not require any setup to be used. However, you can customise
+the behaviour of the plugin by calling |please.setup()|.
+
+==============================================================================
 MAPPINGS                                                     *please-mappings*
 
 please.nvim doesn't come with any mappings defined out of the box so that you
@@ -82,6 +88,22 @@ command to get you started.
 <
 ==============================================================================
 Lua module: please                                                    *please*
+
+setup({opts})                                                 *please.setup()*
+    Updates the configuration with the provided {opts}. Should only be called
+    if you want to change the defaults which are shown below.
+
+    Example: >lua
+        local please = require('please')
+        please.setup({
+          max_history_items = 20,
+        })
+<
+
+    Parameters: ~
+      • {opts}  (`table`) A table with the following fields:
+                • {max_history_items} (`integer?`) The maximum number of
+                  history items to store for each repository.
 
 build()                                                       *please.build()*
     If the current file is a `BUILD` file, builds the target which is under

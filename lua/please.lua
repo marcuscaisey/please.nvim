@@ -6,6 +6,37 @@ local debug = require('please.debug')
 
 local please = {}
 
+---@nodoc
+---@class please.Config
+---@field max_history_items integer The maximum number of history items to store for each repository.
+
+---@type please.Config
+local config = {
+  max_history_items = 20,
+}
+
+---@inlinedoc
+---@class please.Opts
+---@field max_history_items integer? The maximum number of history items to store for each repository.
+
+---Updates the configuration with the provided {opts}. Should only be called if you want to change the defaults which
+---are shown below.
+---
+---Example:
+---```lua
+---local please = require('please')
+---please.setup({
+---   max_history_items = 20,
+---})
+---```
+---@param opts please.Opts
+function please.setup(opts)
+  vim.validate({
+    max_history_items = { opts.max_history_items, 'number', true },
+  })
+  config = vim.tbl_deep_extend('force', config, opts)
+end
+
 local default_profile = os.getenv('PLZ_CONFIG_PROFILE')
 
 ---@type table<string, string?>
@@ -77,6 +108,7 @@ local function save_command(root, command)
       :filter(function(history_item)
         return history_item.description ~= command.description
       end)
+      :take(config.max_history_items-1)
       :totable()
   else
     history[root] = {}
