@@ -103,6 +103,7 @@ function parsing.locate_build_target(root, label)
       local filepath = vim.fs.normalize(build_path)
 
       local bufnr = vim.fn.bufnr(filepath, true) -- this creates the buffer as unlisted if it doesn't exist
+      vim.fn.bufload(bufnr)
       for captures in iter_build_target_match_captures(bufnr) do
         if vim.treesitter.get_node_text(captures.name[1], bufnr):sub(2, -2) == name then -- remove the quotes
           local ts_start_row, ts_start_col = captures.target[1]:range()
