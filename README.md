@@ -8,10 +8,11 @@ please.nvim is a plugin which allows you interact with your Please repository fr
   * Set the profile to use with `please.set_profile()`.
   * Jump from a source file to its build target definition with `please.jump_to_target()`.
   * Yank a target's label with `please.yank()`.
-  * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs` files
+  * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, and `*.build_defs` files.
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting
+  * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting.
   * Python tree-sitter parser configured to be used for please files to enable better syntax
-    highlighting and use of all tree-sitter features in build files
+    highlighting and use of all tree-sitter features in build files.
 
 ## Demo
 https://user-images.githubusercontent.com/34950778/205456279-665ddfe8-de77-4f36-a337-85768bb06a37.mov
