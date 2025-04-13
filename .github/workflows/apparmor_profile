@@ -4,7 +4,7 @@
 abi <abi/4.0>,
 include <tunables/global>
 
-profile /home/*/.please/please /home/*/.please/plz /home/*/.please/please_sandbox flags=(unconfined) {
+profile /home/*/.please/please /home/*/.please/please_sandbox flags=(unconfined) {
   userns,
 
   # Site-specific additions and overrides. See local/README for details.
