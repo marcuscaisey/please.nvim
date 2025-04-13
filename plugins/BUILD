@@ -8,13 +8,13 @@ plugin_repo(
 plugin_repo(
     name = "python",
     plugin = "python-rules",
-    revision = "v1.5.0",
+    revision = "v1.12.2",
 )
 
 plugin_repo(
     name = "go",
     plugin = "go-rules",
-    revision = "v1.11.4",
+    revision = "v1.23.0",
 )
 
 plugin_repo(
