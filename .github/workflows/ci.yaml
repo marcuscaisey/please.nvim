@@ -13,8 +13,8 @@ jobs:
     steps:
       - name: Checkout commit
         uses: actions/checkout@main
-      - name: Install Please
-        run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
+      - name: Set up Please
+        uses: sagikazarmark/setup-please-action@v0
       - name: Run tests
         run: plz test
   lint-lua:
