@@ -23,7 +23,7 @@ jobs:
       - name: Run tests
         run: |
           plz test || echo failed
-          cat /var/log/audit/audit.log
+          cat /var/log/syslog
   lint-lua:
     name: Lint Lua
     runs-on: ubuntu-latest
