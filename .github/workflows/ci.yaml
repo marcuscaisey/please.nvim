@@ -18,7 +18,7 @@ jobs:
       - name: Run tests
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          plz test
+          plz build //third_party/lua:_toolchain
   lint-lua:
     name: Lint Lua
     runs-on: ubuntu-latest
