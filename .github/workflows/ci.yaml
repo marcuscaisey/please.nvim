@@ -21,7 +21,7 @@ jobs:
           sudo cp .github/workflows/apparmor_profile /etc/apparmor.d/build.please
           sudo systemctl reload apparmor
           sudo apt install apparmor-easyprof
-          sudo aa-easyprof /home/runner/.please/please
+          sudo aa-easyprof /home/runner/.please/17.16.0/please
       - name: Run tests
         run: |
           plz test || echo failed
