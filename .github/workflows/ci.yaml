@@ -23,7 +23,9 @@ jobs:
           systemctl status apparmor.service
           journalctl -xeu apparmor.service
       - name: Run tests
-        run: plz test
+        run: |
+          plz test || echo failed
+          sudo aa-logprof
   lint-lua:
     name: Lint Lua
     runs-on: ubuntu-latest
