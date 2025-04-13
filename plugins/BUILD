@@ -1,7 +1,8 @@
 plugin_repo(
     name = "cc",
+    owner="marcuscaisey",
     plugin = "cc-rules",
-    revision = "v0.4.0",
+    revision = "noall_load-fix",
 )
 
 plugin_repo(
