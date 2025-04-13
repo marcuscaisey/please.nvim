@@ -20,6 +20,8 @@ Features ~
   • Yank a target's label with |please.yank()|.
   • `please` configured as the 'filetype' for `BUILD`, `BUILD.plz`, and
     `*.build_defs` files.
+  • `please` LSP client configured to use `plz tool lps` for `please` files.
+    See |please-lsp|.
   • `ini` configured as the 'filetype' for `.plzconfig` files to enable better
     syntax highlighting.
   • Python tree-sitter parser configured to be used for please files to enable
@@ -56,6 +58,15 @@ Input and selection prompts are provided by |vim.ui.input()| and
 |vim.ui.select()| respectively. Doing so allows you to customise the
 appearance of them to your taste. See |vim.ui| and the fantastic
 https://github.com/stevearc/dressing.nvim for more information.
+
+==============================================================================
+LSP                                                               *please-lsp*
+
+please.nvim configures the `please` LSP client to use `plz tool lps` for
+`please` files via the mechanism described in |lsp-config|. Call
+|vim.lsp.enable| to enable it:
+>lua
+    vim.lsp.enable('please')
 
 ==============================================================================
 SETUP                                                           *please-setup*
