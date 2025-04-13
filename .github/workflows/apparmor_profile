@@ -5,7 +5,7 @@ abi <abi/4.0>,
 
 include <tunables/global>
 
-/home/runner/.please/please flags=(default_allow) {
+/home/runner/.please/17.16.0/please  flags=(default_allow) {
   userns,
 }
 
@@ -13,6 +13,6 @@ include <tunables/global>
   userns,
 }
 
-/home/runner/.please/please_sandbox flags=(default_allow) {
+/home/runner/.please/17.16.0/please_sandbox flags=(default_allow) {
   userns,
 }
