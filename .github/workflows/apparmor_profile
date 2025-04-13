@@ -5,14 +5,14 @@ abi <abi/4.0>,
 
 include <tunables/global>
 
-/home/*/.please/please flags=(default_allow) {
+/home/runner/.please/please flags=(default_allow) {
   userns,
 }
 
-/home/*/.please/plz flags=(default_allow) {
+/home/runner/.please/plz flags=(default_allow) {
   userns,
 }
 
-/home/*/.please/please_sandbox flags=(default_allow) {
+/home/runner/.please/please_sandbox flags=(default_allow) {
   userns,
 }
