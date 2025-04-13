@@ -2,25 +2,17 @@
 # These are used for sandboxing build actions when the appropriate config is enabled.
 
 abi <abi/4.0>,
+
 include <tunables/global>
 
-/home/*/.please/please flags=(unconfined) {
+/home/*/.please/please flags=(default_allow) {
   userns,
-
-  # Site-specific additions and overrides. See local/README for details.
-  include if exists <local/please>
 }
 
-/home/*/.please/plz flags=(unconfined) {
+/home/*/.please/plz flags=(default_allow) {
   userns,
-
-  # Site-specific additions and overrides. See local/README for details.
-  include if exists <local/please>
 }
 
-/home/*/.please/please_sandbox flags=(unconfined) {
+/home/*/.please/please_sandbox flags=(default_allow) {
   userns,
-
-  # Site-specific additions and overrides. See local/README for details.
-  include if exists <local/please>
 }
