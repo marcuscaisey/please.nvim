@@ -19,13 +19,9 @@ jobs:
         run: |
           ls -al ~/.please
           sudo cp .github/workflows/apparmor_profile /etc/apparmor.d/build.please
-          sudo systemctl reload apparmor || echo failed
-          systemctl status apparmor.service
-          journalctl -xeu apparmor.service
+          sudo systemctl reload apparmor
       - name: Run tests
-        run: |
-          plz test || echo failed
-          sudo aa-logprof
+        run: plz test
   lint-lua:
     name: Lint Lua
     runs-on: ubuntu-latest
