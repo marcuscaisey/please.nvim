@@ -17,8 +17,7 @@ jobs:
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Apply AppArmor profile
         run: |
-          ls -al ~/.please
-          sudo cp .github/workflows/apparmor_profile /etc/apparmor.d/build.please
+          sudo cp .github/workflows/please_apparmor_profile /etc/apparmor.d/build.please
           sudo apparmor_parser -r /etc/apparmor.d/build.please
       - name: Run tests
         run: plz test
