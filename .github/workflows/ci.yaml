@@ -20,7 +20,8 @@ jobs:
           ls -al ~/.please
           sudo cp .github/workflows/apparmor_profile /etc/apparmor.d/build.please
           sudo systemctl reload apparmor
-          sudo aa-complain plz
+          sudo apt install apparmor-easyprof
+          sudo aa-easyprof /home/runner/.please/please
       - name: Run tests
         run: |
           plz test || echo failed
