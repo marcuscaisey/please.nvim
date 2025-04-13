@@ -29,8 +29,8 @@ Target = //plugins:shell
 Target = //plugins:cc
 
 [Sandbox]
-build = true
-test = true
+build = false
+test = false
 
 [Remote]
 URL =
