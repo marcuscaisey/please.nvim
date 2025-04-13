@@ -108,7 +108,7 @@ local function save_command(root, command)
       :filter(function(history_item)
         return history_item.description ~= command.description
       end)
-      :take(config.max_history_items-1)
+      :take(config.max_history_items - 1)
       :totable()
   else
     history[root] = {}
@@ -440,7 +440,7 @@ end
 function please.clear_history()
   logging.log_call('please.clear_history')
 
-  logging.log_errors('Failed to clear command history', function ()
+  logging.log_errors('Failed to clear command history', function()
     local path = get_filepath() or assert(vim.uv.cwd())
     local root = assert(get_repo_root(path))
 
