@@ -16,9 +16,7 @@ jobs:
       - name: Set up Please
         uses: sagikazarmark/setup-please-action@v0
       - name: Run tests
-        run:
-          - sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          - plz test
+        run: plz test
   lint-lua:
     name: Lint Lua
     runs-on: ubuntu-latest
