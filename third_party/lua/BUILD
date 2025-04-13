@@ -1,11 +1,11 @@
-def lua_toolchain(name:str, version:str):
+def lua_toolchain(name:str, version:str, hash:str):
     """
     Downloads and compiles Lua and exposes the lua binary as the entry point :<name>|lua.
 
     Args:
         name: Name of the target.
         version: The version of Lua to download.
-        hashes: A list of possible hashes for the downloaded archive. Optional.
+        hash: A hash for the downloaded archive.
         visibility: Visibility specification. Defaults to public.
     """
     platforms_by_os = {
@@ -18,18 +18,23 @@ def lua_toolchain(name:str, version:str):
 
     download = remote_file(
         name = tag(name, "download"),
+        hashes = [hash],
         url = f"https://www.lua.org/ftp/lua-{version}.tar.gz",
     )
 
     return genrule(
         name = name,
-        srcs = [download],
+        srcs = {
+            "download": download,
+            "patch": "remove_readline_from_lua.patch",
+        },
         outs = [name],
         binary = True,
         building_description = "Installing...",
         cmd = [
-            "tar -xzvf $SRCS",
+            "tar -xzvf $SRCS_DOWNLOAD",
             f"cd lua-{version}",
+            "patch -p1 <$TMP_DIR/$SRCS_PATCH",
             f"make {platform}",
             "make INSTALL_TOP=$OUT install",
         ],
@@ -40,6 +45,7 @@ def lua_toolchain(name:str, version:str):
 
 lua_toolchain(
     name = "_toolchain",
+    hash = "2640fc56a795f29d28ef15e13c34a47e223960b0240e8cb0a82d9b0738695333",
     version = "5.1.5",
 )
 
@@ -93,7 +99,6 @@ def luarocks_package(name:str, package:str=None, version:str, deps:list=[], visi
         package: Name of the package. Defaults to name.
         version: Version to download.
         deps: Dependencies of the package. These should be luarocks_package targets. Optional.
-        hashes: List of hashes to verify the rule with. Optional.
         visibility: Visibility specification. Defaults to public.
     """
     package = package or name
