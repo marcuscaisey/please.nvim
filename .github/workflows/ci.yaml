@@ -15,6 +15,10 @@ jobs:
         uses: actions/checkout@main
       - name: Install Please
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
+      - name: Apply AppArmor profile
+        run: |
+          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
+          sudo systemctl reload apparmor.service
       - name: Run tests
         run: plz test
   lint-lua:
