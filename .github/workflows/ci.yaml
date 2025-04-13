@@ -24,7 +24,7 @@ jobs:
       - name: Run tests
         run: |
           plz test || echo failed
-          cat /var/log/syslog
+          aa-notify -s 1 -v
   lint-lua:
     name: Lint Lua
     runs-on: ubuntu-latest
