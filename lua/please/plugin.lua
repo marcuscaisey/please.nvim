@@ -11,6 +11,7 @@ local function configure_filetype()
   vim.filetype.add({
     extension = {
       build_defs = 'please',
+      build = 'please',
     },
     filename = {
       BUILD = function(path)
