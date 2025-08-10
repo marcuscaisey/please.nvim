@@ -483,7 +483,7 @@ function parsing.get_test_at_cursor()
   end
 
   check_parser_installed(vim.bo.filetype)
-
+  vim.treesitter.get_parser():parse() -- Calling get_node on an unparsed tree can yield an invalid node.
   local root_node = vim.treesitter.get_node()
   while root_node and not parsers_by_root_node_type[root_node:type()] do
     root_node = root_node:parent()
