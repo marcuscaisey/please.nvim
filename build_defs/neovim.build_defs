@@ -20,7 +20,7 @@ def neovim_toolchain(name:str, version:str, hashes:list=[], visibility:list=["PU
             f"https://github.com/neovim/neovim/releases/download/{version}/nvim-macos.tar.gz",
             f"https://github.com/neovim/neovim/releases/download/{version}/nvim-macos-{CONFIG.HOSTARCH}.tar.gz",
         ],
-        "linux": f"https://github.com/neovim/neovim/releases/download/{version}/nvim-linux64.tar.gz",
+        "linux": f"https://github.com/neovim/neovim/releases/download/{version}/nvim-linux-x86_64.tar.gz",
     }
     if CONFIG.HOSTOS not in urls_by_os:
         fail(f'neovim_toolchain rule is not supported on OS: "{CONFIG.HOSTOS}"')
