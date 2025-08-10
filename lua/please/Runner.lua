@@ -1,7 +1,7 @@
 local logging = require('please.logging')
 local plz = require('please.plz')
 
-local augroup = vim.api.nvim_create_augroup('please_nvim_runner', { clear = true })
+local augroup = vim.api.nvim_create_augroup('please.nvim_runner', { clear = true })
 
 vim.cmd.highlight('PleaseNvimRunnerBannerHelp guifg=Pink')
 
