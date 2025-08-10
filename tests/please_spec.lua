@@ -908,7 +908,6 @@ describe('history', function()
     please.setup({ max_history_items = 2 })
     for _, filename in ipairs({ 'foo1.txt', 'foo2.txt', 'foo3.txt' }) do
       vim.cmd('edit ' .. root .. '/' .. filename)
-      print('TEST')
       please.build()
     end
     please.setup({ max_history_items = 20 })
