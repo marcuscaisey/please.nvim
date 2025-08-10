@@ -194,7 +194,7 @@ function Runner:start()
   vim.api.nvim_create_autocmd('TermEnter', {
     group = augroup,
     buffer = self._bufnr,
-    desc = "Exit terminal mode if it's entered.",
+    desc = 'Exit terminal mode',
     callback = function()
       vim.cmd.stopinsert()
     end,
@@ -212,6 +212,7 @@ function Runner:start()
   vim.api.nvim_create_autocmd('WinLeave', {
     group = augroup,
     buffer = self._bufnr,
+    desc = 'Set minimised flag and save cursor position',
     callback = function()
       self._minimised = true
       self._prev_cursor_position = vim.api.nvim_win_get_cursor(0)
