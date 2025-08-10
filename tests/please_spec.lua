@@ -57,8 +57,6 @@ function RunnerSpy:stop() end
 
 function RunnerSpy:minimise() end
 
-function RunnerSpy:on_success() end
-
 function RunnerSpy:assert_called_with(root, args)
   assert.is_true(self._called, 'Runner:new has not been called')
   assert.equal(root, self._root, 'incorrect root passed to Runner:new')

@@ -50,13 +50,14 @@ local current_runner ---@type please.Runner?
 
 ---@param root string
 ---@param args string[]
-local function new_runner(root, args)
+---@param opts please.RunnerOpts?
+local function new_runner(root, args, opts)
   local profile = profiles_by_root[root]
   if profile then
     table.insert(args, 1, '--profile')
     table.insert(args, 2, profile)
   end
-  local runner = Runner:new(root, args)
+  local runner = Runner:new(root, args, opts)
   if current_runner then
     current_runner:stop()
     current_runner:minimise()
@@ -307,13 +308,14 @@ end
 local function run_debug_command(root, lang, args)
   local launcher = debug.launchers[lang]
   local label = args[2] -- args = { 'debug', label, ... }
-  local runner = new_runner(root, { 'build', '--config', 'dbg', label })
-  runner:on_success(function()
-    runner:minimise()
-    logging.log_errors('Failed to debug', function()
-      assert(launcher(root, label))
-    end)
-  end)
+  local runner = new_runner(root, { 'build', '--config', 'dbg', label }, {
+    on_success = function(runner)
+      runner:minimise()
+      logging.log_errors('Failed to debug', function()
+        assert(launcher(root, label))
+      end)
+    end,
+  })
   runner:start()
 end
 

@@ -21,26 +21,27 @@ vim.cmd.highlight('PleaseNvimRunnerBannerHelp guifg=Pink')
 local Runner = {}
 Runner.__index = Runner
 
+---@class please.RunnerOpts
+---@inlinedoc
+---@field on_success fun(runner:please.Runner)?
+
 ---@param root string
 ---@param args string[]
+---@param opts please.RunnerOpts?
 ---@return please.Runner
-function Runner:new(root, args)
+function Runner:new(root, args, opts)
   logging.log_call('runner.Runner:new')
+  opts = opts or {}
   local runner = {
     _root = root,
     _args = args,
     _stopped = false,
     _minimised = false,
-    _cmd_exited = false,
+    _job_exited = false,
+    _on_success = opts.on_success,
     _prev_cursor_position = { 1, 0 },
   }
   return setmetatable(runner, Runner)
-end
-
----Sets a callback to be called when the command exits with a code of 0.
----@param cb fun()
-function Runner:on_success(cb)
-  self._on_success = cb
 end
 
 local ANSI_REPLACEMENTS = {
@@ -179,7 +180,7 @@ function Runner:start()
       if code == 0 then
         colour = '${GREEN}'
         if self._on_success then
-          vim.schedule(self._on_success)
+          vim.schedule_wrap(self._on_success)(self)
         end
       else
         colour = '${RED}'
