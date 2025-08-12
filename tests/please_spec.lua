@@ -30,7 +30,7 @@ vim.g.clipboard = {
   },
 }
 
-RunnerSpy = {}
+local RunnerSpy = {}
 RunnerSpy.__index = RunnerSpy
 
 function RunnerSpy:new()
@@ -67,7 +67,7 @@ function RunnerSpy:assert_started()
   assert.is_true(self._started, 'Runner:start has not been called')
 end
 
-SelectFake = {}
+local SelectFake = {}
 SelectFake.__index = SelectFake
 
 function SelectFake:new()
@@ -124,7 +124,7 @@ function SelectFake:assert_not_called()
   assert.is_false(self._called, 'vim.ui.select has been called')
 end
 
-InputFake = {}
+local InputFake = {}
 InputFake.__index = InputFake
 
 function InputFake:new()
