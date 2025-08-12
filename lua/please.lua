@@ -51,19 +51,17 @@ local current_runner ---@type please.Runner?
 ---@param root string
 ---@param args string[]
 ---@param opts please.RunnerOpts?
-local function new_runner(root, args, opts)
+local function start_runner(root, args, opts)
   local profile = profiles_by_root[root]
   if profile then
     table.insert(args, 1, '--profile')
     table.insert(args, 2, profile)
   end
-  local runner = Runner:new(root, args, opts)
   if current_runner then
     current_runner:stop()
     current_runner:minimise()
   end
-  current_runner = runner
-  return runner
+  current_runner = Runner.start(root, args, opts)
 end
 
 local data_path = vim.fn.stdpath('data')
@@ -120,12 +118,6 @@ end
 
 ---@param root string
 ---@param args string[]
-local function run_simple_command(root, args)
-  new_runner(root, args):start()
-end
-
----@param root string
----@param args string[]
 local function save_and_run_simple_command(root, args)
   save_command(root, {
     type = 'simple',
@@ -133,7 +125,7 @@ local function save_and_run_simple_command(root, args)
     description = 'plz ' .. table.concat(args, ' '),
     opts = {},
   })
-  run_simple_command(root, args)
+  start_runner(root, args)
 end
 
 ---Wrapper around vim.ui.select which:
@@ -308,7 +300,7 @@ end
 local function run_debug_command(root, lang, args)
   local launcher = debug.launchers[lang]
   local label = args[2] -- args = { 'debug', label, ... }
-  local runner = new_runner(root, { 'build', '--config', 'dbg', label }, {
+  start_runner(root, { 'build', '--config', 'dbg', label }, {
     on_success = function(runner)
       runner:minimise()
       logging.log_errors('Failed to debug', function()
@@ -316,7 +308,6 @@ local function run_debug_command(root, lang, args)
       end)
     end,
   })
-  runner:start()
 end
 
 ---@param root string

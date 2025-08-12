@@ -5,44 +5,18 @@ local augroup = vim.api.nvim_create_augroup('please.nvim_runner', { clear = true
 
 vim.cmd.highlight('PleaseNvimRunnerBannerHelp guifg=Pink')
 
----A plz command runner that displays its output in a floating window.
+---A Please command runner that displays its output in a floating window.
 ---@class please.Runner
----@nodoc
----@field private _root string
----@field private _args string[]
----@field private _bufnr integer?
----@field private _winid integer?
+---@field private _bufnr integer
+---@field private _winid integer
 ---@field private _stopped boolean
----@field private _job_id integer?
+---@field private _job_id integer
 ---@field private _job_exited boolean
 ---@field private _on_success fun()?
 ---@field private _minimised boolean
 ---@field private _prev_cursor_position integer[]
 local Runner = {}
 Runner.__index = Runner
-
----@class please.RunnerOpts
----@inlinedoc
----@field on_success fun(runner:please.Runner)?
-
----@param root string
----@param args string[]
----@param opts please.RunnerOpts?
----@return please.Runner
-function Runner:new(root, args, opts)
-  logging.log_call('runner.Runner:new')
-  opts = opts or {}
-  local runner = {
-    _root = root,
-    _args = args,
-    _stopped = false,
-    _minimised = false,
-    _job_exited = false,
-    _on_success = opts.on_success,
-    _prev_cursor_position = { 1, 0 },
-  }
-  return setmetatable(runner, Runner)
-end
 
 local ANSI_REPLACEMENTS = {
   DEFAULT = '\x1b[39m',
@@ -135,33 +109,40 @@ local function move_cursor_to_last_line()
   vim.api.nvim_feedkeys('G', 'nx', false)
 end
 
----Starts the command and displays its output in a floating window.
----@return please.Runner
-function Runner:start()
-  logging.log_call('Runner:start')
+---@class please.RunnerOpts
+---@inlinedoc
+---@field on_success fun(runner:please.Runner)?
 
-  self._bufnr = vim.api.nvim_create_buf(
+---Runs a command and displays it in a floating window.
+---@param root string
+---@param args string[]
+---@param opts please.RunnerOpts?
+---@return please.Runner
+function Runner.start(root, args, opts)
+  logging.log_call('please.Runner:new')
+
+  local runner = setmetatable({}, Runner)
+
+  local bufnr = vim.api.nvim_create_buf(
     false, -- listed
     true -- scratch
   )
 
-  self._winid = open_win(self._bufnr)
-  local term_chan_id = vim.api.nvim_open_term(self._bufnr, {})
+  local winid = open_win(bufnr)
+  local term_chan_id = vim.api.nvim_open_term(bufnr, {})
 
   ---@param data string
-  local function print_to_term(data)
-    vim.schedule(function()
-      vim.api.nvim_chan_send(term_chan_id, data)
-    end)
-  end
+  local print_to_term = vim.schedule_wrap(function(data)
+    vim.api.nvim_chan_send(term_chan_id, data)
+  end)
 
-  local cmd_string = table.concat({ plz, unpack(self._args) }, ' ')
+  local cmd_string = table.concat({ plz, unpack(args) }, ' ')
   print_to_term(format('${BLUE}%s\n\n', cmd_string))
 
-  self._job_id = vim.fn.jobstart({ plz, unpack({ '--repo_root', self._root, unpack(self._args) }) }, {
+  local job_id = vim.fn.jobstart({ plz, unpack({ '--repo_root', root, unpack(args) }) }, {
     pty = true,
-    width = vim.api.nvim_win_get_width(self._winid),
-    height = vim.api.nvim_win_get_height(self._winid),
+    width = vim.api.nvim_win_get_width(winid),
+    height = vim.api.nvim_win_get_height(winid),
     ---@param data string[]
     on_stdout = function(_, data, _)
       local eof = vim.deep_equal(data, { '' })
@@ -172,15 +153,19 @@ function Runner:start()
     end,
     ---@param code integer
     on_exit = function(_, code, _)
-      self._job_exited = true
-      if self._minimised and not self._stopped then
+      ---@diagnostic disable-next-line: invisible
+      runner._job_exited = true
+      ---@diagnostic disable-next-line: invisible
+      if runner._minimised and not runner._stopped then
         logging.info('%s exited with code %d', cmd_string, code)
       end
       local colour
       if code == 0 then
         colour = '${GREEN}'
-        if self._on_success then
-          vim.schedule_wrap(self._on_success)(self)
+        ---@diagnostic disable-next-line: invisible
+        if runner._on_success then
+          ---@diagnostic disable-next-line: invisible
+          vim.schedule_wrap(runner._on_success)(runner)
         end
       else
         colour = '${RED}'
@@ -194,7 +179,7 @@ function Runner:start()
   -- It's easy to get stuck in terminal mode without any indication that you need to press <c-\><c-n> to get out
   vim.api.nvim_create_autocmd('TermEnter', {
     group = augroup,
-    buffer = self._bufnr,
+    buffer = bufnr,
     desc = 'Exit terminal mode',
     callback = function()
       vim.cmd.stopinsert()
@@ -202,25 +187,37 @@ function Runner:start()
   })
 
   vim.keymap.set('n', 'q', function()
-    self:stop()
-    self:minimise()
-  end, { buffer = self._bufnr })
+    runner:stop()
+    runner:minimise()
+  end, { buffer = bufnr })
 
   vim.keymap.set('n', 'm', function()
-    self:minimise()
-  end, { buffer = self._bufnr })
+    runner:minimise()
+  end, { buffer = bufnr })
 
   vim.api.nvim_create_autocmd('WinLeave', {
     group = augroup,
-    buffer = self._bufnr,
+    buffer = runner._bufnr,
     desc = 'Set minimised flag and save cursor position',
     callback = function()
-      self._minimised = true
-      self._prev_cursor_position = vim.api.nvim_win_get_cursor(0)
+      ---@diagnostic disable-next-line: invisible
+      runner._minimised = true
+      ---@diagnostic disable-next-line: invisible
+      runner._prev_cursor_position = vim.api.nvim_win_get_cursor(0)
     end,
   })
 
-  return self
+  opts = opts or {}
+  runner._bufnr = bufnr
+  runner._winid = winid
+  runner._stopped = false
+  runner._job_id = job_id
+  runner._job_exited = false
+  runner._on_success = opts.on_success
+  runner._minimised = false
+  runner._prev_cursor_position = { 1, 0 }
+
+  return runner
 end
 
 ---Stops the command.

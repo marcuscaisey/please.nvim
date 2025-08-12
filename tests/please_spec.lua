@@ -38,9 +38,8 @@ function RunnerSpy:new()
     _root = nil,
     _args = nil,
     _called = false,
-    _started = false,
   }
-  stub(Runner, 'new', function(_, root, args)
+  stub(Runner, 'start', function(root, args)
     o._root = root
     o._args = args
     o._called = true
@@ -49,22 +48,14 @@ function RunnerSpy:new()
   return setmetatable(o, self)
 end
 
-function RunnerSpy:start()
-  self._started = true
-end
-
 function RunnerSpy:stop() end
 
 function RunnerSpy:minimise() end
 
 function RunnerSpy:assert_called_with(root, args)
-  assert.is_true(self._called, 'Runner:new has not been called')
-  assert.equal(root, self._root, 'incorrect root passed to Runner:new')
-  assert.same(args, self._args, 'incorrect args passed to Runner:new')
-end
-
-function RunnerSpy:assert_started()
-  assert.is_true(self._started, 'Runner:start has not been called')
+  assert.is_true(self._called, 'Runner.start has not been called')
+  assert.equal(root, self._root, 'incorrect root passed to Runner.start')
+  assert.same(args, self._args, 'incorrect args passed to Runner.start')
 end
 
 local SelectFake = {}
