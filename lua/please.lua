@@ -58,8 +58,7 @@ local function start_runner(root, args, opts)
     table.insert(args, 2, profile)
   end
   if current_runner then
-    current_runner:stop()
-    current_runner:minimise()
+    current_runner:destroy()
   end
   current_runner = Runner.start(root, args, opts)
 end

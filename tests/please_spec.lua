@@ -48,7 +48,7 @@ function RunnerSpy:new()
   return setmetatable(o, self)
 end
 
-function RunnerSpy:stop() end
+function RunnerSpy:destroy() end
 
 function RunnerSpy:minimise() end
 

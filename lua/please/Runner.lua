@@ -1,14 +1,13 @@
 local logging = require('please.logging')
 local plz = require('please.plz')
 
-local augroup = vim.api.nvim_create_augroup('please.nvim_runner', { clear = true })
-
 vim.cmd.highlight('PleaseNvimRunnerBannerHelp guifg=Pink')
 
 ---A Please command runner that displays its output in a floating window.
 ---@class please.Runner
 ---@field private _bufnr integer
 ---@field private _winid integer
+---@field private _augroup integer
 ---@field private _stopped boolean
 ---@field private _job_id integer
 ---@field private _job_exited boolean
@@ -43,8 +42,9 @@ local function format(s, ...)
 end
 
 ---@param bufnr integer
+---@param augroup integer
 ---@return integer winid
-local function open_win(bufnr)
+local function open_win(bufnr, augroup)
   local width_pct = 0.9
   local height_pct = 0.9
   local padding_top_bottom = 2
@@ -128,7 +128,9 @@ function Runner.start(root, args, opts)
     true -- scratch
   )
 
-  local winid = open_win(bufnr)
+  local augroup = vim.api.nvim_create_augroup('please.nvim_runner' .. bufnr, {})
+
+  local winid = open_win(bufnr, augroup)
   local term_chan_id = vim.api.nvim_open_term(bufnr, {})
 
   ---@param data string
@@ -187,7 +189,8 @@ function Runner.start(root, args, opts)
   })
 
   vim.keymap.set('n', 'q', function()
-    runner:stop()
+    ---@diagnostic disable-next-line: invisible
+    runner:_stop()
     runner:minimise()
   end, { buffer = bufnr })
 
@@ -210,6 +213,7 @@ function Runner.start(root, args, opts)
   opts = opts or {}
   runner._bufnr = bufnr
   runner._winid = winid
+  runner._augroup = augroup
   runner._stopped = false
   runner._job_id = job_id
   runner._job_exited = false
@@ -218,15 +222,6 @@ function Runner.start(root, args, opts)
   runner._prev_cursor_position = { 1, 0 }
 
   return runner
-end
-
----Stops the command.
-function Runner:stop()
-  if not self._job_id then
-    error('stop called on Runner that has not been started')
-  end
-  self._stopped = true
-  vim.fn.jobstop(self._job_id)
 end
 
 ---Minimises the floating window.
@@ -245,12 +240,28 @@ function Runner:maximise()
     error('maximise called on Runner that has not been started')
   end
   self._minimised = false
-  self._winid = open_win(self._bufnr)
+  self._winid = open_win(self._bufnr, self._augroup)
   if self._job_exited then
     vim.api.nvim_win_set_cursor(0, self._prev_cursor_position)
   else
     move_cursor_to_last_line()
   end
+end
+
+---Stops the command, closes the floating window, and cleans up created autocmds.
+function Runner:destroy()
+  self:_stop()
+  self:minimise()
+  vim.api.nvim_del_augroup_by_id(self._augroup)
+end
+
+---@private
+function Runner:_stop()
+  if not self._job_id then
+    error('stop called on Runner that has not been started')
+  end
+  self._stopped = true
+  vim.fn.jobstop(self._job_id)
 end
 
 return Runner
