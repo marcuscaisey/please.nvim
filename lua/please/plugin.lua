@@ -59,7 +59,6 @@ function M.reload()
       package.loaded[pkg] = nil
     end
   end
-  require('please.plugin').load()
   logging.info('reloaded plugin')
 end
 
