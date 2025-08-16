@@ -1,7 +1,7 @@
 local logging = require('please.logging')
 local plz = require('please.plz')
 
-local query = {}
+local M = {}
 
 ---@param root string
 ---@param args string[]
@@ -27,7 +27,7 @@ end
 ---@param filepath string: absolute path to file
 ---@return string[]?
 ---@return string? errmsg
-function query.whatinputs(root, filepath)
+function M.whatinputs(root, filepath)
   logging.log_call('query.whatinputs')
 
   local output, err = plz_query(root, { 'whatinputs', filepath })
@@ -44,7 +44,7 @@ end
 ---@param field string: field name
 ---@return string?
 ---@return string? errmsg
-function query.print_field(root, label, field)
+function M.print_field(root, label, field)
   logging.log_call('query.print')
 
   local output, err = plz_query(root, { 'print', label, '--field', field })
@@ -60,10 +60,10 @@ end
 ---@param label string: a build label
 ---@return boolean?
 ---@return string? errmsg
-function query.is_target_sandboxed(root, label)
+function M.is_target_sandboxed(root, label)
   logging.log_call('query.is_target_sandboxed')
 
-  local test_value, err = query.print_field(root, label, 'test')
+  local test_value, err = M.print_field(root, label, 'test')
   if not test_value then
     return nil, string.format('determining if %s is sandboxed: %s', label, err)
   end
@@ -71,7 +71,7 @@ function query.is_target_sandboxed(root, label)
   local target_is_test = test_value == 'True'
   local sandbox_field = target_is_test and 'test_sandbox' or 'sandbox'
 
-  local sandbox_value, err = query.print_field(root, label, sandbox_field)
+  local sandbox_value, err = M.print_field(root, label, sandbox_field)
   if not sandbox_value then
     return nil, string.format('determining if %s is sandboxed: %s', label, err)
   end
@@ -84,7 +84,7 @@ end
 ---@param option string: option name
 ---@return string[]?
 ---@return string? errmsg
-function query.config(root, option)
+function M.config(root, option)
   logging.log_call('query.config')
 
   local output, err = plz_query(root, { 'config', option })
@@ -100,7 +100,7 @@ end
 ---@param target string: build target label
 ---@return string?
 ---@return string? errmsg
-function query.output(root, target)
+function M.output(root, target)
   logging.log_call('query.output')
 
   local output, err = plz_query(root, { 'output', target })
@@ -111,4 +111,4 @@ function query.output(root, target)
   return output
 end
 
-return query
+return M

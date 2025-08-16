@@ -4,7 +4,7 @@ local Runner = require('please.Runner')
 local logging = require('please.logging')
 local debug = require('please.debug')
 
-local please = {}
+local M = {}
 
 ---@nodoc
 ---@class please.Config
@@ -30,7 +30,7 @@ local config = {
 ---})
 ---```
 ---@param opts please.Opts
-function please.setup(opts)
+function M.setup(opts)
   vim.validate({
     max_history_items = { opts.max_history_items, 'number', true },
   })
@@ -190,7 +190,7 @@ end
 
 ---If the current file is a `BUILD` file, builds the target which is under the cursor. Otherwise, builds the target
 ---which takes the current file as an input.
-function please.build()
+function M.build()
   logging.log_call('please.build')
 
   logging.log_errors('Failed to build', function()
@@ -213,7 +213,7 @@ end
 
 ---If the current file is a `BUILD` file, run the target which is under the cursor. Otherwise, run the target which
 ---takes the current file as an input.
-function please.run()
+function M.run()
   logging.log_call('please.run')
 
   logging.log_errors('Failed to run', function()
@@ -258,7 +258,7 @@ end
 ---  tests
 ---- Python - unittest test classes, unittest test methods
 ---@param opts please.TestOptions? optional keyword arguments
-function please.test(opts)
+function M.test(opts)
   logging.log_call('please.test')
 
   logging.log_errors('Failed to test', function()
@@ -337,7 +337,7 @@ end
 ---Optionally (when in a source file), you can debug only the test which is under the cursor. The supported languages
 ---and test types are the same as for [please.test()].
 ---@param opts please.DebugOptions? optional keyword arguments
-function please.debug(opts)
+function M.debug(opts)
   logging.log_call('please.debug')
 
   logging.log_errors('Failed to debug', function()
@@ -390,7 +390,7 @@ end
 ---please.command('build', '//foo/bar/...')
 ---```
 ---@param ... string Arguments to pass to plz
-function please.command(...)
+function M.command(...)
   logging.log_call('please.command')
 
   local args = { ... }
@@ -402,7 +402,7 @@ function please.command(...)
 end
 
 ---Display a history of previous commands. Selecting one of them will run it again.
-function please.history()
+function M.history()
   logging.log_call('please.history')
 
   logging.log_errors('Failed to show command history', function()
@@ -431,7 +431,7 @@ function please.history()
 end
 
 ---Clears the command history for the current repository.
-function please.clear_history()
+function M.clear_history()
   logging.log_call('please.clear_history')
 
   logging.log_errors('Failed to clear command history', function()
@@ -449,14 +449,14 @@ function please.clear_history()
 end
 
 ---@private
-function please.action_history()
+function M.action_history()
   vim.deprecate('please.action_history', 'please.history', 'v1.0.0', 'please.nvim')
-  please.history()
+  M.history()
 end
 
 ---Sets the profile that will be used by [please.build()], [please.run()], [please.test()], [please.debug()], and
 ---[please.command()]. Profiles will be searched for in `/etc/please`, `~/.config/please`, and the current repository.
-function please.set_profile()
+function M.set_profile()
   logging.log_call('please.profile')
 
   logging.log_errors('Failed to set profile', function()
@@ -506,7 +506,7 @@ function please.set_profile()
 end
 
 ---Maximises the popup which was most recently quit or minimised.
-function please.maximise_popup()
+function M.maximise_popup()
   logging.log_call('please.maximise_popup')
   if current_runner then
     current_runner:maximise()
@@ -521,7 +521,7 @@ end
 ---The cursor will be moved to where the build target is created if it can be
 ---found which should be the case for all targets except for those with names
 ---which are generated when the `BUILD` file is executed.
-function please.jump_to_target()
+function M.jump_to_target()
   logging.log_call('please.jump_to_target')
 
   logging.log_errors('Failed to jump to target', function()
@@ -540,7 +540,7 @@ end
 ---If the current file is a `BUILD` file, yank the label of the target which is
 ---under the cursor. Otherwise, yank the label of the target which takes the
 ---current file as an input.
-function please.yank()
+function M.yank()
   logging.log_call('please.yank')
 
   logging.log_errors('Failed to yank', function()
@@ -566,4 +566,4 @@ function please.yank()
   end)
 end
 
-return please
+return M

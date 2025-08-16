@@ -2,7 +2,7 @@ local logging = require('please.logging')
 
 vim.treesitter.language.register('python', 'please')
 
-local parsing = {}
+local M = {}
 
 local build_file_names = { 'BUILD', 'BUILD.plz' }
 
@@ -89,7 +89,7 @@ end
 ---@param label string: a build label of the form //path/to/pkg:target
 ---@return {file: string, position: [number, number]}?
 ---@return string? errmsg
-function parsing.locate_build_target(root, label)
+function M.locate_build_target(root, label)
   logging.log_call('parsing.locate_build_target')
 
   check_parser_installed('please')
@@ -135,7 +135,7 @@ end
 ---@param root string: an absolute path to the repo root
 ---@return {label: string, rule: string}?
 ---@return string? errmsg
-function parsing.get_target_at_cursor(root)
+function M.get_target_at_cursor(root)
   logging.log_call('parsing.get_target_at_cursor')
 
   check_parser_installed('please')
@@ -474,7 +474,7 @@ local parsers_by_root_node_type_by_filetype = {
 ---- Python - unittest test classes, unittest test methods
 ---@return {name:string, selector:string}?
 ---@return string? errmsg
-function parsing.get_test_at_cursor()
+function M.get_test_at_cursor()
   logging.log_call('please.parsing.get_test_at_cursor')
 
   local parsers_by_root_node_type = parsers_by_root_node_type_by_filetype[vim.bo.filetype]
@@ -509,4 +509,4 @@ function parsing.get_test_at_cursor()
   return { name = test.name, selector = test.selector }
 end
 
-return parsing
+return M

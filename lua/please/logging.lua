@@ -1,15 +1,15 @@
-local logging = {}
+local M = {}
 
 local debug_enabled = false
 
 ---Toggles debug logs containing which functions are being called with which arguments. This should provide enough
 ---information to debug most issues. To toggle debug logs from the command line, use `:Please toggle_debug_logs`.
-function logging.toggle_debug()
+function M.toggle_debug()
   if debug_enabled then
-    logging.info('debug logs disabled')
+    M.info('debug logs disabled')
     debug_enabled = false
   else
-    logging.info('debug logs enabled')
+    M.info('debug logs enabled')
     debug_enabled = true
   end
 end
@@ -27,24 +27,24 @@ local function log(msg, level, ...)
 end
 
 ---@private
-function logging.debug(msg, ...)
+function M.debug(msg, ...)
   if debug_enabled then
     log(msg, vim.log.levels.DEBUG, ...)
   end
 end
 
 ---@private
-function logging.info(msg, ...)
+function M.info(msg, ...)
   log(msg, vim.log.levels.INFO, ...)
 end
 
 ---@private
-function logging.warn(msg, ...)
+function M.warn(msg, ...)
   log(msg, vim.log.levels.WARN, ...)
 end
 
 ---@private
-function logging.error(msg, ...)
+function M.error(msg, ...)
   log(msg, vim.log.levels.ERROR, ...)
 end
 
@@ -82,11 +82,11 @@ end
 ---```
 ---@param err_msg string
 ---@param f function
-function logging.log_errors(err_msg, f)
+function M.log_errors(err_msg, f)
   local ok, err = pcall(f)
   if not ok then
     if debug_enabled then
-      logging.error('%s: %s', err_msg, err)
+      M.error('%s: %s', err_msg, err)
       return
     end
     -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
@@ -98,14 +98,14 @@ function logging.log_errors(err_msg, f)
     -- end
     -- won't raise an error filename / location)
     local user_msg = err:match('.-:%d+: (.+)') or err
-    logging.error('%s: %s', err_msg, user_msg)
+    M.error('%s: %s', err_msg, user_msg)
   end
 end
 
 ---@private
 ---Logs the args passed to a func at debug level.
 ---@param func_name string the name of the called function (this can't be consistently introspected)
-function logging.log_call(func_name)
+function M.log_call(func_name)
   if not debug_enabled then
     return
   end
@@ -122,10 +122,10 @@ function logging.log_call(func_name)
   end
 
   if #args > 0 then
-    logging.debug('%s called with %s', func_name, table.concat(args, ', '))
+    M.debug('%s called with %s', func_name, table.concat(args, ', '))
   else
-    logging.debug('%s called', func_name)
+    M.debug('%s called', func_name)
   end
 end
 
-return logging
+return M
