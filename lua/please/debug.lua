@@ -41,10 +41,13 @@ end
 ---@field label string The label of the target to debug.
 ---@field extra_args string[]? Any extra arguments to pass to plz debug.
 
+local setup_complete = false
+
 function M.setup()
-  if not pcall(require, 'dap') then
+  if setup_complete then
     return
   end
+
   logging.debug('setting up plz debug adapter')
 
   ---@type fun(callback: fun(adapter: Adapter), config: DapConfiguration)
@@ -100,6 +103,8 @@ function M.setup()
   -- TODO: remove after upgrading debugpy version used by plz to >= 1.5.1 which sets only uncaught by default (currently
   -- debugpy also sets userUnhandled as well which is super annoying to use)
   dap.defaults.plz.exception_breakpoints = { 'uncaught' }
+
+  setup_complete = true
 end
 
 ---@param root string

@@ -341,6 +341,8 @@ function please.debug(opts)
   logging.log_call('please.debug')
 
   logging.log_errors('Failed to debug', function()
+    debug.setup()
+
     opts = opts or {}
 
     vim.validate({

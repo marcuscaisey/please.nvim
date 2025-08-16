@@ -1,6 +1,5 @@
 local please = require('please')
 local command = require('please.command')
-local debug = require('please.debug')
 local logging = require('please.logging')
 local popup = require('please.runners.popup')
 
@@ -52,7 +51,6 @@ end
 function M.load()
   configure_filetype()
   create_user_command()
-  debug.setup()
 end
 
 function M.reload()
