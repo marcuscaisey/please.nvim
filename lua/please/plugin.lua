@@ -8,7 +8,8 @@ function M.reload()
       package.loaded[modname] = nil
     end
   end
-  require('please.plugin').load()
+  vim.g.loaded_please = false
+  vim.cmd.packadd('please.nvim')
   logging.info('reloaded plugin')
 end
 
