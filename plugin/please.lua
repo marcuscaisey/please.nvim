@@ -57,6 +57,7 @@ local function create_user_command()
   local var_arg_cmds = { 'command' }
 
   local cmd_names = vim.tbl_keys(cmds)
+  table.sort(cmd_names)
   vim.api.nvim_create_user_command('Please', function(args)
     local cmd_name = args.fargs[1]
     local cmd_args = { unpack(args.fargs, 2) } -- first farg is the command name so ignore that
