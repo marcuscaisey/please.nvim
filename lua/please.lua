@@ -43,9 +43,8 @@ local config = {
 ---```
 ---@param opts please.Opts
 function M.setup(opts)
-  vim.validate({
-    max_history_items = { opts.max_history_items, 'number', true },
-  })
+  vim.validate('opts', opts, 'table')
+  vim.validate('opts.max_history_items', opts.max_history_items, 'number', true)
   config = vim.tbl_deep_extend('force', config, opts)
 end
 
@@ -276,10 +275,8 @@ function M.test(opts)
   logging.log_errors('Failed to test', function()
     opts = opts or {}
 
-    vim.validate({
-      opts = { opts, 'table' },
-      under_cursor = { opts.under_cursor, 'boolean', true },
-    })
+    vim.validate('opts', opts, 'table')
+    vim.validate('opts.under_cursor', opts.under_cursor, 'boolean', true)
 
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
@@ -357,10 +354,8 @@ function M.debug(opts)
 
     opts = opts or {}
 
-    vim.validate({
-      opts = { opts, 'table' },
-      under_cursor = { opts.under_cursor, 'boolean', true },
-    })
+    vim.validate('opts', opts, 'table')
+    vim.validate('opts.under_cursor', opts.under_cursor, 'boolean', true)
 
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
