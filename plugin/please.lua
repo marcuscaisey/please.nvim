@@ -49,36 +49,45 @@ local function create_user_command()
   for k, v in pairs(please) do
     cmds[k] = v
   end
-  local cmd_name_to_opts = {
+  ---@type table<string, string[]>
+  local cmd_opts = {
     test = { 'under_cursor' },
     debug = { 'under_cursor' },
   }
-  local cmd_name_to_positional_args = {
-    command = true,
-  }
+  local var_arg_cmds = { 'command' }
 
   local cmd_names = vim.tbl_keys(cmds)
   vim.api.nvim_create_user_command('Please', function(args)
     local cmd_name = args.fargs[1]
+    local cmd_args = { unpack(args.fargs, 2) } -- first farg is the command name so ignore that
 
     local cmd = cmds[cmd_name]
     if not cmd then
-      logging.error("'%s' is not a Please command", cmd_name)
+      logging.error("'%s' is not a 'Please' command", cmd_name)
       return
     end
 
-    local args = { unpack(args.fargs, 2) } -- first farg is the command name so ignore that
-    local cmd_args = {}
-    if cmd_name_to_positional_args[cmd_name] then
-      cmd_args = args
-    else
+    if vim.list_contains(var_arg_cmds, cmd_name) then
+      cmd(unpack(cmd_args))
+    elseif cmd_opts[cmd_name] then
+      local valid_opts = cmd_opts[cmd_name]
       local opts = {}
-      for _, arg in ipairs(args) do
+      for _, arg in ipairs(cmd_args) do
+        if not vim.list_contains(valid_opts, arg) then
+          local args = { arg, cmd_name, table.concat(valid_opts, "', '") }
+          logging.error("'%s' is not a valid 'Please %s' option. Valid options: '%s'.", unpack(args))
+          return
+        end
         opts[arg] = true
       end
-      cmd_args = { opts }
+      cmd(opts)
+    else
+      if #cmd_args > 0 then
+        logging.error("'Please %s' does not accept arguments", cmd_name)
+        return
+      end
+      cmd()
     end
-    cmd(unpack(cmd_args))
   end, {
     nargs = '+',
     complete = function(arg_lead, cmd_line)
@@ -95,7 +104,7 @@ local function create_user_command()
       else
         -- cmd_line looks like 'Please test ...'
         local cmd_name = cmd_line_words[2]
-        local cmd_opts = cmd_name_to_opts[cmd_name]
+        local cmd_opts = cmd_opts[cmd_name]
         if cmd_opts then
           -- We want to exclude the args which already exist in cmd_line. We don't include the last cmd_line word in
           -- this list since that's the one that we're currently completing.
