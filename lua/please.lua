@@ -402,6 +402,9 @@ function M.command(...)
 
   local args = { ... }
   logging.log_errors('Failed to run command', function()
+    if #args == 0 then
+      error('no arguments provided')
+    end
     local path = get_filepath() or assert(vim.uv.cwd())
     local root = assert(get_repo_root(path))
     save_and_run_simple_command(root, args)
