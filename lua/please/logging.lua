@@ -2,16 +2,10 @@ local M = {}
 
 local debug_enabled = false
 
----Toggles debug logs containing which functions are being called with which arguments. This should provide enough
----information to debug most issues. To toggle debug logs from the command line, use `:Please toggle_debug_logs`.
+---@return boolean
 function M.toggle_debug()
-  if debug_enabled then
-    M.info('debug logs disabled')
-    debug_enabled = false
-  else
-    M.info('debug logs enabled')
-    debug_enabled = true
-  end
+  debug_enabled = not debug_enabled
+  return debug_enabled
 end
 
 local function log(msg, level, ...)

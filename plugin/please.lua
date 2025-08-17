@@ -109,7 +109,6 @@ end
 -- create the Please user command
 local function create_user_command()
   local cmds = {
-    toggle_debug_logs = logging.toggle_debug,
     reload = plugin.reload,
   }
   for k, v in pairs(please) do

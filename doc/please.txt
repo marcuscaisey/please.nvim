@@ -200,14 +200,10 @@ yank()                                                         *please.yank()*
     is under the cursor. Otherwise, yank the label of the target which takes
     the current file as an input.
 
-
-==============================================================================
-Lua module: please.logging                                    *please.logging*
-
-toggle_debug()                                 *please.logging.toggle_debug()*
-    Toggles debug logs containing which functions are being called with which
-    arguments. This should provide enough information to debug most issues. To
-    toggle debug logs from the command line, use `:Please toggle_debug_logs`.
+toggle_debug_logging()                         *please.toggle_debug_logging()*
+    Toggle debug logging. The debug logs mostly contain which functions are
+    being called with which arguments. This should provide enough information
+    to debug most issues.
 
 
  vim:tw=78:ts=8:sw=4:sts=4:et:ft=help:norl:

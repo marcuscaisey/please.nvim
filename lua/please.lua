@@ -560,4 +560,15 @@ function M.yank()
   end)
 end
 
+---Toggle debug logging. The debug logs mostly contain which functions are being called with which arguments. This
+---should provide enough information to debug most issues.
+function M.toggle_debug_logging()
+  local enabled = logging.toggle_debug()
+  if enabled then
+    logging.info('debug logs disabled')
+  else
+    logging.info('debug logs enabled')
+  end
+end
+
 return M

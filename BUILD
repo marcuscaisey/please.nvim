@@ -2,7 +2,6 @@ neovim_plugin(
     name = "please",
     help_srcs = [
         "lua/please.lua",
-        "lua/please/logging.lua",
     ],
     deps = [
         "//third_party/neovim:go_tree_sitter_parser",
