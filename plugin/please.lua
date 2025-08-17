@@ -11,7 +11,6 @@ end
 local please = require('please')
 local plugin = require('please.plugin')
 local logging = require('please.logging')
-local popup = require('please.runners.popup')
 
 -- configure all of the file names / extensions which should correspond to the please filetype
 local function configure_filetype()
@@ -110,7 +109,6 @@ end
 -- create the Please user command
 local function create_user_command()
   local cmds = {
-    restore_popup = popup.restore,
     toggle_debug_logs = logging.toggle_debug,
     reload = plugin.reload,
   }
