@@ -1,8 +1,20 @@
-local query = require('please.query')
-local parsing = require('please.parsing')
-local Runner = require('please.Runner')
-local logging = require('please.logging')
-local debug = require('please.debug')
+local require_on_index = require
+
+---@param modname string
+---@return unknown
+function require_on_index(modname)
+  return setmetatable({}, {
+    __index = function(_, k)
+      return require(modname)[k]
+    end,
+  })
+end
+
+local query = require_on_index('please.query')
+local parsing = require_on_index('please.parsing')
+local Runner = require_on_index('please.Runner')
+local logging = require_on_index('please.logging')
+local debug = require_on_index('please.debug')
 
 local M = {}
 
