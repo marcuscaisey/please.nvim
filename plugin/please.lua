@@ -9,7 +9,6 @@ if vim.g.loaded_please then
 end
 
 local please = require('please')
-local plugin = require('please.plugin')
 local logging = require('please.logging')
 
 -- configure all of the file names / extensions which should correspond to the please filetype
@@ -108,9 +107,7 @@ end
 
 -- create the Please user command
 local function create_user_command()
-  local cmds = {
-    reload = plugin.reload,
-  }
+  local cmds = {}
   for k, v in pairs(please) do
     cmds[k] = v
   end
@@ -126,7 +123,6 @@ local function create_user_command()
   vim.api.nvim_create_user_command('Please', user_command(cmds, cmd_name_to_positional_args), {
     nargs = '+',
     complete = complete(cmd_names, cmd_name_to_opts),
-    force = true, -- allows us to recreate the command on plugin reload
     desc = 'Run a please.nvim command.',
   })
 end
