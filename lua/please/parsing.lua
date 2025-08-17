@@ -153,7 +153,6 @@ function M.get_target_at_cursor(root)
 end
 
 ---Language agnostic representation of a test and its children. A Test along with its children forms a tree of Tests.
----@private
 ---@class please.parsing.Test
 ---@field name string
 ---@field selector string The string which should be passed to the test runner to run this test.

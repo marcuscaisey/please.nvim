@@ -26,29 +26,24 @@ local function log(msg, level, ...)
   end
 end
 
----@private
 function M.debug(msg, ...)
   if debug_enabled then
     log(msg, vim.log.levels.DEBUG, ...)
   end
 end
 
----@private
 function M.info(msg, ...)
   log(msg, vim.log.levels.INFO, ...)
 end
 
----@private
 function M.warn(msg, ...)
   log(msg, vim.log.levels.WARN, ...)
 end
 
----@private
 function M.error(msg, ...)
   log(msg, vim.log.levels.ERROR, ...)
 end
 
----@private
 ---Runs the given function and logs any errors raised, prefixed with the provided message.
 ---Intended to be used in combination with assert to clean up repetitive error handling.
 ---If debug logs are enabled, then the file and line number of the error are also included in the log.
@@ -102,7 +97,6 @@ function M.log_errors(err_msg, f)
   end
 end
 
----@private
 ---Logs the args passed to a func at debug level.
 ---@param func_name string the name of the called function (this can't be consistently introspected)
 function M.log_call(func_name)
