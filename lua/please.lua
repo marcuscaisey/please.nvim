@@ -448,12 +448,6 @@ function M.clear_history()
   end)
 end
 
----@private
-function M.action_history()
-  vim.deprecate('please.action_history', 'please.history', 'v1.0.0', 'please.nvim')
-  M.history()
-end
-
 ---Sets the profile that will be used by [please.build()], [please.run()], [please.test()], [please.debug()], and
 ---[please.command()]. Profiles will be searched for in `/etc/please`, `~/.config/please`, and the current repository.
 function M.set_profile()
