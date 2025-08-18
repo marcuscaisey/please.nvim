@@ -29,6 +29,7 @@ vim.filetype.add({
     ['%.plzconfig.*'] = 'dosini',
   },
 })
+vim.treesitter.language.register('python', 'please')
 
 ---Returns all candidates which start with the prefix, sorted.
 ---@param prefix string
