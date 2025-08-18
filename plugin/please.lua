@@ -8,8 +8,20 @@ if vim.g.loaded_please then
   return
 end
 
-local please = require('please')
-local logging = require('please.logging')
+local require_on_index = require
+
+---@param modname string
+---@return unknown
+function require_on_index(modname)
+  return setmetatable({}, {
+    __index = function(_, k)
+      return require(modname)[k]
+    end,
+  })
+end
+
+local please = require_on_index('please')
+local logging = require_on_index('please.logging')
 
 vim.filetype.add({
   extension = {
@@ -92,7 +104,10 @@ end, {
     -- If there's only two words in the command line, then we're completing the command name. i.e. If cmd_line looks
     -- like 'Please te'.
     if #cmd_line_words == 2 then
-      return complete_arg(arg_lead, vim.tbl_keys(please))
+      -- Lazily required please module defined above is only required on index. Require it here since vim.tbl_keys will
+      -- not trigger this.
+      local cmd_names = vim.tbl_keys(require('please'))
+      return complete_arg(arg_lead, cmd_names)
     end
 
     -- cmd_line looks like 'Please test ...'
