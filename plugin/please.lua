@@ -42,7 +42,6 @@ local function complete_arg(prefix, candidates)
   return result
 end
 
-local cmds = please
 ---@type table<string, string[]>
 local cmd_opts = {
   test = { 'under_cursor' },
@@ -50,12 +49,11 @@ local cmd_opts = {
 }
 local var_arg_cmds = { 'command' }
 
-local cmd_names = vim.tbl_keys(cmds)
 vim.api.nvim_create_user_command('Please', function(args)
   local cmd_name = args.fargs[1]
   local cmd_args = { unpack(args.fargs, 2) }
 
-  local cmd = cmds[cmd_name]
+  local cmd = please[cmd_name]
   if not cmd then
     logging.error("'%s' is not a 'Please' command", cmd_name)
     return
@@ -93,7 +91,7 @@ end, {
     -- If there's only two words in the command line, then we're completing the command name. i.e. If cmd_line looks
     -- like 'Please te'.
     if #cmd_line_words == 2 then
-      return complete_arg(arg_lead, cmd_names)
+      return complete_arg(arg_lead, vim.tbl_keys(please))
     end
 
     -- cmd_line looks like 'Please test ...'
