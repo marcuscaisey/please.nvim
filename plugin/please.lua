@@ -1,4 +1,4 @@
-local min_nvim_version = '0.11.0'
+local min_nvim_version = '0.11.1'
 if vim.fn.has(string.format('nvim-%s', min_nvim_version)) == 0 then
   vim.notify(string.format('please.nvim requires at least Neovim %s', min_nvim_version), vim.log.levels.ERROR)
   return
@@ -41,7 +41,15 @@ vim.filetype.add({
     ['%.plzconfig.*'] = 'dosini',
   },
 })
+
 vim.treesitter.language.register('python', 'please')
+
+vim.lsp.config('please', {
+  cmd = { 'plz', 'tool', 'lps' },
+  filetypes = { 'please' },
+  root_markers = { '.plzconfig' },
+  workspace_required = true,
+})
 
 ---Returns all candidates which start with the prefix, sorted.
 ---@param prefix string

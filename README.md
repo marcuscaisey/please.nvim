@@ -28,7 +28,7 @@ Detailed documentation can be in [doc/please.txt](doc/please.txt) or by running 
 
 ## Getting started
 ### Installation
-> :information_source: Neovim >= 0.11 is required to use please.nvim
+> :information_source: Neovim >= 0.11.1 is required to use please.nvim
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
