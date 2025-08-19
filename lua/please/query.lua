@@ -1,5 +1,6 @@
 local logging = require('please.logging')
 local plz = require('please.plz')
+local runner = require('please.runner')
 
 local M = {}
 
@@ -109,6 +110,112 @@ function M.output(root, target)
   end
 
   return output
+end
+
+---Determines the appropriate GOROOT for a repo and passes it to the given callback.
+---The result is passed to a callback because a target may need to be built to create the GOROOT. Progress will be shown
+---in a floating window in this case.
+---Determining the GOROOT may fail. In this case, the callback will be passed `nil`, `errmsg`.
+---@param root string absolute path to the repo root
+---@param cb fun(goroot:string?, errmsg:string?) function called on success or error
+function M.with_goroot(root, cb)
+  logging.log_call('query.go_root')
+
+  local gotool = 'go'
+  local gotools, err = M.config(root, 'plugin.go.gotool')
+  if gotools then
+    gotool = gotools[1]
+  elseif not (err or ''):match('Settable field not defined') then
+    cb(nil, string.format('determining GOROOT: %s', err))
+    return
+  end
+
+  if vim.startswith(gotool, ':') or vim.startswith(gotool, '//') then
+    gotool = gotool:gsub('|go$', '')
+    local gotool_output, err = M.output(root, gotool)
+    if not gotool_output then
+      cb(nil, string.format('determining GOROOT: %s', gotool, err))
+      return
+    end
+    local rel_goroot = vim.trim(gotool_output)
+    local goroot = vim.fs.joinpath(root, rel_goroot)
+    if not vim.uv.fs_stat(goroot) then
+      local msg = logging.format(
+        'GOROOT "%s" for repository "%s" does not exist. Build plugin.go.gotool target "%s" to create it?',
+        rel_goroot,
+        root,
+        gotool
+      )
+      local ok, result = pcall(vim.fn.confirm, msg, '&Yes\n&No', 1, 'Question')
+      if not ok and result ~= 'Keyboard interrupt' then
+        error(result)
+      end
+      local build = ok and result == 1
+      if not build then
+        cb(nil, string.format('determining GOROOT: GOROOT "%s" for repository "%s" does not exist', rel_goroot, root))
+        return
+      end
+      runner.Runner.start(root, { 'build', gotool }, {
+        on_exit = function(success, runner)
+          if success then
+            runner:minimise()
+            logging.info('built plugin.go.gotool target "%s" successfully', gotool)
+            cb(goroot)
+          else
+            cb(nil, string.format('determining GOROOT: building plugin.go.gotool target "%s" failed', gotool))
+          end
+        end,
+      })
+      return
+    end
+    cb(goroot)
+    return
+  end
+
+  if vim.startswith(gotool, '/') then
+    if not vim.uv.fs_stat(gotool) then
+      cb(nil, string.format('determining GOROOT: plugin.go.gotool "%s" does not exist', gotool))
+      return
+    end
+    local goroot_res = vim.system({ gotool, 'env', 'GOROOT' }):wait()
+    if goroot_res.code == 0 then
+      cb(vim.trim(goroot_res.stdout))
+      return
+    else
+      cb(nil, string.format('determining GOROOT: %s env GOROOT: %s', gotool, goroot_res.stderr))
+      return
+    end
+  end
+
+  local build_paths, err = M.config(root, 'build.path')
+  if not build_paths then
+    cb(nil, string.format('determining GOROOT: %s', err))
+    return
+  end
+  for _, build_path in ipairs(build_paths) do
+    for path in vim.gsplit(build_path, ':') do
+      local go = vim.fs.joinpath(path, gotool)
+      if vim.uv.fs_stat(go) then
+        local goroot_res = vim.system({ go, 'env', 'GOROOT' }):wait()
+        if goroot_res.code == 0 then
+          cb(vim.trim(goroot_res.stdout))
+          return
+        else
+          cb(nil, string.format('determining GOROOT: %s env GOROOT: %s', go, goroot_res.stderr))
+          return
+        end
+      end
+    end
+  end
+
+  cb(
+    nil,
+    string.format(
+      'determining GOROOT: plugin.go.gotool "%s" not found in build.path "%s"',
+      gotool,
+      table.concat(build_paths, ':')
+    )
+  )
 end
 
 return M

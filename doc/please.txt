@@ -20,10 +20,12 @@ Features ~
   • Yank a target's label with |please.yank()|.
   • `please` configured as the 'filetype' for `BUILD`, `BUILD.plz`, `*.build`,
     and `*.build_defs` files.
-  • `please` LSP client configured to use `plz tool lps` for `please` files.
-    See |please-lsp|.
   • `ini` configured as the 'filetype' for `.plzconfig` files to enable better
     syntax highlighting.
+  • `please` LSP client configured to use `plz tool lps` for `please` files.
+    See |please-lsp-client|.
+  • gopls language server configured to use appropriate `GOROOT` when started
+    in a Please respository. See |please-gopls-GOROOT|.
   • Python tree-sitter parser configured to be used for please files to enable
     better syntax highlighting and use of all tree-sitter features in build
     files.
@@ -60,12 +62,30 @@ appearance of them to your taste. See |vim.ui| and the fantastic
 https://github.com/stevearc/dressing.nvim for more information.
 
 ==============================================================================
-LSP                                                               *please-lsp*
+LSP CONFIGURATION                                          *please-lsp-config*
 
+                                                           *please-lsp-client*
+Please LSP Client ~
 please.nvim configures the `please` LSP client to use `plz tool lps` for
 `please` files using |vim.lsp.config()|. Call |vim.lsp.enable| to enable it:
 >lua
     vim.lsp.enable('please')
+<
+                                                         *please-gopls-GOROOT*
+Gopls GOROOT ~
+The gopls language server uses the `GOROOT` environment variable to determine
+where the standard library is located. The go-rules Please plugin allows
+configuring the version of Go to use via the `GoTool` `.plzconfig` setting.
+
+please.nvim configures `gopls` using |vim.lsp.config()| to use the appropriate
+`GOROOT` when started in a Please repository, based on the `GoTool` setting.
+This means that operations like jumping to a definition or listing references
+with standard library modules will refer to the correct location for the
+version of Go defined by the repository.
+
+See also: ~
+  • https://go.dev/gopls
+  • https://github.com/please-build/go-rules
 
 ==============================================================================
 SETUP                                                           *please-setup*
