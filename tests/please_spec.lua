@@ -1,6 +1,6 @@
 local stub = require('luassert.stub')
 local please = require('please')
-local Runner = require('please.Runner')
+local runner = require('please.runner')
 local temptree = require('tests.temptree')
 
 -- require('please.logging').toggle_debug()
@@ -39,7 +39,7 @@ function RunnerSpy:new()
     _args = nil,
     _called = false,
   }
-  stub(Runner, 'start', function(root, args)
+  stub(runner.Runner, 'start', function(root, args)
     o._root = root
     o._args = args
     o._called = true

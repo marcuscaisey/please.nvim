@@ -12,7 +12,7 @@ end
 
 local query = require_on_index('please.query')
 local parsing = require_on_index('please.parsing')
-local Runner = require_on_index('please.Runner')
+local runner = require_on_index('please.runner')
 local logging = require_on_index('please.logging')
 local debug = require_on_index('please.debug')
 
@@ -57,11 +57,11 @@ local profiles_by_root = setmetatable({}, {
   end,
 })
 
-local current_runner ---@type please.Runner?
+local current_runner ---@type please.runner.Runner?
 
 ---@param root string
 ---@param args string[]
----@param opts please.RunnerOpts?
+---@param opts please.runner.RunnerOpts?
 local function start_runner(root, args, opts)
   local profile = profiles_by_root[root]
   if profile then
@@ -71,7 +71,7 @@ local function start_runner(root, args, opts)
   if current_runner then
     current_runner:destroy()
   end
-  current_runner = Runner.start(root, args, opts)
+  current_runner = runner.Runner.start(root, args, opts)
 end
 
 local data_path = vim.fn.stdpath('data')

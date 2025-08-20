@@ -1,12 +1,17 @@
 local logging = require('please.logging')
 local plz = require('please.plz')
 
+local M = {
+  ---@type please.runner.Runner?
+  current = nil,
+}
+
 local hl_ns = vim.api.nvim_create_namespace('please.nvim')
 local banner_help_hl_group = 'PleaseNvimRunnerBannerHelp'
 vim.cmd.highlight(banner_help_hl_group .. ' guifg=Pink')
 
 ---A Please command runner that displays its output in a floating window.
----@class please.Runner
+---@class please.runner.Runner
 ---@field private _bufnr integer
 ---@field private _winid integer
 ---@field private _augroup integer
@@ -18,6 +23,7 @@ vim.cmd.highlight(banner_help_hl_group .. ' guifg=Pink')
 ---@field private _prev_cursor_position integer[]
 local Runner = {}
 Runner.__index = Runner
+M.Runner = Runner
 
 local ANSI_REPLACEMENTS = {
   DEFAULT = '\x1b[39m',
@@ -111,15 +117,15 @@ local function move_cursor_to_last_line()
   vim.api.nvim_feedkeys('G', 'nx', false)
 end
 
----@class please.RunnerOpts
+---@class please.runner.RunnerOpts
 ---@inlinedoc
----@field on_success fun(runner:please.Runner)?
+---@field on_success fun(runner:please.runner.Runner)?
 
 ---Runs a command and displays it in a floating window.
 ---@param root string
 ---@param args string[]
----@param opts please.RunnerOpts?
----@return please.Runner
+---@param opts please.runner.RunnerOpts?
+---@return please.runner.Runner
 function Runner.start(root, args, opts)
   logging.log_call('please.Runner:new')
 
@@ -266,4 +272,4 @@ function Runner:_stop()
   vim.fn.jobstop(self._job_id)
 end
 
-return Runner
+return M
