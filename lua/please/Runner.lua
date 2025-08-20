@@ -1,7 +1,9 @@
 local logging = require('please.logging')
 local plz = require('please.plz')
 
-vim.cmd.highlight('PleaseNvimRunnerBannerHelp guifg=Pink')
+local hl_ns = vim.api.nvim_create_namespace('please.nvim')
+local banner_help_hl_group = 'PleaseNvimRunnerBannerHelp'
+vim.cmd.highlight(banner_help_hl_group .. ' guifg=Pink')
 
 ---A Please command runner that displays its output in a floating window.
 ---@class please.Runner
@@ -86,9 +88,9 @@ local function open_win(bufnr, augroup)
   local banner_msg = [[press q to quit / press m to minimise / call require('please').maximise_popup() to maximise]]
   local indent = padding_left_right + math.floor((fg_width - #banner_msg) / 2)
   vim.api.nvim_buf_set_lines(bg_bufnr, 0, 1, false, { string.rep(' ', indent) .. banner_msg })
-  vim.api.nvim_buf_add_highlight(bg_bufnr, -1, 'PleaseNvimRunnerBannerHelp', 0, indent + 6, indent + 7) -- q
-  vim.api.nvim_buf_add_highlight(bg_bufnr, -1, 'PleaseNvimRunnerBannerHelp', 0, indent + 24, indent + 25) -- m
-  vim.api.nvim_buf_add_highlight(bg_bufnr, -1, 'PleaseNvimRunnerBannerHelp', 0, indent + 45, indent + 79) -- require('please').maximise_popup()
+  vim.hl.range(bg_bufnr, hl_ns, banner_help_hl_group, { 0, indent + 6 }, { 0, indent + 7 }) -- q
+  vim.hl.range(bg_bufnr, hl_ns, banner_help_hl_group, { 0, indent + 24 }, { 0, indent + 25 }) -- m
+  vim.hl.range(bg_bufnr, hl_ns, banner_help_hl_group, { 0, indent + 45 }, { 0, indent + 79 }) -- require('please').maximise_popup()
 
   vim.api.nvim_create_autocmd('WinLeave', {
     group = augroup,
