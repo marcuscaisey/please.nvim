@@ -129,6 +129,10 @@ end
 function Runner.start(root, args, opts)
   logging.log_call('please.Runner:new')
 
+  if M.current then
+    M.current:_destroy()
+  end
+
   local runner = setmetatable({}, Runner)
 
   local bufnr = vim.api.nvim_create_buf(
@@ -229,6 +233,8 @@ function Runner.start(root, args, opts)
   runner._minimised = false
   runner._prev_cursor_position = { 1, 0 }
 
+  M.current = runner
+
   return runner
 end
 
@@ -256,14 +262,16 @@ function Runner:maximise()
   end
 end
 
+---@private
 ---Stops the command, closes the floating window, and cleans up created autocmds.
-function Runner:destroy()
+function Runner:_destroy()
   self:_stop()
   self:minimise()
   vim.api.nvim_del_augroup_by_id(self._augroup)
 end
 
 ---@private
+---Stops the command.
 function Runner:_stop()
   if not self._job_id then
     error('stop called on Runner that has not been started')

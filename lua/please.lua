@@ -57,8 +57,6 @@ local profiles_by_root = setmetatable({}, {
   end,
 })
 
-local current_runner ---@type please.runner.Runner?
-
 ---@param root string
 ---@param args string[]
 ---@param opts please.runner.RunnerOpts?
@@ -68,10 +66,7 @@ local function start_runner(root, args, opts)
     table.insert(args, 1, '--profile')
     table.insert(args, 2, profile)
   end
-  if current_runner then
-    current_runner:destroy()
-  end
-  current_runner = runner.Runner.start(root, args, opts)
+  runner.Runner.start(root, args, opts)
 end
 
 local data_path = vim.fn.stdpath('data')
@@ -512,8 +507,8 @@ end
 ---Maximises the popup which was most recently quit or minimised.
 function M.maximise_popup()
   logging.log_call('please.maximise_popup')
-  if current_runner then
-    current_runner:maximise()
+  if runner.current then
+    runner.current:maximise()
   else
     logging.error('no popup to maximise')
   end
