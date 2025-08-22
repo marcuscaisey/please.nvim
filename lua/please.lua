@@ -304,7 +304,10 @@ local function run_debug_command(root, lang, args)
   local launcher = debug.launchers[lang]
   local label = args[2] -- args = { 'debug', label, ... }
   start_runner(root, { 'build', '--config', 'dbg', label }, {
-    on_success = function(runner)
+    on_exit = function(success, runner)
+      if not success then
+        return
+      end
       runner:minimise()
       logging.log_errors('Failed to debug', function()
         assert(launcher(root, label))

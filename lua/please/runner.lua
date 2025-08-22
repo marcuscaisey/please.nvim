@@ -18,7 +18,7 @@ vim.cmd.highlight(banner_help_hl_group .. ' guifg=Pink')
 ---@field private _stopped boolean
 ---@field private _job_id integer
 ---@field private _job_exited boolean
----@field private _on_success fun()?
+---@field private _on_exit fun(success:boolean, runner:please.runner.Runner)?
 ---@field private _minimised boolean
 ---@field private _prev_cursor_position integer[]
 local Runner = {}
@@ -119,7 +119,7 @@ end
 
 ---@class please.runner.RunnerOpts
 ---@inlinedoc
----@field on_success fun(runner:please.runner.Runner)?
+---@field on_exit fun(success:boolean, runner:please.runner.Runner)?
 
 ---Runs a command and displays it in a floating window.
 ---@param root string
@@ -127,7 +127,7 @@ end
 ---@param opts please.runner.RunnerOpts?
 ---@return please.runner.Runner
 function Runner.start(root, args, opts)
-  logging.log_call('please.Runner:new')
+  logging.log_call('please.Runner.start')
 
   if M.current then
     M.current:_destroy()
@@ -173,18 +173,23 @@ function Runner.start(root, args, opts)
       if runner._minimised and not runner._stopped then
         logging.info('%s exited with code %d', cmd_string, code)
       end
+      local success = code == 0
       local colour
-      if code == 0 then
+      if success then
         colour = '${GREEN}'
-        ---@diagnostic disable-next-line: invisible
-        if runner._on_success then
-          ---@diagnostic disable-next-line: invisible
-          vim.schedule_wrap(runner._on_success)(runner)
-        end
       else
         colour = '${RED}'
       end
       print_to_term(format('\n' .. colour .. 'Exited with code %d', code))
+      ---@diagnostic disable-next-line: invisible
+      if runner._on_exit then
+        ---@diagnostic disable-next-line: invisible
+        vim.schedule(function()
+          -- TODO: work out how to shut these diagnostics up
+          ---@diagnostic disable-next-line: invisible
+          runner._on_exit(success, runner)
+        end)
+      end
     end,
   })
 
@@ -229,7 +234,7 @@ function Runner.start(root, args, opts)
   runner._stopped = false
   runner._job_id = job_id
   runner._job_exited = false
-  runner._on_success = opts.on_success
+  runner._on_exit = opts.on_exit
   runner._minimised = false
   runner._prev_cursor_position = { 1, 0 }
 
