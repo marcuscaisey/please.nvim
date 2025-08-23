@@ -1,8 +1,6 @@
-local require_on_index = require
-
 ---@param modname string
 ---@return unknown
-function require_on_index(modname)
+local function require_on_index(modname)
   return setmetatable({}, {
     __index = function(_, k)
       return require(modname)[k]
@@ -10,10 +8,15 @@ function require_on_index(modname)
   })
 end
 
+---@module 'please.query'
 local query = require_on_index('please.query')
+---@module 'please.parsing'
 local parsing = require_on_index('please.parsing')
+---@module 'please.runer'
 local runner = require_on_index('please.runner')
+---@module 'please.logging'
 local logging = require_on_index('please.logging')
+---@module 'please.debug'
 local debug = require_on_index('please.debug')
 
 local M = {}
