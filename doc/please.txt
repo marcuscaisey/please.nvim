@@ -63,8 +63,7 @@ https://github.com/stevearc/dressing.nvim for more information.
 LSP                                                               *please-lsp*
 
 please.nvim configures the `please` LSP client to use `plz tool lps` for
-`please` files via the mechanism described in |lsp-config|. Call
-|vim.lsp.enable| to enable it:
+`please` files using |vim.lsp.config()|. Call |vim.lsp.enable| to enable it:
 >lua
     vim.lsp.enable('please')
 
