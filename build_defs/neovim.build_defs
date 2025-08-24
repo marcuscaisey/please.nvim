@@ -247,8 +247,7 @@ def github_neovim_tree_sitter_parser(name:str, lang:str, repo:str, revision:str,
         name = tag(name, "subrepo_build_file"),
         content = """
 COMPILER_FLAGS = [
-    "-Wno-deprecated",
-    "-Wno-unused-but-set-variable",
+    "-Wno-error",
 ]
 
 c_library(
