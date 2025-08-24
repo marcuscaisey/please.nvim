@@ -91,12 +91,12 @@ local function open_win(bufnr, augroup)
   }
   local fg_winid = vim.api.nvim_open_win(bufnr, true, fg_config)
 
-  local banner_msg = [[press q to quit / press m to minimise / call require('please').maximise_popup() to maximise]]
+  local banner_msg = [[press q to quit / press m to minimise / call please.maximise_popup() to maximise]]
   local indent = padding_left_right + math.floor((fg_width - #banner_msg) / 2)
   vim.api.nvim_buf_set_lines(bg_bufnr, 0, 1, false, { string.rep(' ', indent) .. banner_msg })
   vim.hl.range(bg_bufnr, hl_ns, banner_help_hl_group, { 0, indent + 6 }, { 0, indent + 7 }) -- q
   vim.hl.range(bg_bufnr, hl_ns, banner_help_hl_group, { 0, indent + 24 }, { 0, indent + 25 }) -- m
-  vim.hl.range(bg_bufnr, hl_ns, banner_help_hl_group, { 0, indent + 45 }, { 0, indent + 79 }) -- require('please').maximise_popup()
+  vim.hl.range(bg_bufnr, hl_ns, banner_help_hl_group, { 0, indent + 45 }, { 0, indent + 68 }) -- please.maximise_popup()
 
   vim.api.nvim_create_autocmd('WinLeave', {
     group = augroup,

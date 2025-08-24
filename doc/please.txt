@@ -44,7 +44,8 @@ please.nvim commands can be called either through the Lua or the VimL API.
 To use the Lua API, you need to import the required module which will usually
 be `please`. For instance, |please.jump_to_target()| is executed with
 >lua
-    require('please').jump_to_target()
+    local please = require('please')
+    please.jump_to_target()
 <
 All available VimL API commands are autocompletable as arguments to the
 `:Please` command. For instance, |please.jump_to_target()| is executed with
@@ -100,22 +101,23 @@ please.nvim doesn't come with any mappings defined out of the box so that you
 can customise how you use it. Below are a set of mappings for each available
 command to get you started.
 >lua
-    vim.keymap.set('n', '<leader>pb', require('please').build)
-    vim.keymap.set('n', '<leader>pr', require('please').run)
-    vim.keymap.set('n', '<leader>pt', require('please').test)
+    local please = require('please')
+    vim.keymap.set('n', '<leader>pb', please.build)
+    vim.keymap.set('n', '<leader>pr', please.run)
+    vim.keymap.set('n', '<leader>pt', please.test)
     vim.keymap.set('n', '<leader>pct', function()
-      require('please').test({ under_cursor = true })
+      please.test({ under_cursor = true })
     end)
-    vim.keymap.set('n', '<leader>pd', require('please').debug)
+    vim.keymap.set('n', '<leader>pd', please.debug)
     vim.keymap.set('n', '<leader>pcd', function()
-      require('please').debug({ under_cursor = true })
+      please.debug({ under_cursor = true })
     end)
-    vim.keymap.set('n', '<leader>ph', require('please').history)
-    vim.keymap.set('n', '<leader>pch', require('please').clear_history)
-    vim.keymap.set('n', '<leader>pp', require('please').set_profile)
-    vim.keymap.set('n', '<leader>pm', require('please').maximise_popup)
-    vim.keymap.set('n', '<leader>pj', require('please').jump_to_target)
-    vim.keymap.set('n', '<leader>py', require('please').yank)
+    vim.keymap.set('n', '<leader>ph', please.history)
+    vim.keymap.set('n', '<leader>pch', please.clear_history)
+    vim.keymap.set('n', '<leader>pp', please.set_profile)
+    vim.keymap.set('n', '<leader>pm', please.maximise_popup)
+    vim.keymap.set('n', '<leader>pj', please.jump_to_target)
+    vim.keymap.set('n', '<leader>py', please.yank)
 <
 ==============================================================================
 Lua module: please                                                    *please*
