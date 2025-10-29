@@ -542,6 +542,34 @@ function M.jump_to_target()
   end)
 end
 
+---Looks up a build target by its label and jumps to its location.
+---
+---The cursor will be moved to where the build target is created if it can be
+---found which should be the case for all targets except for those with names
+---which are generated when the `BUILD` file is executed.
+function M.look_up_target()
+  logging.log_call('please.look_up_target')
+
+  logging.log_errors('Failed to look up target', function()
+    local filepath = assert(get_filepath())
+    local root = assert(get_repo_root(filepath))
+    vim.ui.input({ prompt = 'Enter target to look up' }, function(label)
+      if not label then
+        return
+      end
+      label = vim.trim(label)
+      local target, errmsg = parsing.locate_build_target(root, label)
+      if not target then
+        logging.error('Failed to look up target: %s', errmsg)
+        return
+      end
+      logging.debug('opening %s at %s', target.file, vim.inspect(target.position))
+      vim.cmd('edit ' .. target.file)
+      vim.api.nvim_win_set_cursor(0, target.position)
+    end)
+  end)
+end
+
 ---If the current file is a `BUILD` file, yank the label of the target which is
 ---under the cursor. Otherwise, yank the label of the target which takes the
 ---current file as an input.

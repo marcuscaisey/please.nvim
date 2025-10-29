@@ -3,7 +3,7 @@ local please = require('please')
 local runner = require('please.runner')
 local temptree = require('tests.temptree')
 
--- require('please.logging').toggle_debug()
+require('please.logging').toggle_debug()
 
 -- When this test file is run multiple times in parallel (in a non-sandboxed environment), at least one of the runs
 -- usually fails because some functionality being tested relies on use of the clipboard which is being shared between
@@ -1002,6 +1002,42 @@ describe('jump_to_target', function()
     select_fake:choose_item('//:foo1_and_foo2')
     -- THEN the BUILD file containing the chosen build target is opened
     assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
+    -- AND the cursor is moved to the build target
+    assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
+  end)
+end)
+
+describe('look_up_target', function()
+  it('should jump to build target which uses it as an input', function()
+    local root = temptree.create({
+      '.plzconfig',
+      ['pkg/'] = {
+        BUILD = [[
+          export_file(
+              name = "foo1",
+              src = "foo1.txt",
+          )
+
+          export_file(
+              name = "foo2",
+              src = "foo2.txt",
+          )
+        ]],
+      },
+    })
+    local input_fake = InputFake:new()
+
+    -- GIVEN we're editing a file
+    vim.cmd('edit ' .. root .. '/foo1.txt')
+    -- WHEN we call look_up_target
+    please.look_up_target()
+    -- THEN we're prompted to enter the build target to look up
+    input_fake:assert_prompt('Enter target to look up')
+    -- WHEN we enter a build target
+    input_fake:enter_input('//pkg:foo2')
+    vim.wait(500)
+    -- THEN the BUILD file containing the build target is opened
+    assert.equal(root .. '/pkg/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target
     assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
   end)

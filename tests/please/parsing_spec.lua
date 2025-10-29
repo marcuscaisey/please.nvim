@@ -78,6 +78,12 @@ describe('locate_build_target', function()
       expected_err = 'no build file exists for package "does/not/exist"',
     },
     {
+      name = 'should return error if label is not a valid',
+      tree = { '.plzconfig' },
+      label = 'foo',
+      expected_err = '"foo" is not a valid label',
+    },
+    {
       name = 'should return position for target at the start of a BUILD file',
       tree = {
         '.plzconfig',

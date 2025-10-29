@@ -17,6 +17,7 @@ Features ~
   • Set the profile to use with |please.set_profile()|.
   • Jump from a source file to its build target definition with
     |please.jump_to_target()|.
+  • Look up a build target by its label with |please.look_up_target()|.
   • Yank a target's label with |please.yank()|.
   • `please` configured as the 'filetype' for `BUILD`, `BUILD.plz`, `*.build`,
     and `*.build_defs` files.
@@ -117,6 +118,7 @@ command to get you started.
     vim.keymap.set('n', '<leader>pp', please.set_profile)
     vim.keymap.set('n', '<leader>pm', please.maximise_popup)
     vim.keymap.set('n', '<leader>pj', please.jump_to_target)
+    vim.keymap.set('n', '<leader>pl', please.look_up_target)
     vim.keymap.set('n', '<leader>py', please.yank)
 <
 ==============================================================================
@@ -211,6 +213,13 @@ maximise_popup()                                     *please.maximise_popup()*
 jump_to_target()                                     *please.jump_to_target()*
     Jumps to the location of the build target which takes the current file as
     an input.
+
+    The cursor will be moved to where the build target is created if it can be
+    found which should be the case for all targets except for those with names
+    which are generated when the `BUILD` file is executed.
+
+look_up_target()                                     *please.look_up_target()*
+    Looks up a build target by its label and jumps to its location.
 
     The cursor will be moved to where the build target is created if it can be
     found which should be the case for all targets except for those with names

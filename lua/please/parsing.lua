@@ -95,6 +95,9 @@ function M.locate_build_target(root, label)
   check_parser_installed('please')
 
   local pkg, name = label:match('^//([^:]*):([^/]+)$')
+  if not pkg or not name then
+    return nil, string.format('"%s" is not a valid label', label)
+  end
   local pkg_path = vim.fs.joinpath(root, pkg)
   for _, build_file_name in ipairs(build_file_names) do
     local build_path = vim.fs.joinpath(pkg_path, build_file_name)
