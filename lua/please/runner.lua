@@ -79,7 +79,7 @@ local function open_win(bufnr, augroup)
 
   local fg_width = bg_width - 2 * padding_left_right
   local fg_height = bg_height - 2 * padding_top_bottom
-  local fg_config = {
+  local fg_winid = vim.api.nvim_open_win(bufnr, true, {
     relative = 'editor',
     width = fg_width,
     height = fg_height,
@@ -88,8 +88,8 @@ local function open_win(bufnr, augroup)
     focusable = true,
     style = 'minimal',
     noautocmd = true,
-  }
-  local fg_winid = vim.api.nvim_open_win(bufnr, true, fg_config)
+    border = 'none',
+  })
 
   local banner_msg = [[press q to quit / press m to minimise / call please.maximise_popup() to maximise]]
   local indent = padding_left_right + math.floor((fg_width - #banner_msg) / 2)
