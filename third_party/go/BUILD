@@ -120,7 +120,7 @@ go_repo(
 go_repo(
     licences = ["MIT"],
     module = "github.com/sirupsen/logrus",
-    version = "v1.6.0",
+    version = "v1.8.3",
 )
 
 go_repo(
