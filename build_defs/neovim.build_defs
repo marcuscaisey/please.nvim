@@ -161,7 +161,6 @@ def neovim_test(name:str, src:str, deps:list=[], labels:list=[], data:list=None,
     deps_rule = genrule(
         name = tag(name, "deps"),
         cmd = "$TOOL z -d -n -i . -o $OUT",
-        srcs = [src],
         outs = ["deps.zip"],
         deps = deps + ["//third_party/lua:busted"],
         tools = [CONFIG.ARCAT_TOOL],
