@@ -36,7 +36,15 @@ function M.whatinputs(root, filepath)
     return nil, string.format('plz query whatinputs %s: %s', filepath, err)
   end
 
-  return vim.split(output, '\n'), nil
+  local labels = vim.split(output, '\n')
+  for i, label in ipairs(labels) do
+    local pkg, name = label:match('^//([^:]*):([^/]+)$')
+    if pkg and name and name == vim.fs.basename(pkg) then
+      labels[i] = label:gsub(':' .. name, '')
+    end
+  end
+
+  return labels, nil
 end
 
 ---Wrapper around plz query print which returns the value of the given field for the given build target.

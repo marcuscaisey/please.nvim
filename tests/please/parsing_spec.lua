@@ -1333,6 +1333,47 @@ describe('get_target_at_cursor', function()
     })
   end)
 
+  it('should return label when rule uses single quotes', function()
+    run_test({
+      tree = {
+        BUILD = [[
+          export_file(
+              name = 'foo',
+              # src = 'foo2.txt',
+          )]],
+      },
+      file = 'BUILD',
+      cursor_position = { 1, 0 },
+      expected_label = '//:foo',
+    })
+  end)
+
+  it('should return shortened label when target name matches directory', function ()
+    run_test({
+      tree = {
+        '.plzconfig',
+        ['bar/'] = {
+          BUILD = [[
+            export_file(
+                name = "foo",
+                src = "foo.txt",
+            )
+
+            export_file(
+                name = "bar",
+                src = "bar.txt",
+            )
+          ]],
+          'foo.txt',
+          'bar.txt',
+        },
+      },
+      file = 'bar/BUILD',
+      cursor_position = { 6, 0 },
+      expected_label = '//bar',
+    })
+  end)
+
   describe('should return error when cursor is outside build target definition', function()
     local tree = {
       BUILD = [[
@@ -1373,20 +1414,5 @@ describe('get_target_at_cursor', function()
         })
       end)
     end
-  end)
-
-  it('should return label when rule uses single quotes', function()
-    run_test({
-      tree = {
-        BUILD = [[
-          export_file(
-              name = 'foo',
-              # src = 'foo2.txt',
-          )]],
-      },
-      file = 'BUILD',
-      cursor_position = { 1, 0 },
-      expected_label = '//:foo',
-    })
   end)
 end)

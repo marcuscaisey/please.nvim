@@ -137,7 +137,11 @@ local function build_label(root, build_file, target)
   local normalized_root = vim.fs.normalize(root)
   local normalized_dir = vim.fs.normalize(dir)
   local pkg = normalized_dir:gsub('^' .. vim.pesc(normalized_root) .. '/?', '')
-  return string.format('//%s:%s', pkg, target)
+  if target == vim.fs.basename(pkg) then
+    return '//' .. pkg
+  else
+    return string.format('//%s:%s', pkg, target)
+  end
 end
 
 ---Returns the label and rule of the build target under the cursor.
