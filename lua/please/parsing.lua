@@ -86,7 +86,7 @@ end
 ---If the location of the target in the BUILD file can't be found (it might be dynamically created), then position will
 ---be {1, 0}.
 ---@param root string an absolute path to the repo root
----@param label string: a build label of the form //path/to/pkg:target
+---@param label string: a build label of the form //path/to/pkg:target or //path/to/pkg
 ---@return {file: string, position: [number, number]}?
 ---@return string? errmsg
 function M.locate_build_target(root, label)
@@ -95,7 +95,13 @@ function M.locate_build_target(root, label)
   check_parser_installed('please')
 
   local pkg, name = label:match('^//([^:]*):([^/]+)$')
-  if not pkg or not name then
+  if not pkg then
+    pkg = label:match('^//([^:]+)$')
+    if pkg then
+      name = vim.fs.basename(pkg)
+    end
+  end
+  if not pkg then
     return nil, string.format('"%s" is not a valid label', label)
   end
   local pkg_path = vim.fs.joinpath(root, pkg)

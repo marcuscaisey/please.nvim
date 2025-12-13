@@ -4,7 +4,7 @@ local parsing = require('please.parsing')
 describe('locate_build_target', function()
   local test_cases = {
     {
-      name = 'should return location of a BUILD file in the root of the repo',
+      name = 'should return location of target in the root of the repo',
       tree = {
         '.plzconfig',
         BUILD = [[
@@ -16,25 +16,27 @@ describe('locate_build_target', function()
       },
       label = '//:foo',
       expected_file = 'BUILD',
+      expected_position = { 1, 0 },
     },
     {
-      name = 'should return location of a BUILD file in a child dir of the repo',
+      name = 'should return location of target in a child dir of the repo',
       tree = {
         '.plzconfig',
         ['foo/'] = {
           BUILD = [[
           export_file(
-              name = "foo",
+              name = "bar",
               src = "foo.txt",
           )]],
-          'foo.txt',
+          'bar.txt',
         },
       },
-      label = '//foo:foo',
+      label = '//foo:bar',
       expected_file = 'foo/BUILD',
+      expected_position = { 1, 0 },
     },
     {
-      name = 'should return location of a BUILD.plz file',
+      name = 'should return location of target in a BUILD.plz file',
       tree = {
         '.plzconfig',
         ['BUILD.plz'] = [[
@@ -46,6 +48,7 @@ describe('locate_build_target', function()
       },
       label = '//:foo',
       expected_file = 'BUILD.plz',
+      expected_position = { 1, 0 },
     },
     {
       name = 'should not return directory which matches BUILD file name',
@@ -61,30 +64,10 @@ describe('locate_build_target', function()
       },
       label = '//:foo',
       expected_file = 'BUILD.plz',
+      expected_position = { 1, 0 },
     },
     {
-      name = 'should return error if pkg path exists but BUILD or BUILD.plz file does not',
-      tree = {
-        '.plzconfig',
-        'no_targets/',
-      },
-      label = '//no_targets:target',
-      expected_err = 'no build file exists for package "no_targets"',
-    },
-    {
-      name = 'should return error if pkg path does not exist',
-      tree = { '.plzconfig' },
-      label = '//does/not/exist:target',
-      expected_err = 'no build file exists for package "does/not/exist"',
-    },
-    {
-      name = 'should return error if label is not a valid',
-      tree = { '.plzconfig' },
-      label = 'foo',
-      expected_err = '"foo" is not a valid label',
-    },
-    {
-      name = 'should return position for target at the start of a BUILD file',
+      name = 'should return location of target at the start of a BUILD file',
       tree = {
         '.plzconfig',
         BUILD = [[
@@ -95,10 +78,9 @@ describe('locate_build_target', function()
         'foo.txt',
       },
       label = '//:foo',
-      expected_position = { 1, 0 },
     },
     {
-      name = 'should return position for target in the middle of a BUILD file',
+      name = 'should return location of target in the middle of a BUILD file',
       tree = {
         '.plzconfig',
         BUILD = [[
@@ -118,7 +100,7 @@ describe('locate_build_target', function()
       expected_position = { 6, 0 },
     },
     {
-      name = 'should return position for target which is indented',
+      name = 'should return location of target which is indented',
       tree = {
         '.plzconfig',
         BUILD = [[
@@ -145,6 +127,51 @@ describe('locate_build_target', function()
       label = '//:foo',
       expected_position = { 1, 0 },
     },
+    {
+      name = 'should return location of target with shortened label',
+      tree = {
+        '.plzconfig',
+        ['bar/'] = {
+          BUILD = [[
+            export_file(
+                name = "foo",
+                src = "foo.txt",
+            )
+
+            export_file(
+                name = "bar",
+                src = "bar.txt",
+            )
+          ]],
+          'foo.txt',
+          'bar.txt',
+        },
+      },
+      label = '//bar',
+      expected_file = 'bar/BUILD',
+      expected_position = { 6, 0 },
+    },
+    {
+      name = 'should return error if pkg path exists but BUILD or BUILD.plz file does not',
+      tree = {
+        '.plzconfig',
+        'no_targets/',
+      },
+      label = '//no_targets:target',
+      expected_err = 'no build file exists for package "no_targets"',
+    },
+    {
+      name = 'should return error if pkg path does not exist',
+      tree = { '.plzconfig' },
+      label = '//does/not/exist:target',
+      expected_err = 'no build file exists for package "does/not/exist"',
+    },
+    {
+      name = 'should return error if label is not a valid',
+      tree = { '.plzconfig' },
+      label = 'foo',
+      expected_err = '"foo" is not a valid label',
+    },
   }
 
   for _, case in ipairs(test_cases) do
@@ -155,9 +182,6 @@ describe('locate_build_target', function()
 
       if case.expected_file then
         assert.equal(root .. '/' .. case.expected_file, target and target.file, 'incorrect file')
-      end
-
-      if case.expected_position then
         assert.same(case.expected_position, target and target.position, 'incorrect position')
       end
 
