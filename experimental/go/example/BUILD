@@ -8,3 +8,8 @@ go_test(
     labels = ["manual"],
     deps = ["///third_party/go/github.com_stretchr_testify//suite"],
 )
+
+go_library(
+    name = "example",
+    srcs = ["example.go"],
+)
