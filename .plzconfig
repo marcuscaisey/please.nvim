@@ -10,6 +10,8 @@ preloadsubincludes = ///cc//build_defs:c
 
 [BuildConfig]
 nvim-tool = //third_party/neovim:toolchain|nvim
+lua-tool = //third_party/lua:toolchain|lua
+luarocks-tool = //third_party/lua:luarocks|luarocks
 
 [Plugin "go"]
 Target = //plugins:go
