@@ -542,7 +542,8 @@ function M.jump_to_target()
   end)
 end
 
----Looks up a build target by its label and jumps to its location.
+---Looks up a build target by its label and jumps to its location. If the cursor is already on a build label, then this
+---will be used. Otherwise, you'll be prompted for one.
 ---
 ---The cursor will be moved to where the build target is created if it can be
 ---found which should be the case for all targets except for those with names
@@ -553,11 +554,9 @@ function M.look_up_target()
   logging.log_errors('Failed to look up target', function()
     local filepath = assert(get_filepath())
     local root = assert(get_repo_root(filepath))
-    vim.ui.input({ prompt = 'Enter target to look up' }, function(label)
-      if not label then
-        return
-      end
-      label = vim.trim(label)
+
+    ---@param label string
+    local function look_up_target(label)
       local target, errmsg = parsing.locate_build_target(root, label)
       if not target then
         logging.error('Failed to look up target: %s', errmsg)
@@ -566,6 +565,19 @@ function M.look_up_target()
       logging.debug('opening %s at %s', target.file, vim.inspect(target.position))
       vim.cmd('edit ' .. target.file)
       vim.api.nvim_win_set_cursor(0, target.position)
+    end
+
+    local label_at_cursor = parsing.get_label_at_cursor()
+    if label_at_cursor then
+      look_up_target(label_at_cursor)
+      return
+    end
+
+    vim.ui.input({ prompt = 'Enter target to look up' }, function(label)
+      if not label then
+        return
+      end
+      look_up_target(vim.trim(label))
     end)
   end)
 end

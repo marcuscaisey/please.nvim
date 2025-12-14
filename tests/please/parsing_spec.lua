@@ -1348,7 +1348,7 @@ describe('get_target_at_cursor', function()
     })
   end)
 
-  it('should return shortened label when target name matches directory', function ()
+  it('should return shortened label when target name matches directory', function()
     run_test({
       tree = {
         '.plzconfig',
@@ -1415,4 +1415,179 @@ describe('get_target_at_cursor', function()
       end)
     end
   end)
+end)
+
+describe('get_label_at_cursor', function()
+  ---@class TestCase
+  ---@field name string
+  ---@field file string
+  ---@field position integer[]
+  ---@field expected_cursor_value string
+  ---@field expected_label string?
+
+  ---@param test_case TestCase
+  local function run_test(test_case)
+    local root = temptree.create({
+      file = test_case.file,
+    })
+
+    vim.cmd.edit(vim.fs.joinpath(root, 'file'))
+    vim.api.nvim_win_set_cursor(0, test_case.position)
+
+    if test_case.expected_cursor_value then
+      local actual_cursor_value = vim.api.nvim_buf_get_text(
+        0,
+        test_case.position[1] - 1,
+        test_case.position[2],
+        test_case.position[1] - 1,
+        test_case.position[2] + 1,
+        {}
+      )[1]
+      assert.equal(test_case.expected_cursor_value, actual_cursor_value, 'incorrect cursor value')
+    end
+
+    local actual_label = parsing.get_label_at_cursor()
+
+    if test_case.expected_label then
+      assert.equal(test_case.expected_label, actual_label, 'incorrect label')
+    else
+      assert.is_nil(actual_label, 'expected no label')
+    end
+  end
+
+  ---@type TestCase[]
+  local test_cases = {
+    {
+      name = 'no label returned when cursor on line before label',
+      file = [[
+        line before
+        ^
+        before //foo/bar:baz after
+        line after
+      ]],
+      position = { 1, 0 },
+      expected_cursor_value = 'l',
+      expected_label = nil,
+    },
+    {
+      name = 'no label returned when cursor just before label',
+      file = [[
+        line before
+        before //foo/bar:baz after
+              ^
+        line after
+      ]],
+      position = { 2, 6 },
+      expected_cursor_value = ' ',
+      expected_label = nil,
+    },
+    {
+      name = 'label returned when cursor at start of label',
+      file = [[
+        line before
+        before //foo/bar:baz after
+               ^
+        line after
+      ]],
+      position = { 2, 7 },
+      expected_cursor_value = '/',
+      expected_label = '//foo/bar:baz',
+    },
+    {
+      name = 'label returned when cursor in middle of label',
+      file = [[
+        line before
+        before //foo/bar:baz after
+                       ^
+        line after
+      ]],
+      position = { 2, 15 },
+      expected_cursor_value = 'r',
+      expected_label = '//foo/bar:baz',
+    },
+    {
+      name = 'label returned when cursor at end of label',
+      file = [[
+        line before
+        before //foo/bar:baz after
+                           ^
+        line after
+      ]],
+      position = { 2, 19 },
+      expected_cursor_value = 'z',
+      expected_label = '//foo/bar:baz',
+    },
+    {
+      name = 'no label returned when cursor just after label',
+      file = [[
+        line before
+        before //foo/bar:baz after
+                            ^
+        line after
+      ]],
+      position = { 2, 20 },
+      expected_cursor_value = ' ',
+      expected_label = nil,
+    },
+    {
+      name = 'no label returned when cursor on line after label',
+      file = [[
+        line before
+        before //foo/bar:baz after
+        line after
+        ^
+      ]],
+      position = { 3, 0 },
+      expected_cursor_value = 'l',
+      expected_label = nil,
+    },
+    {
+      name = 'label returned when cursor on first of three labels',
+      file = '//a/b:c //d/e:f //g/h:i',
+      position = { 1, 2 },
+      expected_cursor_value = 'a',
+      expected_label = '//a/b:c',
+    },
+    {
+      name = 'label returned when cursor on second of three labels',
+      file = '//a/b:c //d/e:f //g/h:i',
+      position = { 1, 10 },
+      expected_cursor_value = 'd',
+      expected_label = '//d/e:f',
+    },
+    {
+      name = 'label returned when cursor on third of three labels',
+      file = '//a/b:c //d/e:f //g/h:i',
+      position = { 1, 18 },
+      expected_cursor_value = 'g',
+      expected_label = '//g/h:i',
+    },
+    {
+      name = 'label returned when label has no package',
+      file = '//:foo',
+      position = { 1, 2 },
+      expected_cursor_value = ':',
+      expected_label = '//:foo',
+    },
+    {
+      name = 'label returned when label has one directory in package',
+      file = '//foo:bar',
+      position = { 1, 5 },
+      expected_cursor_value = ':',
+      expected_label = '//foo:bar',
+    },
+    {
+      name = 'label returned when label is shortened',
+      file = '//foo',
+      position = { 1, 2 },
+      expected_cursor_value = 'f',
+      expected_label = '//foo',
+    },
+  }
+
+  for _, test_case in ipairs(test_cases) do
+    it('- ' .. test_case.name, function()
+      run_test(test_case)
+    end)
+  end
 end)

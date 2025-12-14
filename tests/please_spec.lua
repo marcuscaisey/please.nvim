@@ -1023,6 +1023,8 @@ describe('look_up_target', function()
               src = "foo2.txt",
           )
         ]],
+        'foo1.txt',
+        'foo2.txt',
       },
     })
     local input_fake = InputFake:new()
@@ -1036,6 +1038,41 @@ describe('look_up_target', function()
     -- WHEN we enter a build target
     input_fake:enter_input('//pkg:foo2')
     vim.wait(500)
+    -- THEN the BUILD file containing the build target is opened
+    assert.equal(root .. '/pkg/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
+    -- AND the cursor is moved to the build target
+    assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
+  end)
+
+  it('should jump to target under cursor', function()
+    local root = temptree.create({
+      '.plzconfig',
+      ['pkg/'] = {
+        BUILD = [[
+          export_file(
+              name = "foo1",
+              src = "foo1.txt",
+          )
+
+          export_file(
+              name = "foo2",
+              src = "foo2.txt",
+          )
+        ]],
+        ['foo1.txt'] = [[
+          line before
+          before //pkg:foo2 after
+          line after
+        ]],
+        'foo2.txt',
+      },
+    })
+
+    -- GIVEN we're editing a file and our cursor is inside a build label
+    vim.cmd('edit ' .. root .. '/pkg/foo1.txt')
+    vim.api.nvim_win_set_cursor(0, { 2, 12 }) -- inside //pkg:foo2
+    -- WHEN we call look_up_target
+    please.look_up_target()
     -- THEN the BUILD file containing the build target is opened
     assert.equal(root .. '/pkg/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
     -- AND the cursor is moved to the build target

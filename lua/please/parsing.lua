@@ -165,6 +165,30 @@ function M.get_target_at_cursor(root)
   return nil, 'cursor is not in a build target definition'
 end
 
+---Returns the build label at the cursor if there is one, otherwise nil.
+---@return string?
+function M.get_label_at_cursor()
+  logging.log_call('parsing.get_label_at_cursor')
+  local line = vim.fn.line('.') -- 1-based
+  local col = vim.fn.col('.') -- 1-based
+  local regex = vim.regex(
+    [[//\%(\%(\%(\%(\w\|-\)\+\%(/\%(\w\|-\)\+\)*\)*:\%(\w\|-\|#\)\+\)\|\%(\%(\w\|-\)\+\%(/\%(\w\|-\)\+\)*\)\)]]
+  )
+  local start = 0
+  while true do
+    local match_start_rel, match_end_rel = regex:match_line(0, line - 1, start) -- 0-based
+    if not match_start_rel or not match_end_rel then
+      return nil
+    end
+    local match_start_abs = start + match_start_rel
+    local match_end_abs = start + match_end_rel
+    if match_start_abs + 1 <= col and col < match_end_abs + 1 then
+      return string.sub(vim.api.nvim_get_current_line(), match_start_abs + 1, match_end_abs)
+    end
+    start = match_end_abs
+  end
+end
+
 ---Language agnostic representation of a test and its children. A Test along with its children forms a tree of Tests.
 ---@class please.parsing.Test
 ---@field name string
