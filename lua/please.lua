@@ -465,8 +465,8 @@ function M.set_profile()
   logging.log_call('please.profile')
 
   logging.log_errors('Failed to set profile', function()
-    local filepath = assert(get_filepath())
-    local root = assert(get_repo_root(filepath))
+    local path = get_filepath() or assert(vim.uv.cwd())
+    local root = assert(get_repo_root(path))
 
     local profiles = {} ---@type string[]
 
@@ -549,8 +549,8 @@ function M.look_up_target()
   logging.log_call('please.look_up_target')
 
   logging.log_errors('Failed to look up target', function()
-    local filepath = assert(get_filepath())
-    local root = assert(get_repo_root(filepath))
+    local path = get_filepath() or assert(vim.uv.cwd())
+    local root = assert(get_repo_root(path))
 
     ---@param label string
     local function look_up_target(label)
