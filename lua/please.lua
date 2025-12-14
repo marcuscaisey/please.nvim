@@ -520,12 +520,10 @@ function M.maximise_popup()
   end
 end
 
----Jumps to the location of the target which takes the current file as
----an input.
+---Jumps to the location of the target which takes the current file as an input.
 ---
----The cursor will be moved to where the target is created if it can be
----found which should be the case for all targets except for those with names
----which are generated when the `BUILD` file is executed.
+---The cursor will be moved to where the target is created if it can be found which should be the case for all targets
+---except for those with names which are generated when the `BUILD` file is executed.
 function M.jump_to_target()
   logging.log_call('please.jump_to_target')
 
@@ -542,12 +540,11 @@ function M.jump_to_target()
   end)
 end
 
----Looks up a target by its build label and jumps to its location. If the cursor is already on a build label, then
----this will be used. Otherwise, you'll be prompted for one.
+---Looks up a target by its build label and jumps to its location. If the cursor is already on a build label, then this
+---will be used. Otherwise, you'll be prompted for one.
 ---
----The cursor will be moved to where the target is created if it can be
----found which should be the case for all targets except for those with names
----which are generated when the `BUILD` file is executed.
+---The cursor will be moved to where the target is created if it can be found which should be the case for all targets
+---except for those with names which are generated when the `BUILD` file is executed.
 function M.look_up_target()
   logging.log_call('please.look_up_target')
 
@@ -582,9 +579,8 @@ function M.look_up_target()
   end)
 end
 
----If the current file is a `BUILD` file, yank the build label of the target which is
----under the cursor. Otherwise, yank the build label of the target which takes the
----current file as an input.
+---If the current file is a `BUILD` file, yank the build label of the target which is under the cursor. Otherwise, yank
+---the build label of the target which takes the current file as an input.
 function M.yank()
   logging.log_call('please.yank')
 
