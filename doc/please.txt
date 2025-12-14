@@ -125,7 +125,7 @@ command to get you started.
 Lua module: please                                                    *please*
 
 setup({opts})                                                 *please.setup()*
-    Updates the configuration with the provided {opts}. Should only be called
+    Update the configuration with the provided {opts}. Should only be called
     if you want to change the defaults which are shown below.
 
     Example: >lua
@@ -141,9 +141,9 @@ setup({opts})                                                 *please.setup()*
                   history items to store for each repository.
 
 build()                                                       *please.build()*
-    If the current file is a `BUILD` file, builds the target which is under
-    the cursor. Otherwise, builds the target which takes the current file as
-    an input.
+    If the current file is a `BUILD` file, build the target which is under the
+    cursor. Otherwise, build the target which takes the current file as an
+    input.
 
 run()                                                           *please.run()*
     If the current file is a `BUILD` file, run the target which is under the
@@ -199,19 +199,19 @@ history()                                                   *please.history()*
     again.
 
 clear_history()                                       *please.clear_history()*
-    Clears the command history for the current repository.
+    Clear the command history for the current repository.
 
 set_profile()                                           *please.set_profile()*
-    Sets the profile that will be used by |please.build()|, |please.run()|,
+    Set the profile that will be used by |please.build()|, |please.run()|,
     |please.test()|, |please.debug()|, and |please.command()|. Profiles will
     be searched for in `/etc/please`, `~/.config/please`, and the current
     repository.
 
 maximise_popup()                                     *please.maximise_popup()*
-    Maximises the popup which was most recently quit or minimised.
+    Maximise the popup which was most recently quit or minimised.
 
 jump_to_target()                                     *please.jump_to_target()*
-    Jumps to the location of the target which takes the current file as an
+    Jump to the location of the target which takes the current file as an
     input.
 
     The cursor will be moved to where the target is created if it can be found
@@ -219,7 +219,7 @@ jump_to_target()                                     *please.jump_to_target()*
     are generated when the `BUILD` file is executed.
 
 look_up_target()                                     *please.look_up_target()*
-    Looks up a target by its build label and jumps to its location. If the
+    Look up a target by its build label and jumps to its location. If the
     cursor is already on a build label, then this will be used. Otherwise,
     you'll be prompted for one.
 
