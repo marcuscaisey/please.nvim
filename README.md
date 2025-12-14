@@ -7,8 +7,8 @@ please.nvim is a plugin which allows you interact with your Please repository fr
   * Display history of previous commands and run any of them again with `please.history()`.
   * Set the profile to use with `please.set_profile()`.
   * Jump from a source file to its build target definition with `please.jump_to_target()`.
-  * Look up a build target by its label with `please.look_up_target()`.
-  * Yank a target's label with `please.yank()`.
+  * Look up a build target by its build label with `please.look_up_target()`.
+  * Yank a target's build label with `please.yank()`.
   * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, `*.build`, and `*.build_defs`
     files.
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting.

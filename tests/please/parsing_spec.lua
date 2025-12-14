@@ -170,7 +170,7 @@ describe('locate_build_target', function()
       name = 'should return error if label is not a valid',
       tree = { '.plzconfig' },
       label = 'foo',
-      expected_err = '"foo" is not a valid label',
+      expected_err = '"foo" is not a valid build label',
     },
   }
 

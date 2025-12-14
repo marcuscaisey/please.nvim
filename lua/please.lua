@@ -542,8 +542,8 @@ function M.jump_to_target()
   end)
 end
 
----Looks up a build target by its label and jumps to its location. If the cursor is already on a build label, then this
----will be used. Otherwise, you'll be prompted for one.
+---Looks up a build target by its build label and jumps to its location. If the cursor is already on a build label, then
+---this will be used. Otherwise, you'll be prompted for one.
 ---
 ---The cursor will be moved to where the build target is created if it can be
 ---found which should be the case for all targets except for those with names
@@ -582,8 +582,8 @@ function M.look_up_target()
   end)
 end
 
----If the current file is a `BUILD` file, yank the label of the target which is
----under the cursor. Otherwise, yank the label of the target which takes the
+---If the current file is a `BUILD` file, yank the build label of the target which is
+---under the cursor. Otherwise, yank the build label of the target which takes the
 ---current file as an input.
 function M.yank()
   logging.log_call('please.yank')
@@ -600,7 +600,7 @@ function M.yank()
       labels = assert(query.whatinputs(root, filepath))
     end
 
-    select_if_many(labels, { prompt = 'Select label to yank' }, function(label)
+    select_if_many(labels, { prompt = 'Select build label to yank' }, function(label)
       local registers = { '"', '*' }
       for _, register in ipairs(registers) do
         logging.debug('setting %s register to %s', register, label)

@@ -1125,7 +1125,7 @@ describe('yank', function()
       -- WHEN we call yank
       please.yank()
       -- THEN we're prompted to choose which label to yank
-      select_fake:assert_prompt('Select label to yank')
+      select_fake:assert_prompt('Select build label to yank')
       select_fake:assert_items({ '//:foo1', '//:foo1_and_foo2' })
       -- WHEN we select one of the labels
       select_fake:choose_item('//:foo1_and_foo2')

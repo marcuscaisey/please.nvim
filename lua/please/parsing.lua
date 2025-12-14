@@ -102,7 +102,7 @@ function M.locate_build_target(root, label)
     end
   end
   if not pkg then
-    return nil, string.format('"%s" is not a valid label', label)
+    return nil, string.format('"%s" is not a valid build label', label)
   end
   local pkg_path = vim.fs.joinpath(root, pkg)
   for _, build_file_name in ipairs(build_file_names) do
@@ -144,7 +144,7 @@ local function build_label(root, build_file, target)
   end
 end
 
----Returns the label and rule of the build target under the cursor.
+---Returns the build label and rule of the build target under the cursor.
 ---@param root string: an absolute path to the repo root
 ---@return {label: string, rule: string}?
 ---@return string? errmsg

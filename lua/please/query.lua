@@ -23,7 +23,7 @@ local function plz_query(root, args)
   return vim.trim(res.stdout), nil
 end
 
----Wrapper around plz query whatinputs which returns the labels of the build targets which a file is an input for.
+---Wrapper around plz query whatinputs which returns the build labels of the build targets which a file is an input for.
 ---@param root string: absolute path to repo root
 ---@param filepath string: absolute path to file
 ---@return string[]?
@@ -106,15 +106,15 @@ end
 
 ---Wrapper around plz query output which returns the output of the given build target.
 ---@param root string: absolute path to the repo root
----@param target string: build target label
+---@param label string: build label of the target
 ---@return string?
 ---@return string? errmsg
-function M.output(root, target)
+function M.output(root, label)
   logging.log_call('query.output')
 
-  local output, err = plz_query(root, { 'output', target })
+  local output, err = plz_query(root, { 'output', label })
   if err then
-    return nil, string.format('plz query output %s: %s', target, err)
+    return nil, string.format('plz query output %s: %s', label, err)
   end
 
   return output
