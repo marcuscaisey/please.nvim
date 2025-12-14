@@ -140,6 +140,7 @@ def luarocks_package(name:str, package:str=None, version:str, deps:list=[], visi
             "if [ -d tree/share/lua ]; then cp -R $(find tree/share/lua -mindepth 2 -maxdepth 2) _out; fi",
             "if [ -d tree/lib/lua ]; then cp -R $(find tree/lib/lua -mindepth 2 -maxdepth 2) _out; fi",
         ],
+        labels = ["link:plz-out/lua"],
         exported_deps = deps,
         output_dirs = ["_out"],
         sandbox = False,

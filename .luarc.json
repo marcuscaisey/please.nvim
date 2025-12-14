@@ -15,6 +15,7 @@
       "${3rd}/luv/library",
       "lua",
       "plz-out/nvim",
+      "plz-out/lua",
       "third_party/lua/library"
     ]
   }
