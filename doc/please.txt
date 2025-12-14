@@ -15,9 +15,9 @@ Features ~
   • Display history of previous commands and run any of them again with
     |please.history()|.
   • Set the profile to use with |please.set_profile()|.
-  • Jump from a source file to its build target definition with
+  • Jump from a source file to its target's definition with
     |please.jump_to_target()|.
-  • Look up a build target by its build label with |please.look_up_target()|.
+  • Look up a target by its build label with |please.look_up_target()|.
   • Yank a target's build label with |please.yank()|.
   • `please` configured as the 'filetype' for `BUILD`, `BUILD.plz`, `*.build`,
     and `*.build_defs` files.
@@ -56,7 +56,7 @@ All available VimL API commands are autocompletable as arguments to the
 UI Customisation ~
 Some commands may prompt you to either choose from a list of options or input
 some text. For example, when building a file which is an input to multiple
-build targets, you'll be prompted to choose which target to build.
+targets, you'll be prompted to choose which target to build.
 
 Input and selection prompts are provided by |vim.ui.input()| and
 |vim.ui.select()| respectively. Doing so allows you to customise the
@@ -211,21 +211,21 @@ maximise_popup()                                     *please.maximise_popup()*
     Maximises the popup which was most recently quit or minimised.
 
 jump_to_target()                                     *please.jump_to_target()*
-    Jumps to the location of the build target which takes the current file as
-    an input.
+    Jumps to the location of the target which takes the current file as an
+    input.
 
-    The cursor will be moved to where the build target is created if it can be
-    found which should be the case for all targets except for those with names
-    which are generated when the `BUILD` file is executed.
+    The cursor will be moved to where the target is created if it can be found
+    which should be the case for all targets except for those with names which
+    are generated when the `BUILD` file is executed.
 
 look_up_target()                                     *please.look_up_target()*
-    Looks up a build target by its build label and jumps to its location. If
-    the cursor is already on a build label, then this will be used. Otherwise,
+    Looks up a target by its build label and jumps to its location. If the
+    cursor is already on a build label, then this will be used. Otherwise,
     you'll be prompted for one.
 
-    The cursor will be moved to where the build target is created if it can be
-    found which should be the case for all targets except for those with names
-    which are generated when the `BUILD` file is executed.
+    The cursor will be moved to where the target is created if it can be found
+    which should be the case for all targets except for those with names which
+    are generated when the `BUILD` file is executed.
 
 yank()                                                         *please.yank()*
     If the current file is a `BUILD` file, yank the build label of the target

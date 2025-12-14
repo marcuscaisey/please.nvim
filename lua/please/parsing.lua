@@ -144,7 +144,7 @@ local function build_label(root, build_file, target)
   end
 end
 
----Returns the build label and rule of the build target under the cursor.
+---Returns the build label and rule of the target under the cursor.
 ---@param root string: an absolute path to the repo root
 ---@return {label: string, rule: string}?
 ---@return string? errmsg

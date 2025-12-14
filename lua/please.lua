@@ -520,10 +520,10 @@ function M.maximise_popup()
   end
 end
 
----Jumps to the location of the build target which takes the current file as
+---Jumps to the location of the target which takes the current file as
 ---an input.
 ---
----The cursor will be moved to where the build target is created if it can be
+---The cursor will be moved to where the target is created if it can be
 ---found which should be the case for all targets except for those with names
 ---which are generated when the `BUILD` file is executed.
 function M.jump_to_target()
@@ -542,10 +542,10 @@ function M.jump_to_target()
   end)
 end
 
----Looks up a build target by its build label and jumps to its location. If the cursor is already on a build label, then
+---Looks up a target by its build label and jumps to its location. If the cursor is already on a build label, then
 ---this will be used. Otherwise, you'll be prompted for one.
 ---
----The cursor will be moved to where the build target is created if it can be
+---The cursor will be moved to where the target is created if it can be
 ---found which should be the case for all targets except for those with names
 ---which are generated when the `BUILD` file is executed.
 function M.look_up_target()

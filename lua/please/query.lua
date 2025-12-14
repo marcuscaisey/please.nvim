@@ -23,7 +23,7 @@ local function plz_query(root, args)
   return vim.trim(res.stdout), nil
 end
 
----Wrapper around plz query whatinputs which returns the build labels of the build targets which a file is an input for.
+---Wrapper around plz query whatinputs which returns the build labels of the targets which a file is an input for.
 ---@param root string: absolute path to repo root
 ---@param filepath string: absolute path to file
 ---@return string[]?
@@ -47,7 +47,7 @@ function M.whatinputs(root, filepath)
   return labels, nil
 end
 
----Wrapper around plz query print which returns the value of the given field for the given build target.
+---Wrapper around plz query print which returns the value of the given field for the given target.
 ---@param root string: absolute path to the repo root
 ---@param label string: a build label
 ---@param field string: field name
@@ -64,7 +64,7 @@ function M.print_field(root, label, field)
   return output
 end
 
----Returns whether the given build target should be run in a sandbox.
+---Returns whether the given target should be run in a sandbox.
 ---@param root string: absolute path to the repo root
 ---@param label string: a build label
 ---@return boolean?
@@ -104,7 +104,7 @@ function M.config(root, option)
   return vim.split(output, '\n')
 end
 
----Wrapper around plz query output which returns the output of the given build target.
+---Wrapper around plz query output which returns the output of the given target.
 ---@param root string: absolute path to the repo root
 ---@param label string: build label of the target
 ---@return string?
