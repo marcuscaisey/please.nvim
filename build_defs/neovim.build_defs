@@ -170,7 +170,7 @@ def neovim_test(name:str, src:str, deps:list=[], labels:list=[], data:list=None,
         name = name,
         test_cmd = [
             "$TOOLS_ARCAT x $DATA_DEPS",
-            "$TOOLS_NVIM -u $DATA_INIT -l $DATA_RUNNER $DATA_SRC | sed '/./,$!d' > $RESULTS_FILE",
+            "$TOOLS_NVIM -u $DATA_INIT -l $DATA_RUNNER $DATA_SRC | sed '/./,$!d' | tee $RESULTS_FILE",
         ],
         labels = labels,
         srcs = [src],
