@@ -142,7 +142,7 @@ function M.with_goroot(root, cb)
     gotool = gotool:gsub('|go$', '')
     local gotool_output, err = M.output(root, gotool)
     if not gotool_output then
-      cb(nil, string.format('determining GOROOT: %s', gotool, err))
+      cb(nil, string.format('determining GOROOT: %s', err))
       return
     end
     local rel_goroot = vim.trim(gotool_output)
