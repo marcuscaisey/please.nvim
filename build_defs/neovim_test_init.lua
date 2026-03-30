@@ -7,5 +7,5 @@ package.cpath = 'third_party/lua/?.so;' .. package.cpath
 -- plugin root directory. This way, we can find all of the paths which need to be added to Neovim's runtimepath.
 local f = assert(io.popen('find . -name "*.runtimepath" | xargs cat'))
 for line in f:lines() do
-  vim.opt.runtimepath:append(line)
+    vim.opt.runtimepath:append(line)
 end
