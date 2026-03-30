@@ -1,9 +1,10 @@
 local stub = require('luassert.stub')
 local please = require('please')
 local runner = require('please.runner')
+local logging = require('please.logging')
 local temptree = require('tests.temptree')
 
--- require('please.logging').toggle_debug()
+logging.toggle_debug()
 
 -- When this test file is run multiple times in parallel (in a non-sandboxed environment), at least one of the runs
 -- usually fails because some functionality being tested relies on use of the clipboard which is being shared between
@@ -145,6 +146,46 @@ end
 
 function InputFake:assert_called()
     assert.is_true(self._called, 'vim.ui.input has not been called')
+end
+
+local original_it = it
+---Define a test that will pass, fail, or error.
+---
+---You can also use `spec()` and `test()` as aliases.
+---
+---## Example
+---```
+---describe("Test something", function()
+---    it("Runs a test", function()
+---        assert.is.True(10 == 10)
+---    end)
+---end)
+---```
+---@param name string
+---@param block fun()
+function it(name, block)
+    original_it(name, function()
+        local logs = {}
+        ---@diagnostic disable-next-line: unused-local, duplicate-set-field
+        function vim.notify(msg, level, opts)
+            local level_names = {
+                [vim.log.levels.TRACE] = 'TRACE',
+                [vim.log.levels.DEBUG] = 'DEBUG',
+                [vim.log.levels.INFO] = 'INFO',
+                [vim.log.levels.WARN] = 'WARN',
+                [vim.log.levels.ERROR] = 'ERROR',
+            }
+            local level_name = level_names[level] or 'UNKNOWN'
+            table.insert(logs, ('%5s: %s'):format(level_name, msg))
+        end
+        local ok, err = pcall(block)
+        if not ok then
+            if #logs > 0 then
+                err.message = ('%s\n\nLogs:\n%s\n'):format(err.message, table.concat(logs, '\n'))
+            end
+            error(err)
+        end
+    end)
 end
 
 describe('build', function()
