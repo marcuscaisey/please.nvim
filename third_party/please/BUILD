@@ -1,4 +1,4 @@
-VERSION = "16.28.0"
+VERSION = CONFIG.PLZ_VERSION
 
 remote_file(
     name = "plz",

@@ -3,7 +3,7 @@ local please = require('please')
 local runner = require('please.runner')
 local temptree = require('tests.temptree')
 
-require('please.logging').toggle_debug()
+-- require('please.logging').toggle_debug()
 
 -- When this test file is run multiple times in parallel (in a non-sandboxed environment), at least one of the runs
 -- usually fails because some functionality being tested relies on use of the clipboard which is being shared between
@@ -409,19 +409,17 @@ describe('test', function()
       '.plzconfig',
       ['foo/'] = {
         BUILD = [[
-          go_test(
+          filegroup(
               name = "foo1_test",
               srcs = ["foo1_test.go"],
-              external = True,
           )
 
-          go_test(
+          filegroup(
               name = "foo1_and_foo2_test",
               srcs = [
                   "foo1_test.go",
                   "foo2_test.go",
               ],
-              external = True,
           )
         ]],
         ['foo1_test.go'] = [[
@@ -599,10 +597,11 @@ describe('debug', function()
       '.plzconfig',
       ['foo/'] = {
         BUILD = [[
+          go_test = filegroup # debug command expects rule names to have format $lang_xxx
+
           go_test(
               name = "foo1_test",
               srcs = ["foo1_test.go"],
-              external = True,
           )
 
           go_test(
@@ -611,7 +610,6 @@ describe('debug', function()
                   "foo1_test.go",
                   "foo2_test.go",
               ],
-              external = True,
           )
         ]],
         ['foo1_test.go'] = [[
@@ -754,7 +752,7 @@ describe('debug', function()
 
       -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
       vim.cmd('edit ' .. root .. '/foo/BUILD')
-      vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1_test
+      vim.api.nvim_win_set_cursor(0, { 4, 4 }) -- inside definition of :foo1_test
       -- WHEN we call debug
       please.debug()
       -- THEN the target is built with dbg config
@@ -768,7 +766,7 @@ describe('debug', function()
 
       -- GIVEN we've debugged a build target
       vim.cmd('edit ' .. root .. '/foo/BUILD')
-      vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1_test
+      vim.api.nvim_win_set_cursor(0, { 4, 4 }) -- inside definition of :foo1_test
       please.debug()
       -- WHEN we call history
       please.history()
