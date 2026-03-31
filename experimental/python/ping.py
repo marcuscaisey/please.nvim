@@ -1,6 +1,6 @@
 import sys
 
-from third_party.python import requests
+import requests
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
