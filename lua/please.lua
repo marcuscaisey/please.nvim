@@ -12,7 +12,7 @@ end
 local query = require_on_index('please.query')
 ---@module 'please.parsing'
 local parsing = require_on_index('please.parsing')
----@module 'please.runer'
+---@module 'please.runner'
 local runner = require_on_index('please.runner')
 ---@module 'please.logging'
 local logging = require_on_index('please.logging')
@@ -99,11 +99,21 @@ local function write_command_history(history)
 end
 
 ---@nodoc
----@class please.Command
----@field type 'simple' | 'debug'
+---@alias please.Command please.SimpleCommand | please.DebugCommand
+
+---@nodoc
+---@class (exact) please.SimpleCommand
+---@field type 'simple'
 ---@field args table
 ---@field description string
----@field opts table<string, string>
+
+---@nodoc
+---@class please.DebugCommand
+---@field type 'debug'
+---@field lang string
+---@field label string
+---@field extra_args string[]
+---@field description string
 
 ---@param root string
 ---@param command please.Command
@@ -130,7 +140,6 @@ local function save_and_run_simple_command(root, args)
         type = 'simple',
         args = args,
         description = 'plz ' .. table.concat(args, ' '),
-        opts = {},
     })
     start_runner(root, args)
 end
@@ -301,10 +310,10 @@ end
 
 ---@param root string
 ---@param lang string
----@param args string[]
-local function run_debug_command(root, lang, args)
+---@param label string
+---@param extra_args string[]
+local function run_debug_command(root, lang, label, extra_args)
     local launcher = debug.launchers[lang]
-    local label = args[2] -- args = { 'debug', label, ... }
     start_runner(root, { 'build', '--config', 'dbg', label }, {
         on_exit = function(success, runner)
             if not success then
@@ -312,7 +321,7 @@ local function run_debug_command(root, lang, args)
             end
             runner:minimise()
             logging.log_errors('Failed to debug', function()
-                assert(launcher(root, label))
+                assert(launcher(root, label, extra_args))
             end)
         end,
     })
@@ -320,15 +329,17 @@ end
 
 ---@param root string
 ---@param lang string
----@param args string[]
-local function save_and_run_debug_command(root, lang, args)
+---@param label string
+---@param extra_args string[]
+local function save_and_run_debug_command(root, lang, label, extra_args)
     save_command(root, {
         type = 'debug',
-        args = args,
-        description = 'plz ' .. table.concat(args, ' '),
-        opts = { lang = lang },
+        lang = lang,
+        label = label,
+        extra_args = extra_args,
+        description = table.concat({ 'plz', 'debug', label, unpack(extra_args) }, ' '),
     })
-    run_debug_command(root, lang, args)
+    run_debug_command(root, lang, label, extra_args)
 end
 
 ---@class please.DebugOptions
@@ -384,7 +395,7 @@ function M.debug(opts)
         end
 
         select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
-            save_and_run_debug_command(root, lang, { 'debug', label, unpack(extra_args) })
+            save_and_run_debug_command(root, lang, label, extra_args)
         end)
     end)
 end
@@ -432,9 +443,9 @@ function M.history()
             if command.type == 'simple' then
                 save_and_run_simple_command(root, command.args)
             elseif command.type == 'debug' then
-                save_and_run_debug_command(root, command.opts.lang, command.args)
+                save_and_run_debug_command(root, command.lang, command.label, command.extra_args)
             else
-                error('unknown command type ' .. command.type)
+                error('unknown command type: ' .. vim.inspect(command))
             end
         end)
     end)

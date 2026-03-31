@@ -1,5 +1,6 @@
 local stub = require('luassert.stub')
 local please = require('please')
+local debug = require('please.debug')
 local runner = require('please.runner')
 local logging = require('please.logging')
 local temptree = require('tests.temptree')
@@ -34,16 +35,24 @@ vim.g.clipboard = {
 local RunnerSpy = {}
 RunnerSpy.__index = RunnerSpy
 
-function RunnerSpy:new()
+---@param success boolean?
+function RunnerSpy:new(success)
+    if success == nil then
+        success = true
+    end
     local o = {
         _root = nil,
         _args = nil,
         _called = false,
+        _minimise_called = false,
     }
-    stub(runner.Runner, 'start', function(root, args)
+    stub(runner.Runner, 'start', function(root, args, opts)
         o._root = root
         o._args = args
         o._called = true
+        if opts and opts.on_exit then
+            opts.on_exit(success, o)
+        end
         return o
     end)
     return setmetatable(o, self)
@@ -51,12 +60,22 @@ end
 
 function RunnerSpy:destroy() end
 
-function RunnerSpy:minimise() end
+function RunnerSpy:minimise()
+    self._minimise_called = true
+end
 
 function RunnerSpy:assert_called_with(root, args)
     assert.is_true(self._called, 'Runner.start has not been called')
     assert.equal(root, self._root, 'incorrect root passed to Runner.start')
     assert.same(args, self._args, 'incorrect args passed to Runner.start')
+end
+
+function RunnerSpy:assert_minimise_called()
+    assert.is_true(self._minimise_called, 'Runner.minimise has not been called')
+end
+
+function RunnerSpy:assert_minimise_not_called()
+    assert.is_false(self._minimise_called, 'Runner.minimise has been called')
 end
 
 local SelectFake = {}
@@ -148,6 +167,38 @@ function InputFake:assert_called()
     assert.is_true(self._called, 'vim.ui.input has not been called')
 end
 
+local DebugLauncherSpy = {}
+DebugLauncherSpy.__index = DebugLauncherSpy
+
+function DebugLauncherSpy:new(lang)
+    local o = {
+        _lang = lang,
+        _root = nil,
+        _label = nil,
+        _extra_args = nil,
+        _called = false,
+    }
+    debug.launchers[lang] = function(root, label, extra_args)
+        o._root = root
+        o._label = label
+        o._extra_args = extra_args
+        o._called = true
+        return true
+    end
+    return setmetatable(o, self)
+end
+
+function DebugLauncherSpy:assert_called_with(root, label, extra_args)
+    assert.is_true(self._called, ('%s debug launcher has not been called'):format(self._lang))
+    assert.equal(root, self._root, ('incorrect root passed to %s debug launcher'):format(self._lang))
+    assert.equal(label, self._label, ('incorrect label passed to %s debug launcher'):format(self._lang))
+    assert.same(extra_args, self._extra_args, ('incorrect extra_args passed to %s debug launcher'):format(self._lang))
+end
+
+function DebugLauncherSpy:assert_not_called()
+    assert.is_false(self._called, ('%s debug launcher has been called'):format(self._lang))
+end
+
 local original_it = it
 ---Define a test that will pass, fail, or error.
 ---
@@ -181,7 +232,14 @@ function it(name, block)
         local ok, err = pcall(block)
         if not ok then
             if #logs > 0 then
-                err.message = ('%s\n\nLogs:\n%s\n'):format(err.message, table.concat(logs, '\n'))
+                local function errmsg_with_logs(errmsg)
+                    return ('%s\n\nLogs:\n%s\n'):format(errmsg, table.concat(logs, '\n'))
+                end
+                if type(err) == 'table' then
+                    err.message = errmsg_with_logs(err.message)
+                else
+                    err = errmsg_with_logs(err)
+                end
             end
             error(err)
         end
@@ -682,9 +740,10 @@ describe('debug', function()
     end
 
     describe('in source file', function()
-        it('should build target which uses file as input with dbg config', function()
+        it('should debug target which uses file as input', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
 
             -- GIVEN we're editing a file
             vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
@@ -692,12 +751,32 @@ describe('debug', function()
             please.debug()
             -- THEN the target which the file is an input for is built with dbg config
             runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+            -- THEN the runner is minimised
+            runner_spy:assert_minimise_called()
+            -- THEN the debug launcher is called
+            debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', {})
+        end)
+
+        it('should not minimise runner when building target fails', function()
+            local root = create_temp_tree()
+            local runner_spy = RunnerSpy:new(false)
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
+
+            -- GIVEN we're editing a file
+            vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+            -- WHEN we call debug
+            please.debug()
+            -- THEN the runner is not minimised
+            runner_spy:assert_minimise_not_called()
+            -- THEN the debug launcher is not called
+            debug_launcher_spy:assert_not_called()
         end)
 
         it('should add entry to command history', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
 
             -- GIVEN we've debugged a file
             vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
@@ -711,12 +790,17 @@ describe('debug', function()
             select_fake:choose_item('plz debug //foo:foo1_and_foo2_test')
             -- THEN the target is built again with dbg config
             runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+            -- THEN the runner is minimised
+            runner_spy:assert_minimise_called()
+            -- THEN the debug launcher is called
+            debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', {})
         end)
 
         it('should prompt user to choose which target to debug if there is more than one', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
 
             -- GIVEN we're editing a file referenced by multiple build targets
             vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
@@ -729,12 +813,17 @@ describe('debug', function()
             select_fake:choose_item('//foo:foo1_and_foo2_test')
             -- THEN the target is built with dbg config
             runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+            -- THEN the runner is minimised
+            runner_spy:assert_minimise_called()
+            -- THEN the debug launcher is called
+            debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', {})
         end)
 
         describe('with under_cursor=true', function()
-            it('should build target which uses file as input with dbg config', function()
+            it('should debug test under cursor', function()
                 local root = create_temp_tree()
                 local runner_spy = RunnerSpy:new()
+                local debug_launcher_spy = DebugLauncherSpy:new('go')
 
                 -- GIVEN we're editing a test file and the cursor is inside a test function
                 vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
@@ -743,12 +832,33 @@ describe('debug', function()
                 please.debug({ under_cursor = true })
                 -- THEN the test target is built with dbg config
                 runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+                -- THEN the runner is minimised
+                runner_spy:assert_minimise_called()
+                -- THEN the debug launcher is called
+                debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', { '^TestFails$' })
+            end)
+
+            it('should not minimise runner when building target fails', function()
+                local root = create_temp_tree()
+                local runner_spy = RunnerSpy:new(false)
+                local debug_launcher_spy = DebugLauncherSpy:new('go')
+
+                -- GIVEN we're editing a test file and the cursor is inside a test function
+                vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+                vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
+                -- WHEN we call debug with under_cursor=true
+                please.debug({ under_cursor = true })
+                -- THEN the runner is minimised
+                runner_spy:assert_minimise_not_called()
+                -- THEN the debug launcher is called
+                debug_launcher_spy:assert_not_called()
             end)
 
             it('should add entry to command history', function()
                 local root = create_temp_tree()
                 local runner_spy = RunnerSpy:new()
                 local select_fake = SelectFake:new()
+                local debug_launcher_spy = DebugLauncherSpy:new('go')
 
                 -- GIVEN we've debugged the function under the cursor
                 vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
@@ -763,12 +873,17 @@ describe('debug', function()
                 select_fake:choose_item('plz debug //foo:foo1_and_foo2_test ^TestFails$')
                 -- THEN the test target is built with dbg config
                 runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+                -- THEN the runner is minimised
+                runner_spy:assert_minimise_called()
+                -- THEN the debug launcher is called
+                debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', { '^TestFails$' })
             end)
 
             it('should prompt user to choose which target to debug if there is more than one', function()
                 local root = create_temp_tree()
                 local runner_spy = RunnerSpy:new()
                 local select_fake = SelectFake:new()
+                local debug_launcher_spy = DebugLauncherSpy:new('go')
 
                 -- GIVEN we're editing a test file referenced by multiple build targets and the cursor is inside a test function
                 vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
@@ -782,14 +897,19 @@ describe('debug', function()
                 select_fake:choose_item('//foo:foo1_and_foo2_test')
                 -- THEN the target is built again with dbg config
                 runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+                -- THEN the runner is minimised
+                runner_spy:assert_minimise_called()
+                -- THEN the debug launcher is called
+                debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', { '^TestFails$' })
             end)
         end)
     end)
 
     describe('in BUILD file', function()
-        it('should build target under cursor with dbg config', function()
+        it('should debug target under cursor', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
 
             -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
             vim.cmd('edit ' .. root .. '/foo/BUILD')
@@ -798,12 +918,35 @@ describe('debug', function()
             please.debug()
             -- THEN the target is built with dbg config
             runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
+            -- THEN the runner is minimised
+            runner_spy:assert_minimise_called()
+            -- THEN the debug launcher is called
+            debug_launcher_spy:assert_called_with(root, '//foo:foo1_test', {})
+        end)
+
+        it('should not minimise runner when building target fails', function()
+            local root = create_temp_tree()
+            local runner_spy = RunnerSpy:new()
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
+
+            -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+            vim.cmd('edit ' .. root .. '/foo/BUILD')
+            vim.api.nvim_win_set_cursor(0, { 4, 4 }) -- inside definition of :foo1_test
+            -- WHEN we call debug
+            please.debug()
+            -- THEN the target is built with dbg config
+            runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
+            -- THEN the runner is minimised
+            runner_spy:assert_minimise_called()
+            -- THEN the debug launcher is called
+            debug_launcher_spy:assert_called_with(root, '//foo:foo1_test', {})
         end)
 
         it('should add entry to command history', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
 
             -- GIVEN we've debugged a build target
             vim.cmd('edit ' .. root .. '/foo/BUILD')
@@ -818,6 +961,10 @@ describe('debug', function()
             select_fake:choose_item('plz debug //foo:foo1_test')
             -- THEN the target is built with dbg config
             runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
+            -- THEN the runner is minimised
+            runner_spy:assert_minimise_called()
+            -- THEN the debug launcher is called
+            debug_launcher_spy:assert_called_with(root, '//foo:foo1_test', {})
         end)
     end)
 end)

@@ -21,7 +21,7 @@ local query = require('please.query')
 local plz = require('please.plz')
 
 local M = {
-    ---@type table<string, fun(root: string, label: string, test_selector: string?): boolean, string?>
+    ---@type table<string, fun(root: string, label: string, extra_args: string[]): boolean, string?>
     launchers = {},
 }
 
@@ -164,12 +164,7 @@ local function plz_goroot(root)
         )
 end
 
----@param root string
----@param label string
----@param test_selector string?
----@return boolean success
----@return string? errmsg
-M.launchers.go = function(root, label, test_selector)
+function M.launchers.go(root, label, extra_args)
     logging.log_call('launch_delve')
 
     local arches, err = query.config(root, 'build.arch')
@@ -221,10 +216,6 @@ M.launchers.go = function(root, label, test_selector)
         to = '',
     })
 
-    local extra_args = {}
-    if test_selector then
-        table.insert(extra_args, test_selector)
-    end
     dap.run({
         type = 'plz',
         name = 'Launch plz debug with Delve',
@@ -244,12 +235,7 @@ local function target_debug_directory(root, label)
     return vim.fs.joinpath(root, 'plz-out/debug', pkg)
 end
 
----@param root string
----@param label string
----@param test_selector string?
----@return boolean success
----@return string? errmsg
-M.launchers.python = function(root, label, test_selector)
+function M.launchers.python(root, label, extra_args)
     logging.log_call('launch_debugpy')
 
     local relative_sandbox_location = '.cache/pex/pex-debug'
@@ -296,10 +282,7 @@ M.launchers.python = function(root, label, test_selector)
         }
     end
 
-    local extra_args = { '-o=plugin.python.debugger:debugpy' }
-    if test_selector then
-        table.insert(extra_args, test_selector)
-    end
+    extra_args = { '-o=plugin.python.debugger:debugpy', unpack(extra_args) }
     dap.run({
         type = 'plz',
         name = 'Launch plz debug with debugpy',
