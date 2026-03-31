@@ -293,13 +293,11 @@ function M.test(opts)
             local test = assert(parsing.get_test_at_cursor())
             extra_args = { test.selector }
             labels = assert(query.whatinputs(root, filepath))
+        elseif vim.bo.filetype == 'please' then
+            local target = assert(parsing.get_target_at_cursor(root))
+            labels = { target.label }
         else
-            if vim.bo.filetype == 'please' then
-                local target = assert(parsing.get_target_at_cursor(root))
-                labels = { target.label }
-            else
-                labels = assert(query.whatinputs(root, filepath))
-            end
+            labels = assert(query.whatinputs(root, filepath))
         end
 
         select_if_many(labels, { prompt = 'Select target to test' }, function(label)
@@ -379,15 +377,13 @@ function M.debug(opts)
             extra_args = { test.selector }
             labels = assert(query.whatinputs(root, filepath))
             lang = vim.bo.filetype
+        elseif vim.bo.filetype == 'please' then
+            local target = assert(parsing.get_target_at_cursor(root))
+            labels = { target.label }
+            lang = target.rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
         else
-            if vim.bo.filetype == 'please' then
-                local target = assert(parsing.get_target_at_cursor(root))
-                labels = { target.label }
-                lang = target.rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
-            else
-                labels = assert(query.whatinputs(root, filepath))
-                lang = vim.bo.filetype
-            end
+            labels = assert(query.whatinputs(root, filepath))
+            lang = vim.bo.filetype
         end
 
         if not debug.launchers[lang] then
