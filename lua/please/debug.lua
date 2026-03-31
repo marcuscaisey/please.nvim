@@ -296,7 +296,7 @@ M.launchers.python = function(root, label, test_selector)
         }
     end
 
-    local extra_args = { '-o=python.debugger:debugpy' }
+    local extra_args = { '-o=plugin.python.debugger:debugpy' }
     if test_selector then
         table.insert(extra_args, test_selector)
     end
