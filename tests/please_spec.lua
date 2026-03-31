@@ -696,11 +696,20 @@ describe('debug', function()
             '.plzconfig',
             ['foo/'] = {
                 BUILD = [[
-                    go_test = filegroup # debug command expects rule names to have format $lang_xxx
+                    # debug command expects rule names to have format $lang_xxx
+                    go_binary = genrule
+                    go_test = gentest
+
+                    go_binary(
+                        name = "foo",
+                        srcs = ["foo.go"],
+                        cmd = None
+                    )
 
                     go_test(
                         name = "foo1_test",
                         srcs = ["foo1_test.go"],
+                        test_cmd = "",
                     )
 
                     go_test(
@@ -709,7 +718,17 @@ describe('debug', function()
                             "foo1_test.go",
                             "foo2_test.go",
                         ],
+                        test_cmd = "",
                     )
+                ]],
+                ['foo.go'] = [[
+                    package foo
+
+                    import "fmt"
+
+                    func main() {
+                        fmt.Println("Hello, World!")
+                    }
                 ]],
                 ['foo1_test.go'] = [[
                     package foo_test
@@ -755,6 +774,28 @@ describe('debug', function()
             runner_spy:assert_minimise_called()
             -- THEN the debug launcher is called
             debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', {})
+        end)
+
+        it('should debug non-test target which uses file as input', function()
+            local root = create_temp_tree()
+            local input_fake = InputFake:new()
+            local runner_spy = RunnerSpy:new()
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
+
+            -- GIVEN we're editing a file which is an input to a non-test target
+            vim.cmd('edit ' .. root .. '/foo/foo.go')
+            -- WHEN we call debug
+            please.debug()
+            -- THEN we're prompted to enter arguments for the program
+            input_fake:assert_prompt('Enter program arguments')
+            -- WHEN we enter some program arguments
+            input_fake:enter_input('--foo foo --bar bar')
+            -- THEN the target which the file is an input for is built with dbg config
+            runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo' })
+            -- THEN the runner is minimised
+            runner_spy:assert_minimise_called()
+            -- THEN the debug launcher is called with those arguments
+            debug_launcher_spy:assert_called_with(root, '//foo', { '--', '--foo', 'foo', '--bar', 'bar' })
         end)
 
         it('should not minimise runner when building target fails', function()
@@ -913,7 +954,7 @@ describe('debug', function()
 
             -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
             vim.cmd('edit ' .. root .. '/foo/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 4, 4 }) -- inside definition of :foo1_test
+            vim.api.nvim_win_set_cursor(0, { 12, 4 }) -- inside definition of :foo1_test
             -- WHEN we call debug
             please.debug()
             -- THEN the target is built with dbg config
@@ -924,6 +965,29 @@ describe('debug', function()
             debug_launcher_spy:assert_called_with(root, '//foo:foo1_test', {})
         end)
 
+        it('should debug non-test target under cursor', function()
+            local root = create_temp_tree()
+            local input_fake = InputFake:new()
+            local runner_spy = RunnerSpy:new()
+            local debug_launcher_spy = DebugLauncherSpy:new('go')
+
+            -- GIVEN we're editing a BUILD file and our cursor is inside a non-test BUILD target definition
+            vim.cmd('edit ' .. root .. '/foo/BUILD')
+            vim.api.nvim_win_set_cursor(0, { 6, 4 }) -- inside definition of //foo
+            -- WHEN we call debug
+            please.debug()
+            -- THEN we're prompted to enter arguments for the program
+            input_fake:assert_prompt('Enter program arguments')
+            -- WHEN we enter some program arguments
+            input_fake:enter_input('--foo foo --bar bar')
+            -- THEN the target is built with dbg config
+            runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo' })
+            -- THEN the runner is minimised
+            runner_spy:assert_minimise_called()
+            -- THEN the debug launcher is called with those arguments
+            debug_launcher_spy:assert_called_with(root, '//foo', { '--', '--foo', 'foo', '--bar', 'bar' })
+        end)
+
         it('should not minimise runner when building target fails', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
@@ -931,7 +995,7 @@ describe('debug', function()
 
             -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
             vim.cmd('edit ' .. root .. '/foo/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 4, 4 }) -- inside definition of :foo1_test
+            vim.api.nvim_win_set_cursor(0, { 12, 4 }) -- inside definition of :foo1_test
             -- WHEN we call debug
             please.debug()
             -- THEN the target is built with dbg config
@@ -950,7 +1014,7 @@ describe('debug', function()
 
             -- GIVEN we've debugged a build target
             vim.cmd('edit ' .. root .. '/foo/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 4, 4 }) -- inside definition of :foo1_test
+            vim.api.nvim_win_set_cursor(0, { 12, 4 }) -- inside definition of :foo1_test
             please.debug()
             -- WHEN we call history
             please.history()

@@ -391,7 +391,24 @@ function M.debug(opts)
         end
 
         select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
-            save_and_run_debug_command(root, lang, label, extra_args)
+            logging.log_errors('Failed to debug', function()
+                local is_test = assert(query.print_field(root, label, 'test')) == 'True'
+                if is_test then
+                    save_and_run_debug_command(root, lang, label, extra_args)
+                else
+                    vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
+                        if not input then
+                            return
+                        end
+                        local extra_args = {}
+                        input = vim.trim(input)
+                        if input ~= '' then
+                            extra_args = { '--', unpack(vim.split(input, ' ')) }
+                        end
+                        save_and_run_debug_command(root, lang, label, extra_args)
+                    end)
+                end
+            end)
         end)
     end)
 end
