@@ -142,6 +142,7 @@ function Runner.start(root, args, opts)
 
     local augroup = vim.api.nvim_create_augroup('please.nvim_runner' .. bufnr, {})
 
+    vim.cmd.stopinsert() -- Make sure that we're not in insert or terminal mode otherwise the cursor gets stuck.
     local winid = open_win(bufnr, augroup)
     local term_chan_id = vim.api.nvim_open_term(bufnr, {})
 
