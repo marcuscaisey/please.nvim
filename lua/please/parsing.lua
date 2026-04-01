@@ -20,11 +20,19 @@ local function check_parser_installed(filetype)
         lang,
         lang ~= filetype and string.format(' (used for %s files) ', filetype) or ' '
     )
-    if
-        vim.fn.exists(':TSInstallSync') == 2
-        and vim.fn.confirm(err_msg .. ' Install now?', '&yes\n&no', 2, 'Question') == 1
-    then
-        vim.cmd.TSInstallSync(lang)
+    local install ---@type fun(lang:string)
+    if vim.fn.exists(':TSInstallSync') == 2 then
+        install = vim.cmd.TSInstallSync
+    else
+        local ok, treesitter = pcall(require, 'nvim-treesitter')
+        if ok and treesitter.install then
+            function install(lang)
+                treesitter.install(lang):wait(30000)
+            end
+        end
+    end
+    if install and vim.fn.confirm(err_msg .. ' Install now?', '&yes\n&no', 2, 'Question') == 1 then
+        install(lang)
     else
         error(err_msg .. ' See :help treesitter-parsers')
     end
