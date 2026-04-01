@@ -635,9 +635,9 @@ end
 function M.toggle_debug_logging()
     local enabled = logging.toggle_debug()
     if enabled then
-        logging.info('debug logs disabled')
-    else
         logging.info('debug logs enabled')
+    else
+        logging.info('debug logs disabled')
     end
 end
 
