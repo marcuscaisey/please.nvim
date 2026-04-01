@@ -11,7 +11,7 @@ local build_file_names = { 'BUILD', 'BUILD.plz' }
 local function check_parser_installed(filetype)
     local lang = vim.treesitter.language.get_lang(filetype) or filetype
 
-    if pcall(vim.treesitter.language.add, lang) then
+    if vim.treesitter.language.add(lang) then
         return
     end
 
