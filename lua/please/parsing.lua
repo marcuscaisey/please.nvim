@@ -241,31 +241,220 @@ function Test:for_each(f)
     end
 end
 
+-- Version of https://github.com/tree-sitter/tree-sitter-go that added the statement_list node.
+local GO_STATEMENT_LIST_VERSION = { 0, 25, 0 }
+
+---@param lang_info TSLangInfo
+---@param version number[]
+---@return boolean
+local function is_lang_version_ge(lang_info, version)
+    local metadata = lang_info.metadata or {}
+    local lang_version = { metadata.major_version or 0, metadata.minor_version or 0, metadata.patch_version or 0 }
+    return vim.version.ge(lang_version, version)
+end
+
+---@param lang_info TSLangInfo
+---@return vim.treesitter.Query
+local function parse_go_subtest_query(lang_info)
+    if is_lang_version_ge(lang_info, GO_STATEMENT_LIST_VERSION) then
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (expression_statement
+                  (call_expression
+                    function: (selector_expression
+                      operand: (identifier) @receiver
+                      field: (field_identifier) @_run_field)
+                      (#eq? @_run_field "Run")
+                    arguments: (argument_list
+                      (interpreted_string_literal) @name
+                      (func_literal
+                        body: (block
+                          (statement_list) @body))))) @subtest
+            ]]
+        )
+    else
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (expression_statement
+                  (call_expression
+                    function: (selector_expression
+                      operand: (identifier) @receiver
+                      field: (field_identifier) @_run_field)
+                      (#eq? @_run_field "Run")
+                    arguments: (argument_list
+                      (interpreted_string_literal) @name
+                      (func_literal
+                        body: (block) @body)))) @subtest
+            ]]
+        )
+    end
+end
+
+---@param lang_info TSLangInfo
+---@return vim.treesitter.Query
+local function parse_go_table_test_query(lang_info)
+    if is_lang_version_ge(lang_info, GO_STATEMENT_LIST_VERSION) then
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (
+                  [
+                    (var_declaration
+                      (var_spec
+                        name: (identifier) @_test_cases_var
+                        value: (expression_list
+                          (composite_literal
+                            type: (slice_type
+                              element: (struct_type
+                                (field_declaration_list
+                                  (field_declaration
+                                    name: (field_identifier) @_test_case_struct_name_field
+                                    type: (type_identifier) @_test_case_struct_name_type)
+                                  (#eq? @_test_case_struct_name_type "string"))))
+                            body: (literal_value
+                              (literal_element
+                                (literal_value
+                                  (keyed_element
+                                    (literal_element
+                                      (identifier) @_test_case_name_field)
+                                    (literal_element
+                                      (interpreted_string_literal) @name))
+                                  (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
+                    (short_var_declaration
+                      left: (expression_list
+                        (identifier) @_test_cases_var)
+                      right: (expression_list
+                        (composite_literal
+                          type: (slice_type
+                            element: (struct_type
+                              (field_declaration_list
+                                (field_declaration
+                                  name: (field_identifier) @_test_case_struct_name_field
+                                  type: (type_identifier) @_test_case_struct_name_type)
+                                (#eq? @_test_case_struct_name_type "string"))))
+                          body: (literal_value
+                            (literal_element
+                              (literal_value
+                                (keyed_element
+                                  (literal_element
+                                    (identifier) @_test_case_name_field)
+                                  (literal_element
+                                    (interpreted_string_literal) @name))
+                                (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
+                  ]
+                  (for_statement
+                    (range_clause
+                      left: (expression_list
+                        (identifier) @_test_cases_loop_var .)
+                      right: (identifier) @_test_cases_loop_range_var)
+                    (#eq? @_test_cases_loop_range_var @_test_cases_var)
+                    body: (block
+                      (statement_list
+                        (expression_statement
+                          (call_expression
+                            function: (selector_expression
+                              operand: (identifier) @receiver
+                              field: (field_identifier) @_run_field)
+                            (#eq? @_run_field "Run")
+                            arguments: (argument_list
+                              (selector_expression
+                                operand: (identifier) @_name_arg_operand
+                                field: (field_identifier) @_name_arg_field)
+                              (#eq? @_name_arg_operand @_test_cases_loop_var)
+                              (#eq? @_name_arg_field @_test_case_struct_name_field)
+                              (func_literal
+                                body: (block)))))))) @for_loop)
+            ]]
+        )
+    else
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (
+                  [
+                    (var_declaration
+                      (var_spec
+                        name: (identifier) @_test_cases_var
+                        value: (expression_list
+                          (composite_literal
+                            type: (slice_type
+                              element: (struct_type
+                                (field_declaration_list
+                                  (field_declaration
+                                    name: (field_identifier) @_test_case_struct_name_field
+                                    type: (type_identifier) @_test_case_struct_name_type)
+                                  (#eq? @_test_case_struct_name_type "string"))))
+                            body: (literal_value
+                              (literal_element
+                                (literal_value
+                                  (keyed_element
+                                    (literal_element
+                                      (identifier) @_test_case_name_field)
+                                    (literal_element
+                                      (interpreted_string_literal) @name))
+                                  (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
+                    (short_var_declaration
+                      left: (expression_list
+                        (identifier) @_test_cases_var)
+                      right: (expression_list
+                        (composite_literal
+                          type: (slice_type
+                            element: (struct_type
+                              (field_declaration_list
+                                (field_declaration
+                                  name: (field_identifier) @_test_case_struct_name_field
+                                  type: (type_identifier) @_test_case_struct_name_type)
+                                (#eq? @_test_case_struct_name_type "string"))))
+                          body: (literal_value
+                            (literal_element
+                              (literal_value
+                                (keyed_element
+                                  (literal_element
+                                    (identifier) @_test_case_name_field)
+                                  (literal_element
+                                    (interpreted_string_literal) @name))
+                                (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
+                  ]
+                  (for_statement
+                    (range_clause
+                      left: (expression_list
+                        (identifier) @_test_cases_loop_var .)
+                      right: (identifier) @_test_cases_loop_range_var)
+                    (#eq? @_test_cases_loop_range_var @_test_cases_var)
+                    body: (block
+                      (expression_statement
+                        (call_expression
+                          function: (selector_expression
+                            operand: (identifier) @receiver
+                            field: (field_identifier) @_run_field)
+                          (#eq? @_run_field "Run")
+                          arguments: (argument_list
+                            (selector_expression
+                              operand: (identifier) @_name_arg_operand
+                              field: (field_identifier) @_name_arg_field)
+                            (#eq? @_name_arg_operand @_test_cases_loop_var)
+                            (#eq? @_name_arg_field @_test_case_struct_name_field)
+                            (func_literal
+                              body: (block))))))) @for_loop)
+            ]]
+        )
+    end
+end
+
 local parse_go_subtests
 
+---@param lang_info TSLangInfo
 ---@param parent_name string
 ---@param parent_selector string
 ---@param receiver string
 ---@param parent_body TSNode
 ---@return please.parsing.Test[]
-function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
+function parse_go_subtests(lang_info, parent_name, parent_selector, receiver, parent_body)
     local subtests = {} ---@type please.parsing.Test[]
 
-    local subtest_query = vim.treesitter.query.parse(
-        'go',
-        [[
-            (expression_statement
-              (call_expression
-                function: (selector_expression
-                  operand: (identifier) @receiver
-                  field: (field_identifier) @_run_field)
-                  (#eq? @_run_field "Run")
-                arguments: (argument_list
-                  (interpreted_string_literal) @name
-                  (func_literal
-                    body: (block) @body)))) @subtest
-        ]]
-    )
+    local subtest_query = parse_go_subtest_query(lang_info)
     for captures in iter_match_captures(subtest_query, 0, parent_body, { max_start_depth = 1 }) do
         local subtest_receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
         if subtest_receiver == receiver then
@@ -274,82 +463,12 @@ function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
             local subtest_name = vim.treesitter.get_node_text(captures.name[1], 0):match('"(.+)"'):gsub(' ', '_')
             local name = parent_name .. '/' .. subtest_name
             local selector = parent_selector .. '/^' .. subtest_name .. '$'
-            local children = parse_go_subtests(name, selector, subtest_receiver, captures.body[1])
+            local children = parse_go_subtests(lang_info, name, selector, subtest_receiver, captures.body[1])
             table.insert(subtests, Test:new(name, selector, captures.subtest[1], children))
         end
     end
 
-    local table_test_query = vim.treesitter.query.parse(
-        'go',
-        [[
-            (
-              [
-                (var_declaration
-                  (var_spec
-                    name: (identifier) @_test_cases_var
-                    value: (expression_list
-                      (composite_literal
-                        type: (slice_type
-                          element: (struct_type
-                            (field_declaration_list
-                              (field_declaration
-                                name: (field_identifier) @_test_case_struct_name_field
-                                type: (type_identifier) @_test_case_struct_name_type)
-                              (#eq? @_test_case_struct_name_type "string"))))
-                        body: (literal_value
-                          (literal_element
-                            (literal_value
-                              (keyed_element
-                                (literal_element
-                                  (identifier) @_test_case_name_field)
-                                (literal_element
-                                  (interpreted_string_literal) @name))
-                              (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
-                (short_var_declaration
-                  left: (expression_list
-                    (identifier) @_test_cases_var)
-                  right: (expression_list
-                    (composite_literal
-                      type: (slice_type
-                        element: (struct_type
-                          (field_declaration_list
-                            (field_declaration
-                              name: (field_identifier) @_test_case_struct_name_field
-                              type: (type_identifier) @_test_case_struct_name_type)
-                            (#eq? @_test_case_struct_name_type "string"))))
-                      body: (literal_value
-                        (literal_element
-                          (literal_value
-                            (keyed_element
-                              (literal_element
-                                (identifier) @_test_case_name_field)
-                              (literal_element
-                                (interpreted_string_literal) @name))
-                            (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
-              ]
-              (for_statement
-                (range_clause
-                  left: (expression_list
-                    (identifier) @_test_cases_loop_var .)
-                  right: (identifier) @_test_cases_loop_range_var)
-                (#eq? @_test_cases_loop_range_var @_test_cases_var)
-                body: (block
-                  (expression_statement
-                    (call_expression
-                      function: (selector_expression
-                        operand: (identifier) @receiver
-                        field: (field_identifier) @_run_field)
-                      (#eq? @_run_field "Run")
-                      arguments: (argument_list
-                        (selector_expression
-                          operand: (identifier) @_name_arg_operand
-                          field: (field_identifier) @_name_arg_field)
-                        (#eq? @_name_arg_operand @_test_cases_loop_var)
-                        (#eq? @_name_arg_field @_test_case_struct_name_field)
-                        (func_literal
-                          body: (block))))))) @for_loop)
-        ]]
-    )
+    local table_test_query = parse_go_table_test_query(lang_info)
     for captures in iter_match_captures(table_test_query, 0, parent_body, { max_start_depth = 1 }) do
         local subtest_receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
         if subtest_receiver == receiver then
@@ -365,84 +484,179 @@ function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
     return subtests
 end
 
+---@param lang_info TSLangInfo
+---@return vim.treesitter.Query
+local function parse_go_test_func_query(lang_info)
+    if is_lang_version_ge(lang_info, GO_STATEMENT_LIST_VERSION) then
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (function_declaration
+                  (identifier) @name
+                  (#match? @name "^Test.+")
+                  parameters: (parameter_list
+                    (parameter_declaration
+                      name: (identifier) @receiver
+                      type: (pointer_type) @_receiver_type)
+                      (#eq? @_receiver_type "*testing.T"))
+                  body: (block
+                    (statement_list) @body)) @test
+            ]]
+        )
+    else
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (function_declaration
+                  (identifier) @name
+                  (#match? @name "^Test.+")
+                  parameters: (parameter_list
+                    (parameter_declaration
+                      name: (identifier) @receiver
+                      type: (pointer_type) @_receiver_type)
+                      (#eq? @_receiver_type "*testing.T"))
+                  body: (block) @body) @test
+            ]]
+        )
+    end
+end
+
 ---@param root_node TSNode
 ---@return please.parsing.Test?
 local function parse_go_test_func(root_node)
-    local query = vim.treesitter.query.parse(
-        'go',
-        [[
-            (function_declaration
-              (identifier) @name
-              (#match? @name "^Test.+")
-              parameters: (parameter_list
-                (parameter_declaration
-                  name: (identifier) @receiver
-                  type: (pointer_type) @_receiver_type)
-                  (#eq? @_receiver_type "*testing.T"))
-              body: (block) @body) @test
-        ]]
-    )
+    local lang_info = vim.treesitter.language.inspect('go')
+    local query = parse_go_test_func_query(lang_info)
     for captures in iter_match_captures(query, 0, root_node) do
         local name = vim.treesitter.get_node_text(captures.name[1], 0)
         local selector = '^' .. name .. '$'
         local receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
-        local children = parse_go_subtests(name, selector, receiver, captures.body[1])
+        local children = parse_go_subtests(lang_info, name, selector, receiver, captures.body[1])
         return Test:new(name, selector, captures.test[1], children)
+    end
+end
+
+---@param lang_info TSLangInfo
+---@return vim.treesitter.Query
+local function parse_go_test_suite_method_query(lang_info)
+    if is_lang_version_ge(lang_info, GO_STATEMENT_LIST_VERSION) then
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (method_declaration
+                  receiver: (parameter_list
+                    (parameter_declaration
+                      name: (identifier) @receiver
+                      type: [
+                        (pointer_type
+                          (type_identifier) @receiver_type)
+                        (type_identifier) @receiver_type
+                      ]))
+                  name: (field_identifier) @name
+                  (#match? @name "^Test.+")
+                  body: (block
+                    (statement_list) @body)) @test
+            ]]
+        )
+    else
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (method_declaration
+                  receiver: (parameter_list
+                    (parameter_declaration
+                      name: (identifier) @receiver
+                      type: [
+                        (pointer_type
+                          (type_identifier) @receiver_type)
+                        (type_identifier) @receiver_type
+                      ]))
+                  name: (field_identifier) @name
+                  (#match? @name "^Test.+")
+                  body: (block) @body) @test
+            ]]
+        )
+    end
+end
+
+---@param lang_info TSLangInfo
+---@return vim.treesitter.Query
+local function parse_go_test_suite_query(lang_info)
+    if is_lang_version_ge(lang_info, GO_STATEMENT_LIST_VERSION) then
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (function_declaration
+                  (identifier) @name
+                  (#match? @name "^Test.+")
+                  parameters: (parameter_list
+                    (parameter_declaration
+                      name: (identifier) @_t_param
+                      type: (pointer_type) @_t_param_type)
+                      (#eq? @_t_param_type "*testing.T"))
+                  body: (block
+                    (statement_list
+                      (expression_statement
+                        (call_expression
+                          function: (selector_expression
+                            field: (field_identifier) @_run_field
+                            (#eq? @_run_field "Run"))
+                          arguments: (argument_list
+                            (identifier) @_run_t_arg
+                            (#eq? @_run_t_arg @_t_param)
+                            [
+                              (unary_expression
+                                operand: (composite_literal
+                                  type: (type_identifier) @suite_type))
+                              (call_expression
+                                function: (identifier) @_new_func
+                                (#eq? @_new_func "new")
+                                arguments: (argument_list
+                                  (type_identifier) @suite_type))
+                            ]))))))
+            ]]
+        )
+    else
+        return vim.treesitter.query.parse(
+            'go',
+            [[
+                (function_declaration
+                  (identifier) @name
+                  (#match? @name "^Test.+")
+                  parameters: (parameter_list
+                    (parameter_declaration
+                      name: (identifier) @_t_param
+                      type: (pointer_type) @_t_param_type)
+                      (#eq? @_t_param_type "*testing.T"))
+                  body: (block
+                    (expression_statement
+                      (call_expression
+                        function: (selector_expression
+                          field: (field_identifier) @_run_field
+                          (#eq? @_run_field "Run"))
+                        arguments: (argument_list
+                          (identifier) @_run_t_arg
+                          (#eq? @_run_t_arg @_t_param)
+                          [
+                            (unary_expression
+                              operand: (composite_literal
+                                type: (type_identifier) @suite_type))
+                            (call_expression
+                              function: (identifier) @_new_func
+                              (#eq? @_new_func "new")
+                              arguments: (argument_list
+                                (type_identifier) @suite_type))
+                          ])))))
+            ]]
+        )
     end
 end
 
 ---@param root_node TSNode
 ---@return please.parsing.Test?
 local function parse_go_test_suite_method(root_node)
-    local test_suite_method_query = vim.treesitter.query.parse(
-        'go',
-        [[
-            (method_declaration
-              receiver: (parameter_list
-                (parameter_declaration
-                  name: (identifier) @receiver
-                  type: [
-                    (pointer_type
-                      (type_identifier) @receiver_type)
-                    (type_identifier) @receiver_type
-                  ]))
-              name: (field_identifier) @name
-              (#match? @name "^Test.+")
-              body: (block) @body) @test
-        ]]
-    )
-    local test_suite_query = vim.treesitter.query.parse(
-        'go',
-        [[
-            (function_declaration
-              (identifier) @name
-              (#match? @name "^Test.+")
-              parameters: (parameter_list
-                (parameter_declaration
-                  name: (identifier) @_t_param
-                  type: (pointer_type) @_t_param_type)
-                  (#eq? @_t_param_type "*testing.T"))
-              body: (block
-                (expression_statement
-                  (call_expression
-                    function: (selector_expression
-                      field: (field_identifier) @_run_field
-                      (#eq? @_run_field "Run"))
-                    arguments: (argument_list
-                      (identifier) @_run_t_arg
-                      (#eq? @_run_t_arg @_t_param)
-                      [
-                        (unary_expression
-                          operand: (composite_literal
-                            type: (type_identifier) @suite_type))
-                        (call_expression
-                          function: (identifier) @_new_func
-                          (#eq? @_new_func "new")
-                          arguments: (argument_list
-                            (type_identifier) @suite_type))
-                      ])))))
-        ]]
-    )
+    local lang_info = vim.treesitter.language.inspect('go')
+    local test_suite_method_query = parse_go_test_suite_method_query(lang_info)
+    local test_suite_query = parse_go_test_suite_query(lang_info)
     for captures in iter_match_captures(test_suite_method_query, 0, root_node) do
         local name = vim.treesitter.get_node_text(captures.name[1], 0)
         local selector = '/^' .. name .. '$'
@@ -464,7 +678,7 @@ local function parse_go_test_suite_method(root_node)
             name = suite_name .. '/' .. name
             selector = '^' .. suite_name .. '$' .. selector
         end
-        local children = parse_go_subtests(name, selector, receiver, captures.body[1])
+        local children = parse_go_subtests(lang_info, name, selector, receiver, captures.body[1])
         return Test:new(name, selector, captures.test[1], children)
     end
 end

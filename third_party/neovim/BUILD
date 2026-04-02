@@ -13,7 +13,14 @@ github_neovim_tree_sitter_parser(
     name = "go_tree_sitter_parser",
     lang = "go",
     repo = "tree-sitter/tree-sitter-go",
-    revision = "5e73f476efafe5c768eda19bbe877f188ded6144",
+    revision = "v0.25.0",
+)
+
+github_neovim_tree_sitter_parser(
+    name = "go_tree_sitter_parser_0_23",
+    lang = "go",
+    repo = "tree-sitter/tree-sitter-go",
+    revision = "v0.23.4",
 )
 
 github_neovim_tree_sitter_parser(
