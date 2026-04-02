@@ -43,7 +43,7 @@ end
 
 local setup_complete = false
 
-function M.setup()
+local function setup()
     if setup_complete then
         return
     end
@@ -167,6 +167,8 @@ end
 function M.launchers.go(root, label, extra_args)
     logging.log_call('launch_delve')
 
+    setup()
+
     local arches, err = query.config(root, 'build.arch')
     if not arches then
         return false, string.format('launching delve: determining host arch: %s', err)
@@ -237,6 +239,8 @@ end
 
 function M.launchers.python(root, label, extra_args)
     logging.log_call('launch_debugpy')
+
+    setup()
 
     local relative_sandbox_location = '.cache/pex/pex-debug'
     local local_explode_location = vim.fs.joinpath(target_debug_directory(root, label), relative_sandbox_location)

@@ -5,12 +5,6 @@ neovim_toolchain(
     version = "v0.11.1",
 )
 
-github_neovim_plugin(
-    name = "nvim_dap",
-    repo = "mfussenegger/nvim-dap",
-    revision = "a479e25ed5b5d331fb46ee4b9e160ff02ac64310",
-)
-
 github_neovim_tree_sitter_parser(
     name = "go_tree_sitter_parser",
     lang = "go",
