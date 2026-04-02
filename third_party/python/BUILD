@@ -1,3 +1,5 @@
+subinclude("///python//build_defs:python")
+
 pip_library(
     name = "requests",
     licences = ["Apache-2.0"],

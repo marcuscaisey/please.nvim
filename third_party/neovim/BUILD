@@ -1,3 +1,5 @@
+subinclude("//build_defs:neovim")
+
 neovim_toolchain(
     name = "toolchain",
     version = "v0.11.1",

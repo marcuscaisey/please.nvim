@@ -246,6 +246,8 @@ def github_neovim_tree_sitter_parser(name:str, lang:str, repo:str, revision:str,
     subrepo_build_file = text_file(
         name = tag(name, "subrepo_build_file"),
         content = """
+subinclude("///cc//build_defs:c")
+
 COMPILER_FLAGS = [
     "-Wno-error",
 ]

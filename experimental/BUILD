@@ -1,3 +1,5 @@
+subinclude("///shell//build_defs:shell")
+
 genrule(
     name =
         "abcdefghijklmnopqrstuvwxyz1_abcdefghijklmnopqrstuvwxyz2_abcdefghijklmnopqrstuvwxyz3_abcdefghijklmnopqrstuvwxyz4_abcdefghijklmnopqrstuvwxyz5_abcdefghijklmnopqrstuvwxyz6",

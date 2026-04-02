@@ -1,13 +1,6 @@
 [Please]
 version = 17.29.1
 
-[Parse]
-preloadsubincludes = //build_defs:neovim
-preloadsubincludes = ///python//build_defs:python
-preloadsubincludes = ///go//build_defs:go
-preloadsubincludes = ///shell//build_defs:shell
-preloadsubincludes = ///cc//build_defs:c
-
 [BuildConfig]
 nvim-tool = //third_party/neovim:toolchain|nvim
 lua-tool = //third_party/lua:toolchain|lua

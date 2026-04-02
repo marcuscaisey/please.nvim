@@ -1,3 +1,5 @@
+subinclude("//build_defs:neovim")
+
 neovim_test(
     name = "parsing_spec",
     src = "parsing_spec.lua",

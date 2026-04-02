@@ -1,3 +1,5 @@
+subinclude("//build_defs:neovim")
+
 neovim_plugin(
     name = "please",
     help_srcs = [
