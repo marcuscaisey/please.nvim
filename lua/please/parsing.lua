@@ -69,16 +69,16 @@ local function iter_build_target_match_captures(bufnr)
     local query = vim.treesitter.query.parse(
         'python',
         [[
-      (call
-        function: (identifier) @rule
-        arguments: (argument_list
-          (keyword_argument
-            name: (
-              (identifier) @kwarg
-              (#eq? @kwarg "name"))
-            value: (
-              (string) @name)))) @target
-    ]]
+            (call
+              function: (identifier) @rule
+              arguments: (argument_list
+                (keyword_argument
+                  name: (
+                    (identifier) @kwarg
+                    (#eq? @kwarg "name"))
+                  value: (
+                    (string) @name)))) @target
+        ]]
     )
     local tree = vim.treesitter.get_parser(bufnr, 'python'):parse()[1]
     return iter_match_captures(query, bufnr, tree:root())
@@ -254,17 +254,17 @@ function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
     local subtest_query = vim.treesitter.query.parse(
         'go',
         [[
-      (expression_statement
-        (call_expression
-          function: (selector_expression
-            operand: (identifier) @receiver
-            field: (field_identifier) @_run_field)
-            (#eq? @_run_field "Run")
-          arguments: (argument_list
-            (interpreted_string_literal) @name
-            (func_literal
-              body: (block) @body)))) @subtest
-    ]]
+            (expression_statement
+              (call_expression
+                function: (selector_expression
+                  operand: (identifier) @receiver
+                  field: (field_identifier) @_run_field)
+                  (#eq? @_run_field "Run")
+                arguments: (argument_list
+                  (interpreted_string_literal) @name
+                  (func_literal
+                    body: (block) @body)))) @subtest
+        ]]
     )
     for captures in iter_match_captures(subtest_query, 0, parent_body, { max_start_depth = 1 }) do
         local subtest_receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
@@ -282,73 +282,73 @@ function parse_go_subtests(parent_name, parent_selector, receiver, parent_body)
     local table_test_query = vim.treesitter.query.parse(
         'go',
         [[
-      (
-        [
-          (var_declaration
-            (var_spec
-              name: (identifier) @_test_cases_var
-              value: (expression_list
-                (composite_literal
-                  type: (slice_type
-                    element: (struct_type
-                      (field_declaration_list
-                        (field_declaration
-                          name: (field_identifier) @_test_case_struct_name_field
-                          type: (type_identifier) @_test_case_struct_name_type)
-                        (#eq? @_test_case_struct_name_type "string"))))
-                  body: (literal_value
-                    (literal_element
-                      (literal_value
-                        (keyed_element
+            (
+              [
+                (var_declaration
+                  (var_spec
+                    name: (identifier) @_test_cases_var
+                    value: (expression_list
+                      (composite_literal
+                        type: (slice_type
+                          element: (struct_type
+                            (field_declaration_list
+                              (field_declaration
+                                name: (field_identifier) @_test_case_struct_name_field
+                                type: (type_identifier) @_test_case_struct_name_type)
+                              (#eq? @_test_case_struct_name_type "string"))))
+                        body: (literal_value
                           (literal_element
-                            (identifier) @_test_case_name_field)
-                          (literal_element
-                            (interpreted_string_literal) @name))
-                        (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
-          (short_var_declaration
-            left: (expression_list
-              (identifier) @_test_cases_var)
-            right: (expression_list
-              (composite_literal
-                type: (slice_type
-                  element: (struct_type
-                    (field_declaration_list
-                      (field_declaration
-                        name: (field_identifier) @_test_case_struct_name_field
-                        type: (type_identifier) @_test_case_struct_name_type)
-                      (#eq? @_test_case_struct_name_type "string"))))
-                body: (literal_value
-                  (literal_element
-                    (literal_value
-                      (keyed_element
+                            (literal_value
+                              (keyed_element
+                                (literal_element
+                                  (identifier) @_test_case_name_field)
+                                (literal_element
+                                  (interpreted_string_literal) @name))
+                              (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case)))))
+                (short_var_declaration
+                  left: (expression_list
+                    (identifier) @_test_cases_var)
+                  right: (expression_list
+                    (composite_literal
+                      type: (slice_type
+                        element: (struct_type
+                          (field_declaration_list
+                            (field_declaration
+                              name: (field_identifier) @_test_case_struct_name_field
+                              type: (type_identifier) @_test_case_struct_name_type)
+                            (#eq? @_test_case_struct_name_type "string"))))
+                      body: (literal_value
                         (literal_element
-                          (identifier) @_test_case_name_field)
-                        (literal_element
-                          (interpreted_string_literal) @name))
-                      (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
-        ]
-        (for_statement
-          (range_clause
-            left: (expression_list
-              (identifier) @_test_cases_loop_var .)
-            right: (identifier) @_test_cases_loop_range_var)
-          (#eq? @_test_cases_loop_range_var @_test_cases_var)
-          body: (block
-            (expression_statement
-              (call_expression
-                function: (selector_expression
-                  operand: (identifier) @receiver
-                  field: (field_identifier) @_run_field)
-                (#eq? @_run_field "Run")
-                arguments: (argument_list
-                  (selector_expression
-                    operand: (identifier) @_name_arg_operand
-                    field: (field_identifier) @_name_arg_field)
-                  (#eq? @_name_arg_operand @_test_cases_loop_var)
-                  (#eq? @_name_arg_field @_test_case_struct_name_field)
-                  (func_literal
-                    body: (block))))))) @for_loop)
-    ]]
+                          (literal_value
+                            (keyed_element
+                              (literal_element
+                                (identifier) @_test_case_name_field)
+                              (literal_element
+                                (interpreted_string_literal) @name))
+                            (#eq? @_test_case_name_field @_test_case_struct_name_field))) @test_case))))
+              ]
+              (for_statement
+                (range_clause
+                  left: (expression_list
+                    (identifier) @_test_cases_loop_var .)
+                  right: (identifier) @_test_cases_loop_range_var)
+                (#eq? @_test_cases_loop_range_var @_test_cases_var)
+                body: (block
+                  (expression_statement
+                    (call_expression
+                      function: (selector_expression
+                        operand: (identifier) @receiver
+                        field: (field_identifier) @_run_field)
+                      (#eq? @_run_field "Run")
+                      arguments: (argument_list
+                        (selector_expression
+                          operand: (identifier) @_name_arg_operand
+                          field: (field_identifier) @_name_arg_field)
+                        (#eq? @_name_arg_operand @_test_cases_loop_var)
+                        (#eq? @_name_arg_field @_test_case_struct_name_field)
+                        (func_literal
+                          body: (block))))))) @for_loop)
+        ]]
     )
     for captures in iter_match_captures(table_test_query, 0, parent_body, { max_start_depth = 1 }) do
         local subtest_receiver = vim.treesitter.get_node_text(captures.receiver[1], 0)
@@ -371,16 +371,16 @@ local function parse_go_test_func(root_node)
     local query = vim.treesitter.query.parse(
         'go',
         [[
-      (function_declaration
-        (identifier) @name
-        (#match? @name "^Test.+")
-        parameters: (parameter_list
-          (parameter_declaration
-            name: (identifier) @receiver
-            type: (pointer_type) @_receiver_type)
-            (#eq? @_receiver_type "*testing.T"))
-        body: (block) @body) @test
-    ]]
+            (function_declaration
+              (identifier) @name
+              (#match? @name "^Test.+")
+              parameters: (parameter_list
+                (parameter_declaration
+                  name: (identifier) @receiver
+                  type: (pointer_type) @_receiver_type)
+                  (#eq? @_receiver_type "*testing.T"))
+              body: (block) @body) @test
+        ]]
     )
     for captures in iter_match_captures(query, 0, root_node) do
         local name = vim.treesitter.get_node_text(captures.name[1], 0)
@@ -397,51 +397,51 @@ local function parse_go_test_suite_method(root_node)
     local test_suite_method_query = vim.treesitter.query.parse(
         'go',
         [[
-      (method_declaration
-        receiver: (parameter_list
-          (parameter_declaration
-            name: (identifier) @receiver
-            type: [
-              (pointer_type
-                (type_identifier) @receiver_type)
-              (type_identifier) @receiver_type
-            ]))
-        name: (field_identifier) @name
-        (#match? @name "^Test.+")
-        body: (block) @body) @test
-    ]]
+            (method_declaration
+              receiver: (parameter_list
+                (parameter_declaration
+                  name: (identifier) @receiver
+                  type: [
+                    (pointer_type
+                      (type_identifier) @receiver_type)
+                    (type_identifier) @receiver_type
+                  ]))
+              name: (field_identifier) @name
+              (#match? @name "^Test.+")
+              body: (block) @body) @test
+        ]]
     )
     local test_suite_query = vim.treesitter.query.parse(
         'go',
         [[
-      (function_declaration
-        (identifier) @name
-        (#match? @name "^Test.+")
-        parameters: (parameter_list
-          (parameter_declaration
-            name: (identifier) @_t_param
-            type: (pointer_type) @_t_param_type)
-            (#eq? @_t_param_type "*testing.T"))
-        body: (block
-          (expression_statement
-            (call_expression
-              function: (selector_expression
-                field: (field_identifier) @_run_field
-                (#eq? @_run_field "Run"))
-              arguments: (argument_list
-                (identifier) @_run_t_arg
-                (#eq? @_run_t_arg @_t_param)
-                [
-                  (unary_expression
-                    operand: (composite_literal
-                      type: (type_identifier) @suite_type))
+            (function_declaration
+              (identifier) @name
+              (#match? @name "^Test.+")
+              parameters: (parameter_list
+                (parameter_declaration
+                  name: (identifier) @_t_param
+                  type: (pointer_type) @_t_param_type)
+                  (#eq? @_t_param_type "*testing.T"))
+              body: (block
+                (expression_statement
                   (call_expression
-                    function: (identifier) @_new_func
-                    (#eq? @_new_func "new")
+                    function: (selector_expression
+                      field: (field_identifier) @_run_field
+                      (#eq? @_run_field "Run"))
                     arguments: (argument_list
-                      (type_identifier) @suite_type))
-                ])))))
-    ]]
+                      (identifier) @_run_t_arg
+                      (#eq? @_run_t_arg @_t_param)
+                      [
+                        (unary_expression
+                          operand: (composite_literal
+                            type: (type_identifier) @suite_type))
+                        (call_expression
+                          function: (identifier) @_new_func
+                          (#eq? @_new_func "new")
+                          arguments: (argument_list
+                            (type_identifier) @suite_type))
+                      ])))))
+        ]]
     )
     for captures in iter_match_captures(test_suite_method_query, 0, root_node) do
         local name = vim.treesitter.get_node_text(captures.name[1], 0)
@@ -476,18 +476,18 @@ local function parse_python_unittest_methods(root_node)
     local unittest_methods_query = vim.treesitter.query.parse(
         'python',
         [[
-      (class_definition
-        name: (identifier) @class_name
-        body: (block [
-          (function_definition
-            name: (identifier) @name
-            (#match? @name "^test_.+")) @test
-          (decorated_definition
-            definition: (function_definition
-              name: (identifier) @name
-              (#match? @name "^test_.+"))) @test
-        ])) @class
-    ]]
+            (class_definition
+              name: (identifier) @class_name
+              body: (block [
+                (function_definition
+                  name: (identifier) @name
+                  (#match? @name "^test_.+")) @test
+                (decorated_definition
+                  definition: (function_definition
+                    name: (identifier) @name
+                    (#match? @name "^test_.+"))) @test
+              ])) @class
+        ]]
     )
     for captures in iter_match_captures(unittest_methods_query, 0, root_node) do
         local class_name = vim.treesitter.get_node_text(captures.class_name[1], 0)
