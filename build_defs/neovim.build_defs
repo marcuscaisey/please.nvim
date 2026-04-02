@@ -188,22 +188,22 @@ def neovim_test(name:str, src:str, deps:list=[], labels:list=[], data:list=None,
         env = env,
     )
 
-def github_neovim_plugin(name:str, repo:str, revision:str, hashes:list=[], visibility:list=["PUBLIC"]):
+def neovim_external_plugin(name:str, github_repo:str, revision:str, hashes:list=[], visibility:list=["PUBLIC"]):
     """
-    Downloads a Neovim plugin from GitHub.
+    Downloads a Neovim plugin.
 
     Args:
         name: Name of the build target.
-        repo: Repository to fetch from (e.g. "marcuscaisey/please.nvim").
+        github_repo: GitHub repository to fetch from (e.g. "marcuscaisey/please.nvim").
         revision: Revision to download. This can be either a release version, commit or branch.
         hashes: List of possible hashes for the downloaded archive. Optional.
         visibility: Visibility specification. Defaults to public.
     """
-    org, _, repo = repo.partition("/")
-    assert repo, "Must pass a valid GitHub repo argument, e.g. marcuscaisey/please.nvim"
+    github_org, _, github_repo = github_repo.partition("/")
+    assert github_repo, "Must pass a valid GitHub repo argument, e.g. marcuscaisey/please.nvim"
     download = remote_file(
         name = tag(name, "download"),
-        url = f"https://github.com/{org}/{repo}/archive/{revision}.zip",
+        url = f"https://github.com/{github_org}/{github_repo}/archive/{revision}.zip",
         hashes = hashes,
         extract = True,
     )
@@ -231,9 +231,11 @@ def github_neovim_plugin(name:str, repo:str, revision:str, hashes:list=[], visib
         visibility = visibility,
     )
 
-def github_neovim_tree_sitter_parser(name:str, lang:str, repo:str, revision:str, hashes:list=[], visibility:list=["PUBLIC"]):
+_GITHUB_REPO_RULE = github_repo
+
+def neovim_tree_sitter_parser(name:str, lang:str, github_repo:str, revision:str, hashes:list=[], visibility:list=["PUBLIC"]):
     """
-    Downloads a tree sitter parser from GitHub and compiles it.
+    Downloads a tree sitter parser and compiles it.
 
     Args:
         name: Name of the build target.
@@ -278,9 +280,9 @@ cc_shared_object(
         """,
     )
     subrepo_name = tag(name, "subrepo")
-    github_repo(
+    _GITHUB_REPO_RULE(
         name = subrepo_name,
-        repo = repo,
+        repo = github_repo,
         revision = revision,
         build_file = subrepo_build_file,
         hashes = hashes,
