@@ -450,15 +450,19 @@ function M.history()
         local function get_description(command)
             return command.description
         end
-        select(history[root], { prompt = 'Pick command to run again:', format_item = get_description }, function(command)
-            if command.type == 'simple' then
-                save_and_run_simple_command(root, command.args)
-            elseif command.type == 'debug' then
-                save_and_run_debug_command(root, command.lang, command.label, command.extra_args)
-            else
-                error('unknown command type: ' .. vim.inspect(command))
+        select(
+            history[root],
+            { prompt = 'Pick command to run again:', format_item = get_description },
+            function(command)
+                if command.type == 'simple' then
+                    save_and_run_simple_command(root, command.args)
+                elseif command.type == 'debug' then
+                    save_and_run_debug_command(root, command.lang, command.label, command.extra_args)
+                else
+                    error('unknown command type: ' .. vim.inspect(command))
+                end
             end
-        end)
+        )
     end)
 end
 
