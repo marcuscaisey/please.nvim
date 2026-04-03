@@ -293,7 +293,7 @@ describe('build', function()
             -- WHEN we call history
             please.history()
             -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again')
+            select_fake:assert_prompt('Pick command to run again:')
             select_fake:assert_items({ 'plz build //:foo1_and_foo2' })
             -- WHEN we select the build command
             select_fake:choose_item('plz build //:foo1_and_foo2')
@@ -311,7 +311,7 @@ describe('build', function()
             -- WHEN we call build
             please.build()
             -- THEN we're prompted to choose which target to build
-            select_fake:assert_prompt('Select target to build')
+            select_fake:assert_prompt('Select target to build:')
             select_fake:assert_items({ '//:foo1', '//:foo1_and_foo2' })
             -- WHEN we select one of the targets
             select_fake:choose_item('//:foo1_and_foo2')
@@ -346,7 +346,7 @@ describe('build', function()
             -- WHEN we call history
             please.history()
             -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again')
+            select_fake:assert_prompt('Pick command to run again:')
             select_fake:assert_items({ 'plz build //:foo1_and_foo2' })
             -- WHEN we select the build command
             select_fake:choose_item('plz build //:foo1_and_foo2')
@@ -390,7 +390,7 @@ describe('run', function()
             -- WHEN we call run
             please.run()
             -- THEN we're prompted to enter arguments for the program
-            input_fake:assert_prompt('Enter program arguments')
+            input_fake:assert_prompt('Enter program arguments: ')
             -- WHEN we enter some program arguments
             input_fake:enter_input('--foo foo --bar bar')
             -- THEN the target which the file is an input for is run with those arguments
@@ -410,7 +410,7 @@ describe('run', function()
             -- WHEN we call history
             please.history()
             -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again')
+            select_fake:assert_prompt('Pick command to run again:')
             select_fake:assert_items({ 'plz run //:foo1_and_foo2 -- --foo foo --bar bar' })
             -- WHEN we select the run command
             select_fake:choose_item('plz run //:foo1_and_foo2 -- --foo foo --bar bar')
@@ -429,12 +429,12 @@ describe('run', function()
             -- WHEN we call run
             please.run()
             -- THEN we're prompted to choose which target to run
-            select_fake:assert_prompt('Select target to run')
+            select_fake:assert_prompt('Select target to run:')
             select_fake:assert_items({ '//:foo1', '//:foo1_and_foo2' })
             -- WHEN we select one of the targets
             select_fake:choose_item('//:foo1_and_foo2')
             -- THEN we're prompted to enter arguments for the program
-            input_fake:assert_prompt('Enter program arguments')
+            input_fake:assert_prompt('Enter program arguments: ')
             -- WHEN we enter some program arguments
             input_fake:enter_input('--foo foo --bar bar')
             -- THEN the target is run with those arguments
@@ -454,7 +454,7 @@ describe('run', function()
             -- WHEN we call run
             please.run()
             -- THEN we're prompted to enter arguments for the program
-            input_fake:assert_prompt('Enter program arguments')
+            input_fake:assert_prompt('Enter program arguments: ')
             -- WHEN we enter some program arguments
             input_fake:enter_input('--foo foo --bar bar')
             -- THEN the target is run with those arguments
@@ -475,7 +475,7 @@ describe('run', function()
             -- WHEN we call history
             please.history()
             -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again')
+            select_fake:assert_prompt('Pick command to run again:')
             select_fake:assert_items({ 'plz run //:foo1 -- --foo foo --bar bar' })
             -- WHEN we select the run command
             select_fake:choose_item('plz run //:foo1 -- --foo foo --bar bar')
@@ -497,7 +497,7 @@ describe('run', function()
         -- WHEN we call history
         please.history()
         -- THEN the command history entry should not include the empty program args
-        select_fake:assert_prompt('Pick command to run again')
+        select_fake:assert_prompt('Pick command to run again:')
         select_fake:assert_items({ 'plz run //:foo1' })
     end)
 end)
@@ -573,7 +573,7 @@ describe('test', function()
             -- WHEN we call history
             please.history()
             -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again')
+            select_fake:assert_prompt('Pick command to run again:')
             select_fake:assert_items({ 'plz test //foo:foo1_and_foo2_test' })
             -- WHEN we select the test command
             select_fake:choose_item('plz test //foo:foo1_and_foo2_test')
@@ -591,7 +591,7 @@ describe('test', function()
             -- WHEN we call test
             please.test()
             -- THEN we're prompted to choose which target to test
-            select_fake:assert_prompt('Select target to test')
+            select_fake:assert_prompt('Select target to test:')
             select_fake:assert_items({ '//foo:foo1_and_foo2_test', '//foo:foo1_test' })
             -- WHEN we select one of the targets
             select_fake:choose_item('//foo:foo1_and_foo2_test')
@@ -625,7 +625,7 @@ describe('test', function()
                 -- WHEN we call history
                 please.history()
                 -- THEN we're prompted to pick a command to run again
-                select_fake:assert_prompt('Pick command to run again')
+                select_fake:assert_prompt('Pick command to run again:')
                 select_fake:assert_items({ 'plz test //foo:foo1_and_foo2_test ^TestFails$' })
                 -- WHEN we select the test command
                 select_fake:choose_item('plz test //foo:foo1_and_foo2_test ^TestFails$')
@@ -644,7 +644,7 @@ describe('test', function()
                 -- WHEN we call test with under_cursor=true
                 please.test({ under_cursor = true })
                 -- THEN we're prompted to choose which target to test
-                select_fake:assert_prompt('Select target to test')
+                select_fake:assert_prompt('Select target to test:')
                 select_fake:assert_items({ '//foo:foo1_and_foo2_test', '//foo:foo1_test' })
                 -- WHEN we select one of the targets
                 select_fake:choose_item('//foo:foo1_and_foo2_test')
@@ -680,7 +680,7 @@ describe('test', function()
             -- WHEN we call history
             please.history()
             -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again')
+            select_fake:assert_prompt('Pick command to run again:')
             select_fake:assert_items({ 'plz test //foo:foo1_test' })
             -- WHEN we select the test command
             select_fake:choose_item('plz test //foo:foo1_test')
@@ -787,7 +787,7 @@ describe('debug', function()
             -- WHEN we call debug
             please.debug()
             -- THEN we're prompted to enter arguments for the program
-            input_fake:assert_prompt('Enter program arguments')
+            input_fake:assert_prompt('Enter program arguments: ')
             -- WHEN we enter some program arguments
             input_fake:enter_input('--foo foo --bar bar')
             -- THEN the target which the file is an input for is built with dbg config
@@ -825,7 +825,7 @@ describe('debug', function()
             -- WHEN we call history
             please.history()
             -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again')
+            select_fake:assert_prompt('Pick command to run again:')
             select_fake:assert_items({ 'plz debug //foo:foo1_and_foo2_test' })
             -- WHEN we select the debug command
             select_fake:choose_item('plz debug //foo:foo1_and_foo2_test')
@@ -848,7 +848,7 @@ describe('debug', function()
             -- WHEN we call debug
             please.debug()
             -- THEN we're prompted to choose which target to debug
-            select_fake:assert_prompt('Select target to debug')
+            select_fake:assert_prompt('Select target to debug:')
             select_fake:assert_items({ '//foo:foo1_and_foo2_test', '//foo:foo1_test' })
             -- WHEN we select one of the targets
             select_fake:choose_item('//foo:foo1_and_foo2_test')
@@ -908,7 +908,7 @@ describe('debug', function()
                 -- WHEN we call history
                 please.history()
                 -- THEN we're prompted to pick a command to run again
-                select_fake:assert_prompt('Pick command to run again')
+                select_fake:assert_prompt('Pick command to run again:')
                 select_fake:assert_items({ 'plz debug //foo:foo1_and_foo2_test ^TestFails$' })
                 -- WHEN we select the debug command
                 select_fake:choose_item('plz debug //foo:foo1_and_foo2_test ^TestFails$')
@@ -932,7 +932,7 @@ describe('debug', function()
                 -- WHEN we call debug with under_cursor=true
                 please.debug({ under_cursor = true })
                 -- THEN we're prompted to choose which target to debug
-                select_fake:assert_prompt('Select target to debug')
+                select_fake:assert_prompt('Select target to debug:')
                 select_fake:assert_items({ '//foo:foo1_and_foo2_test', '//foo:foo1_test' })
                 -- WHEN we select one of the targets
                 select_fake:choose_item('//foo:foo1_and_foo2_test')
@@ -977,7 +977,7 @@ describe('debug', function()
             -- WHEN we call debug
             please.debug()
             -- THEN we're prompted to enter arguments for the program
-            input_fake:assert_prompt('Enter program arguments')
+            input_fake:assert_prompt('Enter program arguments: ')
             -- WHEN we enter some program arguments
             input_fake:enter_input('--foo foo --bar bar')
             -- THEN the target is built with dbg config
@@ -1019,7 +1019,7 @@ describe('debug', function()
             -- WHEN we call history
             please.history()
             -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again')
+            select_fake:assert_prompt('Pick command to run again:')
             select_fake:assert_items({ 'plz debug //foo:foo1_test' })
             -- WHEN we select the debug command
             select_fake:choose_item('plz debug //foo:foo1_test')
@@ -1070,7 +1070,7 @@ describe('command', function()
         -- WHEN we call history
         please.history()
         -- THEN we're prompted to pick a command to run again
-        select_fake:assert_prompt('Pick command to run again')
+        select_fake:assert_prompt('Pick command to run again:')
         select_fake:assert_items({ 'plz build //:foo' })
         -- WHEN we select the command
         select_fake:choose_item('plz build //:foo')
@@ -1246,7 +1246,7 @@ describe('jump_to_target', function()
         -- WHEN we call jump_to_target
         please.jump_to_target()
         -- THEN we're prompted to choose which target to jump to
-        select_fake:assert_prompt('Select target to jump to')
+        select_fake:assert_prompt('Select target to jump to:')
         select_fake:assert_items({ '//:foo1', '//:foo1_and_foo2' })
         -- WHEN we select one of the targets
         select_fake:choose_item('//:foo1_and_foo2')
@@ -1284,7 +1284,7 @@ describe('look_up_target', function()
         -- WHEN we call look_up_target
         please.look_up_target()
         -- THEN we're prompted to enter the build target to look up
-        input_fake:assert_prompt('Enter target to look up')
+        input_fake:assert_prompt('Enter target to look up: ')
         -- WHEN we enter a build target
         input_fake:enter_input('//pkg:foo2')
         vim.wait(500)
@@ -1375,7 +1375,7 @@ describe('yank', function()
             -- WHEN we call yank
             please.yank()
             -- THEN we're prompted to choose which label to yank
-            select_fake:assert_prompt('Select build label to yank')
+            select_fake:assert_prompt('Select build label to yank:')
             select_fake:assert_items({ '//:foo1', '//:foo1_and_foo2' })
             -- WHEN we select one of the labels
             select_fake:choose_item('//:foo1_and_foo2')

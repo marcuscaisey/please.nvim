@@ -222,7 +222,7 @@ function M.build()
             labels = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(labels, { prompt = 'Select target to build' }, function(label)
+        select_if_many(labels, { prompt = 'Select target to build:' }, function(label)
             save_and_run_simple_command(root, { 'build', label })
         end)
     end)
@@ -245,8 +245,8 @@ function M.run()
             labels = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(labels, { prompt = 'Select target to run' }, function(label)
-            vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
+        select_if_many(labels, { prompt = 'Select target to run:' }, function(label)
+            vim.ui.input({ prompt = 'Enter program arguments: ' }, function(input)
                 if not input then
                     return
                 end
@@ -300,7 +300,7 @@ function M.test(opts)
             labels = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(labels, { prompt = 'Select target to test' }, function(label)
+        select_if_many(labels, { prompt = 'Select target to test:' }, function(label)
             save_and_run_simple_command(root, { 'test', label, unpack(extra_args) })
         end)
     end)
@@ -388,13 +388,13 @@ function M.debug(opts)
             error(string.format('debugging is not supported for %s files', lang))
         end
 
-        select_if_many(labels, { prompt = 'Select target to debug' }, function(label)
+        select_if_many(labels, { prompt = 'Select target to debug:' }, function(label)
             logging.log_errors('Failed to debug', function()
                 local is_test = assert(query.print_field(root, label, 'test')) == 'True'
                 if is_test then
                     save_and_run_debug_command(root, lang, label, extra_args)
                 else
-                    vim.ui.input({ prompt = 'Enter program arguments' }, function(input)
+                    vim.ui.input({ prompt = 'Enter program arguments: ' }, function(input)
                         if not input then
                             return
                         end
@@ -450,7 +450,7 @@ function M.history()
         local function get_description(command)
             return command.description
         end
-        select(history[root], { prompt = 'Pick command to run again', format_item = get_description }, function(command)
+        select(history[root], { prompt = 'Pick command to run again:', format_item = get_description }, function(command)
             if command.type == 'simple' then
                 save_and_run_simple_command(root, command.args)
             elseif command.type == 'debug' then
@@ -514,7 +514,7 @@ function M.set_profile()
         table.insert(profiles, 2, 'unset')
 
         select(profiles, {
-            prompt = string.format('Select profile (Current: %s)', profiles_by_root[root] or 'no profile'),
+            prompt = string.format('Select profile (Current: %s):', profiles_by_root[root] or 'no profile'),
             format_item = function(item)
                 if item == '' then
                     return string.format('Default (%s)', default_profile or 'no profile')
@@ -552,7 +552,7 @@ function M.jump_to_target()
         local filepath = assert(get_filepath())
         local root = assert(get_repo_root(filepath))
         local labels = assert(query.whatinputs(root, filepath))
-        select_if_many(labels, { prompt = 'Select target to jump to' }, function(label)
+        select_if_many(labels, { prompt = 'Select target to jump to:' }, function(label)
             local target = assert(parsing.locate_build_target(root, label))
             logging.debug('opening %s at %s', target.file, vim.inspect(target.position))
             vim.cmd('edit ' .. target.file)
@@ -591,7 +591,7 @@ function M.look_up_target()
             return
         end
 
-        vim.ui.input({ prompt = 'Enter target to look up' }, function(label)
+        vim.ui.input({ prompt = 'Enter target to look up: ' }, function(label)
             if not label then
                 return
             end
@@ -617,7 +617,7 @@ function M.yank()
             labels = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(labels, { prompt = 'Select build label to yank' }, function(label)
+        select_if_many(labels, { prompt = 'Select build label to yank:' }, function(label)
             local registers = { '"', '*' }
             for _, register in ipairs(registers) do
                 logging.debug('setting %s register to %s', register, label)
