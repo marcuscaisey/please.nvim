@@ -1,6 +1,6 @@
 module github.com/marcuscaisey/please.nvim
 
-go 1.21.4
+go 1.26.1
 
 require (
 	github.com/go-delve/delve v1.21.2

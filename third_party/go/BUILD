@@ -2,7 +2,7 @@ subinclude("///go//build_defs:go")
 
 go_toolchain(
     name = "toolchain",
-    version = "1.21.4",
+    version = "1.26.1",
 )
 
 go_repo(
