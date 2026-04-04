@@ -2,10 +2,9 @@ module github.com/marcuscaisey/please.nvim
 
 go 1.26.1
 
-require (
-	github.com/go-delve/delve v1.21.2
-	github.com/stretchr/testify v1.8.4
-)
+require github.com/stretchr/testify v1.8.4
+
+tool github.com/go-delve/delve/cmd/dlv
 
 require (
 	github.com/cilium/ebpf v0.11.0 // indirect
@@ -13,6 +12,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/derekparker/trie v0.0.0-20221213183930-4c74548207f4 // indirect
+	github.com/go-delve/delve v1.21.2 // indirect
 	github.com/go-delve/liner v1.2.3-0.20220127212407-d32d89dd2a5d // indirect
 	github.com/google/go-dap v0.9.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
