@@ -232,59 +232,50 @@ function M.launchers.go(root, label, extra_args)
     return true
 end
 
-local function target_debug_directory(root, label)
-    local pkg = label:match('//(.+):.+')
-    return vim.fs.joinpath(root, 'plz-out/debug', pkg)
-end
-
 function M.launchers.python(root, label, extra_args)
     logging.log_call('launch_debugpy')
 
     setup()
 
-    local relative_sandbox_location = '.cache/pex/pex-debug'
-    local local_explode_location = vim.fs.joinpath(target_debug_directory(root, label), relative_sandbox_location)
-    local sandbox_explode_location = vim.fs.joinpath('/tmp/plz_sandbox', relative_sandbox_location)
-
-    local pathMappings
-
-    local function is_target_sandboxed()
+    local target_pkg = label:match('^//([^:]+):?.*$')
+    local local_runtime_dir = vim.fs.joinpath(root, 'plz-out/debug', target_pkg)
+    local remote_runtime_dir = local_runtime_dir
+    if vim.uv.os_uname().sysname == 'Linux' then
         local target_sandboxed, err = query.is_target_sandboxed(root, label)
-        assert(not err, err)
-        return target_sandboxed
+        if target_sandboxed == nil then
+            return false, ('launching debugpy: %s'):format(err)
+        end
+        if target_sandboxed then
+            remote_runtime_dir = '/tmp/plz_sandbox'
+        end
     end
 
-    if (vim.uv.os_uname().sysname == 'Linux') and is_target_sandboxed() then
-        pathMappings = {
-            {
-                localRoot = vim.fs.joinpath(local_explode_location, '.bootstrap'),
-                remoteRoot = vim.fs.joinpath(sandbox_explode_location, '.bootstrap'),
-            },
-            {
-                localRoot = vim.fs.joinpath(local_explode_location, 'third_party'),
-                remoteRoot = vim.fs.joinpath(sandbox_explode_location, 'third_party'),
-            },
-            {
-                localRoot = root,
-                remoteRoot = sandbox_explode_location,
-            },
-        }
-    else
-        pathMappings = {
-            {
-                localRoot = vim.fs.joinpath(local_explode_location, '.bootstrap'),
-                remoteRoot = vim.fs.joinpath(local_explode_location, '.bootstrap'),
-            },
-            {
-                localRoot = vim.fs.joinpath(local_explode_location, 'third_party'),
-                remoteRoot = vim.fs.joinpath(local_explode_location, 'third_party'),
-            },
-            {
-                localRoot = root,
-                remoteRoot = local_explode_location,
-            },
-        }
+    local pex_explode_dir = '.cache/pex/pex-debug'
+    local local_pex_explode_dir = vim.fs.joinpath(local_runtime_dir, pex_explode_dir)
+    local remote_pex_explode_dir = vim.fs.joinpath(remote_runtime_dir, pex_explode_dir)
+    local target_out, err = query.print_field(root, label, 'outs')
+    if not target_out then
+        return false, ('launching debugpy: %s'):format(err)
     end
+
+    local path_mappings = {
+        {
+            remoteRoot = vim.fs.joinpath(remote_pex_explode_dir, '.bootstrap'),
+            localRoot = vim.fs.joinpath(local_pex_explode_dir, '.bootstrap'),
+        },
+        {
+            remoteRoot = vim.fs.joinpath(remote_pex_explode_dir, 'third_party'),
+            localRoot = vim.fs.joinpath(local_pex_explode_dir, 'third_party'),
+        },
+        {
+            remoteRoot = remote_pex_explode_dir,
+            localRoot = root,
+        },
+        {
+            remoteRoot = vim.fs.joinpath(remote_runtime_dir, target_out, '__main__.py'),
+            localRoot = vim.fs.joinpath(local_pex_explode_dir, '__main__.py'),
+        },
+    }
 
     extra_args = { '-o=plugin.python.debugger:debugpy', unpack(extra_args) }
     dap.run({
@@ -292,7 +283,7 @@ function M.launchers.python(root, label, extra_args)
         name = 'Launch plz debug with debugpy',
         request = 'attach',
         mode = 'remote',
-        pathMappings = pathMappings,
+        pathMappings = path_mappings,
         justMyCode = false,
         root = root,
         label = label,
