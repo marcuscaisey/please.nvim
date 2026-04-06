@@ -48,7 +48,7 @@ function it(name, block)
     end)
 end
 
-describe('locate_build_target', function()
+describe('locate_target', function()
     local test_cases = {
         {
             name = 'should return location of target in the root of the repo',
@@ -62,7 +62,7 @@ describe('locate_build_target', function()
                 ]],
                 'foo.txt',
             },
-            label = '//:foo',
+            target = '//:foo',
             expected_file = 'BUILD',
             expected_position = { 1, 0 },
         },
@@ -80,7 +80,7 @@ describe('locate_build_target', function()
                     'bar.txt',
                 },
             },
-            label = '//foo:bar',
+            target = '//foo:bar',
             expected_file = 'foo/BUILD',
             expected_position = { 1, 0 },
         },
@@ -96,7 +96,7 @@ describe('locate_build_target', function()
                 ]],
                 'foo.txt',
             },
-            label = '//:foo',
+            target = '//:foo',
             expected_file = 'BUILD.plz',
             expected_position = { 1, 0 },
         },
@@ -113,7 +113,7 @@ describe('locate_build_target', function()
                 ]],
                 'foo.txt',
             },
-            label = '//:foo',
+            target = '//:foo',
             expected_file = 'BUILD.plz',
             expected_position = { 1, 0 },
         },
@@ -129,7 +129,7 @@ describe('locate_build_target', function()
                 ]],
                 'foo.txt',
             },
-            label = '//:foo',
+            target = '//:foo',
         },
         {
             name = 'should return location of target in the middle of a BUILD file',
@@ -149,7 +149,7 @@ describe('locate_build_target', function()
                 'foo1.txt',
                 'foo2.txt',
             },
-            label = '//:foo2',
+            target = '//:foo2',
             expected_position = { 6, 0 },
         },
         {
@@ -164,7 +164,7 @@ describe('locate_build_target', function()
                 ]],
                 'foo.txt',
             },
-            label = '//:foo',
+            target = '//:foo',
             expected_position = { 1, 2 },
         },
         {
@@ -179,11 +179,11 @@ describe('locate_build_target', function()
                 ]],
                 'foo.txt',
             },
-            label = '//:foo',
+            target = '//:foo',
             expected_position = { 1, 0 },
         },
         {
-            name = 'should return location of target with shortened label',
+            name = 'should return location of target with shortened build label',
             tree = {
                 '.plzconfig',
                 ['bar/'] = {
@@ -202,7 +202,7 @@ describe('locate_build_target', function()
                     'bar.txt',
                 },
             },
-            label = '//bar',
+            target = '//bar',
             expected_file = 'bar/BUILD',
             expected_position = { 6, 0 },
         },
@@ -212,19 +212,19 @@ describe('locate_build_target', function()
                 '.plzconfig',
                 'no_targets/',
             },
-            label = '//no_targets:target',
+            target = '//no_targets:target',
             expected_err = 'no build file exists for package "no_targets"',
         },
         {
             name = 'should return error if pkg path does not exist',
             tree = { '.plzconfig' },
-            label = '//does/not/exist:target',
+            target = '//does/not/exist:target',
             expected_err = 'no build file exists for package "does/not/exist"',
         },
         {
-            name = 'should return error if label is not a valid',
+            name = 'should return error if target is not a valid build label',
             tree = { '.plzconfig' },
-            label = 'foo',
+            target = 'foo',
             expected_err = '"foo" is not a valid build label',
         },
     }
@@ -233,7 +233,7 @@ describe('locate_build_target', function()
         it(case.name, function()
             local root = temptree.create(case.tree)
 
-            local target, err = parsing.locate_build_target(root, case.label)
+            local target, err = parsing.locate_target(root, case.target)
 
             if case.expected_file then
                 assert.equal(root .. '/' .. case.expected_file, target and target.file, 'incorrect file')
@@ -1295,8 +1295,8 @@ describe('get_target_at_cursor', function()
 
         local target, err = parsing.get_target_at_cursor(root)
 
-        if case.expected_label then
-            assert.equal(case.expected_label, target and target.label, 'incorrect label')
+        if case.expected_build_label then
+            assert.equal(case.expected_build_label, target and target.build_label, 'incorrect build label')
         end
         if case.expected_rule then
             assert.equal(case.expected_rule, target and target.rule, 'incorrect rule')
@@ -1311,7 +1311,7 @@ describe('get_target_at_cursor', function()
         end
     end
 
-    describe('should return label and rule of target when cursor is inside build target definition', function()
+    describe('should return build label and rule of target when cursor is inside build target definition', function()
         local tree = {
             BUILD = [[
                 export_file(
@@ -1342,14 +1342,14 @@ describe('get_target_at_cursor', function()
                     tree = tree,
                     file = 'BUILD',
                     cursor_position = case.cursor_position,
-                    expected_label = '//:foo',
+                    expected_build_label = '//:foo',
                     expected_rule = 'export_file',
                 })
             end)
         end
     end)
 
-    it('should return label of target in BUILD file in child dir of root', function()
+    it('should return build label of target in BUILD file in child dir of root', function()
         local tree = {
             ['pkg/'] = {
                 BUILD = [[
@@ -1365,11 +1365,11 @@ describe('get_target_at_cursor', function()
             tree = tree,
             file = 'pkg/BUILD',
             cursor_position = { 2, 0 },
-            expected_label = '//pkg:foo',
+            expected_build_label = '//pkg:foo',
         })
     end)
 
-    it('should return label and rule when there are multiple build targets in the BUILD file', function()
+    it('should return build label and rule when there are multiple build targets in the BUILD file', function()
         run_test({
             tree = {
                 BUILD = [[
@@ -1386,12 +1386,12 @@ describe('get_target_at_cursor', function()
             },
             file = 'BUILD',
             cursor_position = { 7, 3 },
-            expected_label = '//:foo2',
+            expected_build_label = '//:foo2',
             expected_rule = 'export_file',
         })
     end)
 
-    it('should return label when rule uses single quotes', function()
+    it('should return build label when rule uses single quotes', function()
         run_test({
             tree = {
                 BUILD = [[
@@ -1403,11 +1403,11 @@ describe('get_target_at_cursor', function()
             },
             file = 'BUILD',
             cursor_position = { 1, 0 },
-            expected_label = '//:foo',
+            expected_build_label = '//:foo',
         })
     end)
 
-    it('should return shortened label when target name matches directory', function()
+    it('should return shortened build label when target name matches directory', function()
         run_test({
             tree = {
                 '.plzconfig',
@@ -1429,7 +1429,7 @@ describe('get_target_at_cursor', function()
             },
             file = 'bar/BUILD',
             cursor_position = { 6, 0 },
-            expected_label = '//bar',
+            expected_build_label = '//bar',
         })
     end)
 
@@ -1477,13 +1477,13 @@ describe('get_target_at_cursor', function()
     end)
 end)
 
-describe('get_label_at_cursor', function()
+describe('get_build_label_at_cursor', function()
     ---@class TestCase
     ---@field name string
     ---@field file string
     ---@field position integer[]
     ---@field expected_cursor_value string
-    ---@field expected_label string?
+    ---@field expected_build_label string?
 
     ---@param test_case TestCase
     local function run_test(test_case)
@@ -1506,19 +1506,19 @@ describe('get_label_at_cursor', function()
             assert.equal(test_case.expected_cursor_value, actual_cursor_value, 'incorrect cursor value')
         end
 
-        local actual_label = parsing.get_label_at_cursor()
+        local actual_build_label = parsing.get_build_label_at_cursor()
 
-        if test_case.expected_label then
-            assert.equal(test_case.expected_label, actual_label, 'incorrect label')
+        if test_case.expected_build_label then
+            assert.equal(test_case.expected_build_label, actual_build_label, 'incorrect build label')
         else
-            assert.is_nil(actual_label, 'expected no label')
+            assert.is_nil(actual_build_label, 'expected no build label')
         end
     end
 
     ---@type TestCase[]
     local test_cases = {
         {
-            name = 'no label returned when cursor on line before label',
+            name = 'no build label returned when cursor on line before build label',
             file = [[
                 line before
                 ^
@@ -1527,10 +1527,10 @@ describe('get_label_at_cursor', function()
             ]],
             position = { 1, 0 },
             expected_cursor_value = 'l',
-            expected_label = nil,
+            expected_build_label = nil,
         },
         {
-            name = 'no label returned when cursor just before label',
+            name = 'no build label returned when cursor just before build label',
             file = [[
                 line before
                 before //foo/bar:baz after
@@ -1539,10 +1539,10 @@ describe('get_label_at_cursor', function()
             ]],
             position = { 2, 6 },
             expected_cursor_value = ' ',
-            expected_label = nil,
+            expected_build_label = nil,
         },
         {
-            name = 'label returned when cursor at start of label',
+            name = 'build label returned when cursor at start of build label',
             file = [[
                 line before
                 before //foo/bar:baz after
@@ -1551,10 +1551,10 @@ describe('get_label_at_cursor', function()
             ]],
             position = { 2, 7 },
             expected_cursor_value = '/',
-            expected_label = '//foo/bar:baz',
+            expected_build_label = '//foo/bar:baz',
         },
         {
-            name = 'label returned when cursor in middle of label',
+            name = 'build label returned when cursor in middle of build label',
             file = [[
                 line before
                 before //foo/bar:baz after
@@ -1563,10 +1563,10 @@ describe('get_label_at_cursor', function()
             ]],
             position = { 2, 15 },
             expected_cursor_value = 'r',
-            expected_label = '//foo/bar:baz',
+            expected_build_label = '//foo/bar:baz',
         },
         {
-            name = 'label returned when cursor at end of label',
+            name = 'build label returned when cursor at end of build label',
             file = [[
                 line before
                 before //foo/bar:baz after
@@ -1575,10 +1575,10 @@ describe('get_label_at_cursor', function()
             ]],
             position = { 2, 19 },
             expected_cursor_value = 'z',
-            expected_label = '//foo/bar:baz',
+            expected_build_label = '//foo/bar:baz',
         },
         {
-            name = 'no label returned when cursor just after label',
+            name = 'no build label returned when cursor just after build label',
             file = [[
                 line before
                 before //foo/bar:baz after
@@ -1587,10 +1587,10 @@ describe('get_label_at_cursor', function()
             ]],
             position = { 2, 20 },
             expected_cursor_value = ' ',
-            expected_label = nil,
+            expected_build_label = nil,
         },
         {
-            name = 'no label returned when cursor on line after label',
+            name = 'no build label returned when cursor on line after build label',
             file = [[
                 line before
                 before //foo/bar:baz after
@@ -1599,49 +1599,49 @@ describe('get_label_at_cursor', function()
             ]],
             position = { 3, 0 },
             expected_cursor_value = 'l',
-            expected_label = nil,
+            expected_build_label = nil,
         },
         {
-            name = 'label returned when cursor on first of three labels',
+            name = 'build label returned when cursor on first of three build labels',
             file = '//a/b:c //d/e:f //g/h:i',
             position = { 1, 2 },
             expected_cursor_value = 'a',
-            expected_label = '//a/b:c',
+            expected_build_label = '//a/b:c',
         },
         {
-            name = 'label returned when cursor on second of three labels',
+            name = 'build label returned when cursor on second of three build labels',
             file = '//a/b:c //d/e:f //g/h:i',
             position = { 1, 10 },
             expected_cursor_value = 'd',
-            expected_label = '//d/e:f',
+            expected_build_label = '//d/e:f',
         },
         {
-            name = 'label returned when cursor on third of three labels',
+            name = 'build label returned when cursor on third of three build labels',
             file = '//a/b:c //d/e:f //g/h:i',
             position = { 1, 18 },
             expected_cursor_value = 'g',
-            expected_label = '//g/h:i',
+            expected_build_label = '//g/h:i',
         },
         {
-            name = 'label returned when label has no package',
+            name = 'build label returned when build label has no package',
             file = '//:foo',
             position = { 1, 2 },
             expected_cursor_value = ':',
-            expected_label = '//:foo',
+            expected_build_label = '//:foo',
         },
         {
-            name = 'label returned when label has one directory in package',
+            name = 'build label returned when build label has one directory in package',
             file = '//foo:bar',
             position = { 1, 5 },
             expected_cursor_value = ':',
-            expected_label = '//foo:bar',
+            expected_build_label = '//foo:bar',
         },
         {
-            name = 'label returned when label is shortened',
+            name = 'build label returned when build label is shortened',
             file = '//foo',
             position = { 1, 2 },
             expected_cursor_value = 'f',
-            expected_label = '//foo',
+            expected_build_label = '//foo',
         },
     }
 

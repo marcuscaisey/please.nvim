@@ -94,23 +94,23 @@ end
 ---If the location of the target in the BUILD file can't be found (it might be dynamically created), then position will
 ---be {1, 0}.
 ---@param root string an absolute path to the repo root
----@param label string: a build label of the form //path/to/pkg:target or //path/to/pkg
+---@param target string: target's absolute build label
 ---@return {file: string, position: [number, number]}?
 ---@return string? errmsg
-function M.locate_build_target(root, label)
-    logging.log_call('parsing.locate_build_target')
+function M.locate_target(root, target)
+    logging.log_call('parsing.locate_target')
 
     check_parser_installed('please')
 
-    local pkg, name = label:match('^//([^:]*):([^/]+)$')
+    local pkg, name = target:match('^//([^:]*):([^/]+)$')
     if not pkg then
-        pkg = label:match('^//([^:]+)$')
+        pkg = target:match('^//([^:]+)$')
         if pkg then
             name = vim.fs.basename(pkg)
         end
     end
     if not pkg then
-        return nil, string.format('"%s" is not a valid build label', label)
+        return nil, string.format('"%s" is not a valid build label', target)
     end
     local pkg_path = vim.fs.joinpath(root, pkg)
     for _, build_file_name in ipairs(build_file_names) do
@@ -140,21 +140,21 @@ local function cursor_in_node_range(node)
     return vim.treesitter.is_in_node_range(node, pos[1] - 1, pos[2])
 end
 
-local function build_label(root, build_file, target)
+local function build_label(root, build_file, name)
     local dir = vim.fs.dirname(build_file)
     local normalized_root = vim.fs.normalize(root)
     local normalized_dir = vim.fs.normalize(dir)
     local pkg = normalized_dir:gsub('^' .. vim.pesc(normalized_root) .. '/?', '')
-    if target == vim.fs.basename(pkg) then
+    if name == vim.fs.basename(pkg) then
         return '//' .. pkg
     else
-        return string.format('//%s:%s', pkg, target)
+        return string.format('//%s:%s', pkg, name)
     end
 end
 
 ---Returns the build label and rule of the target under the cursor.
 ---@param root string: an absolute path to the repo root
----@return {label: string, rule: string}?
+---@return {build_label: string, rule: string}?
 ---@return string? errmsg
 function M.get_target_at_cursor(root)
     logging.log_call('parsing.get_target_at_cursor')
@@ -166,7 +166,7 @@ function M.get_target_at_cursor(root)
             local name = vim.treesitter.get_node_text(captures.name[1], 0):sub(2, -2) -- remove the quotes
             local rule = vim.treesitter.get_node_text(captures.rule[1], 0)
             local build_file = vim.api.nvim_buf_get_name(0)
-            return { label = build_label(root, build_file, name), rule = rule }
+            return { build_label = build_label(root, build_file, name), rule = rule }
         end
     end
 
@@ -175,8 +175,8 @@ end
 
 ---Returns the build label at the cursor if there is one, otherwise nil.
 ---@return string?
-function M.get_label_at_cursor()
-    logging.log_call('parsing.get_label_at_cursor')
+function M.get_build_label_at_cursor()
+    logging.log_call('parsing.get_build_label_at_cursor')
     local line = vim.fn.line('.') -- 1-based
     local col = vim.fn.col('.') -- 1-based
     local regex = vim.regex(

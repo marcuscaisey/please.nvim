@@ -23,7 +23,7 @@ local function plz_query(root, args)
     return vim.trim(res.stdout), nil
 end
 
----Wrapper around plz query whatinputs which returns the build labels of the targets which a file is an input for.
+---Wrapper around plz query whatinputs which returns the targets which a file is an input for.
 ---@param root string: absolute path to repo root
 ---@param filepath string: absolute path to file
 ---@return string[]?
@@ -36,29 +36,29 @@ function M.whatinputs(root, filepath)
         return nil, string.format('plz query whatinputs %s: %s', filepath, err)
     end
 
-    local labels = vim.split(output, '\n')
-    for i, label in ipairs(labels) do
-        local pkg, name = label:match('^//([^:]*):([^/]+)$')
+    local targets = vim.split(output, '\n')
+    for i, target in ipairs(targets) do
+        local pkg, name = target:match('^//([^:]*):([^/]+)$')
         if pkg and name and name == vim.fs.basename(pkg) then
-            labels[i] = label:gsub(':' .. name, '')
+            targets[i] = target:gsub(':' .. name, '')
         end
     end
 
-    return labels, nil
+    return targets, nil
 end
 
 ---Wrapper around plz query print which returns the value of the given field for the given target.
 ---@param root string: absolute path to the repo root
----@param label string: a build label
+---@param target string: target to query
 ---@param field string: field name
 ---@return string?
 ---@return string? errmsg
-function M.print_field(root, label, field)
+function M.print_field(root, target, field)
     logging.log_call('query.print')
 
-    local output, err = plz_query(root, { 'print', label, '--field', field })
+    local output, err = plz_query(root, { 'print', target, '--field', field })
     if not output then
-        return nil, string.format('plz query print %s --field %s: %s', label, field, err)
+        return nil, string.format('plz query print %s --field %s: %s', target, field, err)
     end
 
     return output
@@ -66,23 +66,23 @@ end
 
 ---Returns whether the given target should be run in a sandbox.
 ---@param root string: absolute path to the repo root
----@param label string: a build label
+---@param target string: target to query
 ---@return boolean?
 ---@return string? errmsg
-function M.is_target_sandboxed(root, label)
+function M.is_target_sandboxed(root, target)
     logging.log_call('query.is_target_sandboxed')
 
-    local test_value, err = M.print_field(root, label, 'test')
+    local test_value, err = M.print_field(root, target, 'test')
     if not test_value then
-        return nil, string.format('determining if %s is sandboxed: %s', label, err)
+        return nil, string.format('determining if %s is sandboxed: %s', target, err)
     end
 
     local target_is_test = test_value == 'True'
     local sandbox_field = target_is_test and 'test_sandbox' or 'sandbox'
 
-    local sandbox_value, err = M.print_field(root, label, sandbox_field)
+    local sandbox_value, err = M.print_field(root, target, sandbox_field)
     if not sandbox_value then
-        return nil, string.format('determining if %s is sandboxed: %s', label, err)
+        return nil, string.format('determining if %s is sandboxed: %s', target, err)
     end
 
     return sandbox_value == 'True'
@@ -106,15 +106,15 @@ end
 
 ---Wrapper around plz query output which returns the output of the given target.
 ---@param root string: absolute path to the repo root
----@param label string: build label of the target
+---@param target string: target to query
 ---@return string?
 ---@return string? errmsg
-function M.output(root, label)
+function M.output(root, target)
     logging.log_call('query.output')
 
-    local output, err = plz_query(root, { 'output', label })
+    local output, err = plz_query(root, { 'output', target })
     if err then
-        return nil, string.format('plz query output %s: %s', label, err)
+        return nil, string.format('plz query output %s: %s', target, err)
     end
 
     return output

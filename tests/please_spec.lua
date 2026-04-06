@@ -174,13 +174,13 @@ function DebugLauncherSpy:new(lang)
     local o = {
         _lang = lang,
         _root = nil,
-        _label = nil,
+        _target = nil,
         _extra_args = nil,
         _called = false,
     }
-    debug.launchers[lang] = function(root, label, extra_args)
+    debug.launchers[lang] = function(root, target, extra_args)
         o._root = root
-        o._label = label
+        o._target = target
         o._extra_args = extra_args
         o._called = true
         return true
@@ -188,10 +188,10 @@ function DebugLauncherSpy:new(lang)
     return setmetatable(o, self)
 end
 
-function DebugLauncherSpy:assert_called_with(root, label, extra_args)
+function DebugLauncherSpy:assert_called_with(root, target, extra_args)
     assert.is_true(self._called, ('%s debug launcher has not been called'):format(self._lang))
     assert.equal(root, self._root, ('incorrect root passed to %s debug launcher'):format(self._lang))
-    assert.equal(label, self._label, ('incorrect label passed to %s debug launcher'):format(self._lang))
+    assert.equal(target, self._target, ('incorrect target passed to %s debug launcher'):format(self._lang))
     assert.same(extra_args, self._extra_args, ('incorrect extra_args passed to %s debug launcher'):format(self._lang))
 end
 
@@ -1116,7 +1116,7 @@ describe('history', function()
         end
         -- WHEN we call history
         please.history()
-        -- THEN the commands to build each label are ordered from most to least recent
+        -- THEN the commands to build each target are ordered from most to least recent
         select_fake:assert_items({ 'plz build //:foo3', 'plz build //:foo2', 'plz build //:foo1' })
     end)
 
@@ -1354,19 +1354,19 @@ describe('yank', function()
     end
 
     describe('in source file', function()
-        it('should yank label of target which uses file as input', function()
+        it('should yank build label of target which uses file as input', function()
             local root = create_temp_tree()
 
             -- GIVEN we're editing a file
             vim.cmd('edit ' .. root .. '/foo2.txt')
             -- WHEN we call yank
             please.yank()
-            -- THEN the label of the target which the file is an input for is yanked into the " and * registers
+            -- THEN the build label of the target which the file is an input for is yanked into the " and * registers
             assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
             assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
         end)
 
-        it("should prompt user to choose which target's label to yank if there is more than one", function()
+        it("should prompt user to choose which target's build label to yank if there is more than one", function()
             local root = create_temp_tree()
             local select_fake = SelectFake:new()
 
@@ -1374,12 +1374,12 @@ describe('yank', function()
             vim.cmd('edit ' .. root .. '/foo1.txt')
             -- WHEN we call yank
             please.yank()
-            -- THEN we're prompted to choose which label to yank
+            -- THEN we're prompted to choose which build label to yank
             select_fake:assert_prompt('Select build label to yank:')
             select_fake:assert_items({ '//:foo1', '//:foo1_and_foo2' })
-            -- WHEN we select one of the labels
+            -- WHEN we select one of the build labels
             select_fake:choose_item('//:foo1_and_foo2')
-            -- THEN the label is yanked into the " and * registers
+            -- THEN the build label is yanked into the " and * registers
             assert.equal('//:foo1_and_foo2', vim.fn.getreg('"'), 'incorrect value in " register')
             assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
         end)
@@ -1394,7 +1394,7 @@ describe('yank', function()
             vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1
             -- WHEN we call yank
             please.yank()
-            -- THEN the target's label is yanked into the " and * register
+            -- THEN the target's build label is yanked into the " and * register
             local unnamed = vim.fn.getreg('"')
             local star = vim.fn.getreg('*')
             assert.equal('//:foo1', unnamed, 'incorrect value in " register')

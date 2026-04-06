@@ -21,7 +21,7 @@ local query = require('please.query')
 local plz = require('please.plz')
 
 local M = {
-    ---@type table<string, fun(root: string, label: string, extra_args: string[]): boolean, string?>
+    ---@type table<string, fun(root: string, target: string, extra_args: string[]): boolean, string?>
     launchers = {},
 }
 
@@ -38,7 +38,7 @@ end
 ---Wrapper around Configuration which adds our custom fields.
 ---@class DapConfiguration : Configuration
 ---@field root string The root of the plz repo.
----@field label string The label of the target to debug.
+---@field target string The target to debug.
 ---@field extra_args string[]? Any extra arguments to pass to plz debug.
 
 local setup_complete = false
@@ -57,7 +57,7 @@ local function setup()
         local port = get_free_port()
 
         local cmd =
-            { plz, '--repo_root', config.root, 'debug', '--port', port, config.label, unpack(config.extra_args or {}) }
+            { plz, '--repo_root', config.root, 'debug', '--port', port, config.target, unpack(config.extra_args or {}) }
 
         local function stdout(err, data)
             if err then
@@ -164,7 +164,7 @@ local function plz_goroot(root)
         )
 end
 
-function M.launchers.go(root, label, extra_args)
+function M.launchers.go(root, target, extra_args)
     logging.log_call('launch_delve')
 
     setup()
@@ -225,23 +225,23 @@ function M.launchers.go(root, label, extra_args)
         mode = 'remote',
         substitutePath = substitutePath,
         root = root,
-        label = label,
+        target = target,
         extra_args = extra_args,
     })
 
     return true
 end
 
-function M.launchers.python(root, label, extra_args)
+function M.launchers.python(root, target, extra_args)
     logging.log_call('launch_debugpy')
 
     setup()
 
-    local target_pkg = label:match('^//([^:]+):?.*$')
+    local target_pkg = target:match('^//([^:]+):?.*$')
     local local_runtime_dir = vim.fs.joinpath(root, 'plz-out/debug', target_pkg)
     local remote_runtime_dir = local_runtime_dir
     if vim.uv.os_uname().sysname == 'Linux' then
-        local target_sandboxed, err = query.is_target_sandboxed(root, label)
+        local target_sandboxed, err = query.is_target_sandboxed(root, target)
         if target_sandboxed == nil then
             return false, ('launching debugpy: %s'):format(err)
         end
@@ -253,7 +253,7 @@ function M.launchers.python(root, label, extra_args)
     local pex_explode_dir = '.cache/pex/pex-debug'
     local local_pex_explode_dir = vim.fs.joinpath(local_runtime_dir, pex_explode_dir)
     local remote_pex_explode_dir = vim.fs.joinpath(remote_runtime_dir, pex_explode_dir)
-    local target_out, err = query.print_field(root, label, 'outs')
+    local target_out, err = query.print_field(root, target, 'outs')
     if not target_out then
         return false, ('launching debugpy: %s'):format(err)
     end
@@ -286,7 +286,7 @@ function M.launchers.python(root, label, extra_args)
         pathMappings = path_mappings,
         justMyCode = false,
         root = root,
-        label = label,
+        target = target,
         extra_args = extra_args,
     })
 

@@ -111,7 +111,7 @@ end
 ---@class please.DebugCommand
 ---@field type 'debug'
 ---@field lang string
----@field label string
+---@field target string
 ---@field extra_args string[]
 ---@field description string
 
@@ -214,16 +214,16 @@ function M.build()
         local filepath = assert(get_filepath())
         local root = assert(get_repo_root(filepath))
 
-        local labels
+        local targets
         if vim.bo.filetype == 'please' then
             local target = assert(parsing.get_target_at_cursor(root))
-            labels = { target.label }
+            targets = { target.build_label }
         else
-            labels = assert(query.whatinputs(root, filepath))
+            targets = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(labels, { prompt = 'Select target to build:' }, function(label)
-            save_and_run_simple_command(root, { 'build', label })
+        select_if_many(targets, { prompt = 'Select target to build:' }, function(target)
+            save_and_run_simple_command(root, { 'build', target })
         end)
     end)
 end
@@ -237,15 +237,15 @@ function M.run()
         local filepath = assert(get_filepath())
         local root = assert(get_repo_root(filepath))
 
-        local labels
+        local targets
         if vim.bo.filetype == 'please' then
             local target = assert(parsing.get_target_at_cursor(root))
-            labels = { target.label }
+            targets = { target.build_label }
         else
-            labels = assert(query.whatinputs(root, filepath))
+            targets = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(labels, { prompt = 'Select target to run:' }, function(label)
+        select_if_many(targets, { prompt = 'Select target to run:' }, function(target)
             vim.ui.input({ prompt = 'Enter program arguments: ' }, function(input)
                 if not input then
                     return
@@ -256,7 +256,7 @@ function M.run()
                 if input ~= '' then
                     args = { '--', unpack(vim.split(input, ' ')) }
                 end
-                save_and_run_simple_command(root, { 'run', label, unpack(args) })
+                save_and_run_simple_command(root, { 'run', target, unpack(args) })
             end)
         end)
     end)
@@ -287,39 +287,39 @@ function M.test(opts)
         local filepath = assert(get_filepath())
         local root = assert(get_repo_root(filepath))
 
-        local labels = {} ---@type string[]
+        local targets = {} ---@type string[]
         local extra_args = {} ---@type string[]
         if opts.under_cursor then
             local test = assert(parsing.get_test_at_cursor())
             extra_args = { test.selector }
-            labels = assert(query.whatinputs(root, filepath))
+            targets = assert(query.whatinputs(root, filepath))
         elseif vim.bo.filetype == 'please' then
             local target = assert(parsing.get_target_at_cursor(root))
-            labels = { target.label }
+            targets = { target.build_label }
         else
-            labels = assert(query.whatinputs(root, filepath))
+            targets = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(labels, { prompt = 'Select target to test:' }, function(label)
-            save_and_run_simple_command(root, { 'test', label, unpack(extra_args) })
+        select_if_many(targets, { prompt = 'Select target to test:' }, function(targets)
+            save_and_run_simple_command(root, { 'test', targets, unpack(extra_args) })
         end)
     end)
 end
 
 ---@param root string
 ---@param lang string
----@param label string
+---@param target string
 ---@param extra_args string[]
-local function run_debug_command(root, lang, label, extra_args)
+local function run_debug_command(root, lang, target, extra_args)
     local launcher = debug.launchers[lang]
-    start_runner(root, { 'build', '--config', 'dbg', label }, {
+    start_runner(root, { 'build', '--config', 'dbg', target }, {
         on_exit = function(success, runner)
             if not success then
                 return
             end
             runner:minimise()
             logging.log_errors('Failed to debug', function()
-                assert(launcher(root, label, extra_args))
+                assert(launcher(root, target, extra_args))
             end)
         end,
     })
@@ -327,17 +327,17 @@ end
 
 ---@param root string
 ---@param lang string
----@param label string
+---@param target string
 ---@param extra_args string[]
-local function save_and_run_debug_command(root, lang, label, extra_args)
+local function save_and_run_debug_command(root, lang, target, extra_args)
     save_command(root, {
         type = 'debug',
         lang = lang,
-        label = label,
+        target = target,
         extra_args = extra_args,
-        description = table.concat({ 'plz', 'debug', label, unpack(extra_args) }, ' '),
+        description = table.concat({ 'plz', 'debug', target, unpack(extra_args) }, ' '),
     })
-    run_debug_command(root, lang, label, extra_args)
+    run_debug_command(root, lang, target, extra_args)
 end
 
 ---@class please.DebugOptions
@@ -367,20 +367,20 @@ function M.debug(opts)
         local filepath = assert(get_filepath())
         local root = assert(get_repo_root(filepath))
 
-        local labels = {} ---@type string[]
+        local targets = {} ---@type string[]
         local lang = '' ---@type string
         local extra_args = {} ---@type string[]
         if opts.under_cursor then
             local test = assert(parsing.get_test_at_cursor())
             extra_args = { test.selector }
-            labels = assert(query.whatinputs(root, filepath))
+            targets = assert(query.whatinputs(root, filepath))
             lang = vim.bo.filetype
         elseif vim.bo.filetype == 'please' then
             local target = assert(parsing.get_target_at_cursor(root))
-            labels = { target.label }
+            targets = { target.build_label }
             lang = target.rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
         else
-            labels = assert(query.whatinputs(root, filepath))
+            targets = assert(query.whatinputs(root, filepath))
             lang = vim.bo.filetype
         end
 
@@ -388,11 +388,11 @@ function M.debug(opts)
             error(string.format('debugging is not supported for %s files', lang))
         end
 
-        select_if_many(labels, { prompt = 'Select target to debug:' }, function(label)
+        select_if_many(targets, { prompt = 'Select target to debug:' }, function(target)
             logging.log_errors('Failed to debug', function()
-                local is_test = assert(query.print_field(root, label, 'test')) == 'True'
+                local is_test = assert(query.print_field(root, target, 'test')) == 'True'
                 if is_test then
-                    save_and_run_debug_command(root, lang, label, extra_args)
+                    save_and_run_debug_command(root, lang, target, extra_args)
                 else
                     vim.ui.input({ prompt = 'Enter program arguments: ' }, function(input)
                         if not input then
@@ -403,7 +403,7 @@ function M.debug(opts)
                         if input ~= '' then
                             extra_args = { '--', unpack(vim.split(input, ' ')) }
                         end
-                        save_and_run_debug_command(root, lang, label, extra_args)
+                        save_and_run_debug_command(root, lang, target, extra_args)
                     end)
                 end
             end)
@@ -457,7 +457,7 @@ function M.history()
                 if command.type == 'simple' then
                     save_and_run_simple_command(root, command.args)
                 elseif command.type == 'debug' then
-                    save_and_run_debug_command(root, command.lang, command.label, command.extra_args)
+                    save_and_run_debug_command(root, command.lang, command.target, command.extra_args)
                 else
                     error('unknown command type: ' .. vim.inspect(command))
                 end
@@ -555,9 +555,9 @@ function M.jump_to_target()
     logging.log_errors('Failed to jump to target', function()
         local filepath = assert(get_filepath())
         local root = assert(get_repo_root(filepath))
-        local labels = assert(query.whatinputs(root, filepath))
-        select_if_many(labels, { prompt = 'Select target to jump to:' }, function(label)
-            local target = assert(parsing.locate_build_target(root, label))
+        local targets = assert(query.whatinputs(root, filepath))
+        select_if_many(targets, { prompt = 'Select target to jump to:' }, function(target)
+            local target = assert(parsing.locate_target(root, target))
             logging.debug('opening %s at %s', target.file, vim.inspect(target.position))
             vim.cmd('edit ' .. target.file)
             vim.api.nvim_win_set_cursor(0, target.position)
@@ -577,9 +577,9 @@ function M.look_up_target()
         local path = get_filepath() or assert(vim.uv.cwd())
         local root = assert(get_repo_root(path))
 
-        ---@param label string
-        local function look_up_target(label)
-            local target, errmsg = parsing.locate_build_target(root, label)
+        ---@param target string
+        local function look_up_target(target)
+            local target, errmsg = parsing.locate_target(root, target)
             if not target then
                 logging.error('Failed to look up target: %s', errmsg)
                 return
@@ -589,17 +589,17 @@ function M.look_up_target()
             vim.api.nvim_win_set_cursor(0, target.position)
         end
 
-        local label_at_cursor = parsing.get_label_at_cursor()
-        if label_at_cursor then
-            look_up_target(label_at_cursor)
+        local build_label_at_cursor = parsing.get_build_label_at_cursor()
+        if build_label_at_cursor then
+            look_up_target(build_label_at_cursor)
             return
         end
 
-        vim.ui.input({ prompt = 'Enter target to look up: ' }, function(label)
-            if not label then
+        vim.ui.input({ prompt = 'Enter target to look up: ' }, function(target)
+            if not target then
                 return
             end
-            look_up_target(vim.trim(label))
+            look_up_target(vim.trim(target))
         end)
     end)
 end
@@ -613,21 +613,21 @@ function M.yank()
         local filepath = assert(get_filepath())
         local root = assert(get_repo_root(filepath))
 
-        local labels = {}
+        local targets = {}
         if vim.bo.filetype == 'please' then
             local target = assert(parsing.get_target_at_cursor(root))
-            labels = { target.label }
+            targets = { target.build_label }
         else
-            labels = assert(query.whatinputs(root, filepath))
+            targets = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(labels, { prompt = 'Select build label to yank:' }, function(label)
+        select_if_many(targets, { prompt = 'Select build label to yank:' }, function(target)
             local registers = { '"', '*' }
             for _, register in ipairs(registers) do
-                logging.debug('setting %s register to %s', register, label)
-                vim.fn.setreg(register, label)
+                logging.debug('setting %s register to %s', register, target)
+                vim.fn.setreg(register, target)
             end
-            logging.info('yanked %s', label)
+            logging.info('yanked %s', target)
         end)
     end)
 end
