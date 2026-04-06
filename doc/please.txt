@@ -125,8 +125,10 @@ command to get you started.
 Lua module: please                                                    *please*
 
 setup({opts})                                                 *please.setup()*
-    Updates the configuration with the provided {opts}. Should only be called
-    if you want to change the defaults which are shown below.
+    Updates the configuration with the provided {opts}.
+
+    Should only be called if you want to change the defaults which are shown
+    below.
 
     Example: >lua
         local please = require('please')
@@ -141,16 +143,22 @@ setup({opts})                                                 *please.setup()*
                   history items to store for each repository.
 
 build()                                                       *please.build()*
+    Builds a target.
+
     If the current file is a `BUILD` file, builds the target which is under
     the cursor. Otherwise, builds the target which takes the current file as
     an input.
 
 run()                                                           *please.run()*
+    Runs a target.
+
     If the current file is a `BUILD` file, runs the target which is under the
     cursor. Otherwise, runs the target which takes the current file as an
     input.
 
 test({opts})                                                   *please.test()*
+    Tests a target.
+
     If the current file is a `BUILD` file, tests the target which is under the
     cursor. Otherwise, tests the target which takes the current file as an
     input.
@@ -166,6 +174,8 @@ test({opts})                                                   *please.test()*
                 • {under_cursor} (`boolean`) run the test under the cursor
 
 debug({opts})                                                 *please.debug()*
+    Debugs a target.
+
     If the current file is a `BUILD` file, debugs the target which is under
     the cursor. Otherwise, debugs the target which takes the current file as
     an input.
@@ -203,9 +213,10 @@ clear_history()                                       *please.clear_history()*
 
 set_profile()                                           *please.set_profile()*
     Sets the profile used by |please.build()|, |please.run()|,
-    |please.test()|, |please.debug()|, and |please.command()|. Profiles are
-    searched for in `/etc/please`, `~/.config/please`, and the current
-    repository.
+    |please.test()|, |please.debug()|, and |please.command()|.
+
+    Profiles are searched for in `/etc/please`, `~/.config/please`, and the
+    current repository.
 
 maximise_popup()                                     *please.maximise_popup()*
     Maximises the popup which was most recently quit or minimised.
@@ -219,23 +230,27 @@ jump_to_target()                                     *please.jump_to_target()*
     are generated when the `BUILD` file is executed.
 
 look_up_target()                                     *please.look_up_target()*
-    Looks up a target by its build label and jumps to its location. If the
-    cursor is already on a build label, then this is used. Otherwise, you'll
-    be prompted for one.
+    Looks up a target by its build label and jumps to its location.
+
+    If the cursor is already on a build label, then this is used. Otherwise,
+    you'll be prompted for one.
 
     The cursor is moved to where the target is created if it can be found
     which should be the case for all targets except for those with names which
     are generated when the `BUILD` file is executed.
 
 yank()                                                         *please.yank()*
+    Yanks a target's build label.
+
     If the current file is a `BUILD` file, yanks the build label of the target
     which is under the cursor. Otherwise, yanks the build label of the target
     which takes the current file as an input.
 
 toggle_debug_logging()                         *please.toggle_debug_logging()*
-    Toggles debug logging. The debug logs mostly contain which functions are
-    being called with which arguments. This should provide enough information
-    to debug most issues.
+    Toggles debug logging.
+
+    The debug logs mostly contain which functions are being called with which
+    arguments. This should provide enough information to debug most issues.
 
 
  vim:tw=78:ts=8:sw=4:sts=4:et:ft=help:norl:

@@ -34,8 +34,9 @@ local config = {
 ---@class please.Opts
 ---@field max_history_items integer? The maximum number of history items to store for each repository.
 
----Updates the configuration with the provided {opts}. Should only be called if you want to change the defaults which
----are shown below.
+---Updates the configuration with the provided {opts}.
+---
+---Should only be called if you want to change the defaults which are shown below.
 ---
 ---Example:
 ---```lua
@@ -205,6 +206,8 @@ local function get_repo_root(path)
     return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
 end
 
+---Builds a target.
+---
 ---If the current file is a `BUILD` file, builds the target which is under the cursor. Otherwise, builds the target
 ---which takes the current file as an input.
 function M.build()
@@ -228,6 +231,8 @@ function M.build()
     end)
 end
 
+---Runs a target.
+---
 ---If the current file is a `BUILD` file, runs the target which is under the cursor. Otherwise, runs the target which
 ---takes the current file as an input.
 function M.run()
@@ -266,6 +271,8 @@ end
 ---@inlinedoc
 ---@field under_cursor boolean run the test under the cursor
 
+---Tests a target.
+---
 ---If the current file is a `BUILD` file, tests the target which is under the cursor. Otherwise, tests the target which
 ---takes the current file as an input.
 ---
@@ -344,6 +351,8 @@ end
 ---@inlinedoc
 ---@field under_cursor boolean debug the test under the cursor
 
+---Debugs a target.
+---
 ---If the current file is a `BUILD` file, debugs the target which is under the cursor. Otherwise, debugs the target
 ---which takes the current file as an input.
 ---
@@ -485,6 +494,7 @@ function M.clear_history()
 end
 
 ---Sets the profile used by [please.build()], [please.run()], [please.test()], [please.debug()], and [please.command()].
+---
 ---Profiles are searched for in `/etc/please`, `~/.config/please`, and the current repository.
 function M.set_profile()
     logging.log_call('please.set_profile')
@@ -565,8 +575,9 @@ function M.jump_to_target()
     end)
 end
 
----Looks up a target by its build label and jumps to its location. If the cursor is already on a build label, then this
----is used. Otherwise, you'll be prompted for one.
+---Looks up a target by its build label and jumps to its location.
+---
+---If the cursor is already on a build label, then this is used. Otherwise, you'll be prompted for one.
 ---
 ---The cursor is moved to where the target is created if it can be found which should be the case for all targets except
 ---for those with names which are generated when the `BUILD` file is executed.
@@ -604,6 +615,8 @@ function M.look_up_target()
     end)
 end
 
+---Yanks a target's build label.
+---
 ---If the current file is a `BUILD` file, yanks the build label of the target which is under the cursor. Otherwise,
 ---yanks the build label of the target which takes the current file as an input.
 function M.yank()
@@ -632,8 +645,10 @@ function M.yank()
     end)
 end
 
----Toggles debug logging. The debug logs mostly contain which functions are being called with which arguments. This
----should provide enough information to debug most issues.
+---Toggles debug logging.
+---
+---The debug logs mostly contain which functions are being called with which arguments. This should provide enough
+---information to debug most issues.
 function M.toggle_debug_logging()
     local enabled = logging.toggle_debug()
     if enabled then
