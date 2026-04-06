@@ -12,15 +12,15 @@ vim.cmd.highlight(banner_help_hl_group .. ' guifg=Pink')
 
 ---A Please command runner that displays its output in a floating window.
 ---@class please.runner.Runner
----@field private _bufnr integer
----@field private _winid integer
----@field private _augroup integer
----@field private _stopped boolean
----@field private _job_id integer
----@field private _job_exited boolean
----@field private _on_exit fun(success:boolean, runner:please.runner.Runner)?
----@field private _minimised boolean
----@field private _prev_cursor_position integer[]
+---@field package _bufnr integer
+---@field package _winid integer
+---@field package _augroup integer
+---@field package _stopped boolean
+---@field package _job_id integer
+---@field package _job_exited boolean
+---@field package _on_exit fun(success:boolean, runner:please.runner.Runner)?
+---@field package _minimised boolean
+---@field package _prev_cursor_position integer[]
 local Runner = {}
 Runner.__index = Runner
 M.Runner = Runner
@@ -168,9 +168,7 @@ function Runner.start(root, args, opts)
         end,
         ---@param code integer
         on_exit = function(_, code, _)
-            ---@diagnostic disable-next-line: invisible
             runner._job_exited = true
-            ---@diagnostic disable-next-line: invisible
             if runner._minimised and not runner._stopped then
                 logging.info('%s exited with code %d', cmd_string, code)
             end
@@ -182,12 +180,8 @@ function Runner.start(root, args, opts)
                 colour = '${RED}'
             end
             print_to_term(format('\n' .. colour .. 'Exited with code %d', code))
-            ---@diagnostic disable-next-line: invisible
             if runner._on_exit then
-                ---@diagnostic disable-next-line: invisible
                 vim.schedule(function()
-                    -- TODO: work out how to shut these diagnostics up
-                    ---@diagnostic disable-next-line: invisible
                     runner._on_exit(success, runner)
                 end)
             end
@@ -207,7 +201,6 @@ function Runner.start(root, args, opts)
     })
 
     vim.keymap.set('n', 'q', function()
-        ---@diagnostic disable-next-line: invisible
         runner:_stop()
         runner:minimise()
     end, { buffer = bufnr })
@@ -221,9 +214,7 @@ function Runner.start(root, args, opts)
         buffer = runner._bufnr,
         desc = 'Set minimised flag and save cursor position',
         callback = function()
-            ---@diagnostic disable-next-line: invisible
             runner._minimised = true
-            ---@diagnostic disable-next-line: invisible
             runner._prev_cursor_position = vim.api.nvim_win_get_cursor(0)
         end,
     })
@@ -268,7 +259,7 @@ function Runner:maximise()
     end
 end
 
----@private
+---@package
 ---Stops the command, closes the floating window, and cleans up created autocmds.
 function Runner:_destroy()
     self:_stop()
@@ -276,7 +267,7 @@ function Runner:_destroy()
     vim.api.nvim_del_augroup_by_id(self._augroup)
 end
 
----@private
+---@package
 ---Stops the command.
 function Runner:_stop()
     if not self._job_id then
