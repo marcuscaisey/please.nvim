@@ -1,0 +1,25 @@
+From f016fb15b2d0bd7dd5177ac2afa057145300e6cd Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Mon, 6 Apr 2026 19:35:21 +0100
+Subject: [PATCH 2/6] [gen_vimdoc.lua] output to doc instead of runtime/doc
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index d6323f2..b36f455 100644
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -1132,7 +1132,7 @@ local function gen_target(cfg)
+     fmt(' vim:tw=78:ts=8:sw=%d:sts=%d:et:ft=help:norl:\n', INDENTATION, INDENTATION)
+   )
+ 
+-  local doc_file = vim.fs.joinpath(base_dir, 'runtime', 'doc', cfg.filename)
++  local doc_file = vim.fs.joinpath('doc', cfg.filename)
+ 
+   if vim.uv.fs_stat(doc_file) then
+     delete_lines_below(doc_file, first_section_tag)
+-- 
+2.52.0
+

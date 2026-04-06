@@ -1,0 +1,27 @@
+From 60bc828b48796afcb643f23d9ca20435e07ee4dc Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Mon, 6 Apr 2026 19:34:33 +0100
+Subject: [PATCH 1/6] [gen_vimdoc.lua] fix imports
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index 890ec9e..d6323f2 100644
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -19,8 +19,8 @@
+ ---   parameter is marked as [out].
+ --- - Each function documentation is separated by a single line.
+ 
+-local luacats_parser = require('gen.luacats_parser')
+-local util = require('gen.util')
++local luacats_parser = require('tools.gen_vimdoc.luacats_parser')
++local util = require('tools.gen_vimdoc.util')
+ 
+ local fmt = string.format
+ 
+-- 
+2.52.0
+

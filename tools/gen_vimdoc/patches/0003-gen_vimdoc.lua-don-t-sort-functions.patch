@@ -1,0 +1,37 @@
+From 6396a5a13d1e1dcf8caec1350f796900c6d3316f Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Mon, 6 Apr 2026 19:35:57 +0100
+Subject: [PATCH 3/6] [gen_vimdoc.lua] don't sort functions
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 14 --------------
+ 1 file changed, 14 deletions(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index b36f455..6a5953d 100644
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -896,20 +896,6 @@ local function render_funs(funs, classes, cfg)
+     ret[#ret + 1] = render_fun(f, classes, cfg)
+   end
+ 
+-  -- Sort via prototype. Experimental API functions ("nvim__") sort last.
+-  table.sort(ret, function(a, b)
+-    local a1 = ('\n' .. a):match('\n[a-zA-Z_][^\n]+\n')
+-    local b1 = ('\n' .. b):match('\n[a-zA-Z_][^\n]+\n')
+-
+-    local a1__ = a1:find('^%s*nvim__') and 1 or 0
+-    local b1__ = b1:find('^%s*nvim__') and 1 or 0
+-    if a1__ ~= b1__ then
+-      return a1__ < b1__
+-    end
+-
+-    return a1:lower() < b1:lower()
+-  end)
+-
+   return table.concat(ret)
+ end
+ 
+-- 
+2.52.0
+

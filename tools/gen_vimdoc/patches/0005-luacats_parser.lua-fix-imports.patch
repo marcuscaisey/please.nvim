@@ -1,0 +1,22 @@
+From 479a7f11059e298b0ff3cf6fef9e63254c8db294 Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Mon, 6 Apr 2026 19:39:47 +0100
+Subject: [PATCH 5/6] [luacats_parser.lua] fix imports
+
+---
+ tools/gen_vimdoc/luacats_parser.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gen_vimdoc/luacats_parser.lua b/tools/gen_vimdoc/luacats_parser.lua
+index 98185d7..4420750 100644
+--- a/tools/gen_vimdoc/luacats_parser.lua
++++ b/tools/gen_vimdoc/luacats_parser.lua
+@@ -1,4 +1,4 @@
+-local luacats_grammar = require('gen.luacats_grammar')
++local luacats_grammar = require('tools.gen_vimdoc.luacats_grammar')
+ 
+ --- @class nvim.luacats.parser.param : nvim.luacats.Param
+ 
+-- 
+2.52.0
+

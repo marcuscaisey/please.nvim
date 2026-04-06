@@ -1,9 +1,6 @@
 local luacats_grammar = require('tools.gen_vimdoc.luacats_grammar')
 
---- @class nvim.luacats.parser.param
---- @field name string
---- @field type string
---- @field desc string
+--- @class nvim.luacats.parser.param : nvim.luacats.Param
 
 --- @class nvim.luacats.parser.return
 --- @field name string
@@ -25,6 +22,7 @@ local luacats_grammar = require('tools.gen_vimdoc.luacats_grammar')
 --- @class nvim.luacats.parser.fun
 --- @field name string
 --- @field params nvim.luacats.parser.param[]
+--- @field overloads string[]
 --- @field returns nvim.luacats.parser.return[]
 --- @field desc string
 --- @field access? 'private'|'package'|'protected'
@@ -33,6 +31,7 @@ local luacats_grammar = require('tools.gen_vimdoc.luacats_grammar')
 --- @field modvar? string
 --- @field classvar? string
 --- @field deprecated? true
+--- @field async? true
 --- @field since? string
 --- @field attrs? string[]
 --- @field nodoc? true
@@ -41,21 +40,14 @@ local luacats_grammar = require('tools.gen_vimdoc.luacats_grammar')
 --- @field notes? nvim.luacats.parser.note[]
 --- @field see? nvim.luacats.parser.note[]
 
---- @class nvim.luacats.parser.field
---- @field name string
---- @field type string
---- @field desc string
---- @field access? 'private'|'package'|'protected'
+--- @class nvim.luacats.parser.field : nvim.luacats.Field
+--- @field classvar? string
 --- @field nodoc? true
 
---- @class nvim.luacats.parser.class
---- @field kind 'class'
---- @field parent? string
---- @field name string
---- @field desc string
+--- @class nvim.luacats.parser.class : nvim.luacats.Class
+--- @field desc? string
 --- @field nodoc? true
 --- @field inlinedoc? true
---- @field access? 'private'|'package'|'protected'
 --- @field fields nvim.luacats.parser.field[]
 --- @field notes? string[]
 
@@ -157,6 +149,9 @@ local function process_doc_line(line, state)
     cur_obj.fields = {}
   elseif kind == 'field' then
     --- @cast parsed nvim.luacats.Field
+    if parsed.desc == '' then
+      parsed.desc = nil
+    end
     parsed.desc = parsed.desc or state.doc_lines and table.concat(state.doc_lines, '\n') or nil
     if parsed.desc then
       parsed.desc = vim.trim(parsed.desc)
@@ -231,6 +226,11 @@ local function process_doc_line(line, state)
   elseif kind == 'enum' then
     -- TODO
     state.doc_lines = nil
+  elseif kind == 'async' then
+    cur_obj.async = true
+  elseif kind == 'overload' then
+    cur_obj.overloads = cur_obj.overloads or {}
+    table.insert(cur_obj.overloads, parsed.type)
   elseif
     vim.tbl_contains({
       'diagnostic',
@@ -253,9 +253,12 @@ end
 --- @return nvim.luacats.parser.field
 local function fun2field(fun)
   local parts = { 'fun(' }
+
+  local params = {} ---@type string[]
   for _, p in ipairs(fun.params or {}) do
-    parts[#parts + 1] = string.format('%s: %s', p.name, p.type)
+    params[#params + 1] = string.format('%s: %s', p.name, p.type)
   end
+  parts[#parts + 1] = table.concat(params, ', ')
   parts[#parts + 1] = ')'
   if fun.returns then
     parts[#parts + 1] = ': '
@@ -267,11 +270,13 @@ local function fun2field(fun)
   end
 
   return {
+    kind = 'field',
     name = fun.name,
     type = table.concat(parts, ''),
     access = fun.access,
     desc = fun.desc,
     nodoc = fun.nodoc,
+    classvar = fun.classvar,
   }
 end
 
@@ -456,6 +461,7 @@ end
 --- @param filename string
 --- @param uncommitted nvim.luacats.parser.obj[]
 -- luacheck: no unused
+---@diagnostic disable-next-line: unused-function, unused-local
 local function dump_uncommitted(filename, uncommitted)
   local out_path = 'luacats-uncommited/' .. filename:gsub('/', '%%') .. '.txt'
   if #uncommitted > 0 then

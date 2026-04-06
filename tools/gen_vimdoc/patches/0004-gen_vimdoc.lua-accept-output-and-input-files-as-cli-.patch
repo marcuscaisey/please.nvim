@@ -1,0 +1,58 @@
+From 181a295219b447086defc62e5e36608b8c28282b Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Mon, 6 Apr 2026 19:37:28 +0100
+Subject: [PATCH 4/6] [gen_vimdoc.lua] accept output and input files as cli
+ args
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 32 ++++++++++++++++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index 6a5953d..6ce3fa6 100644
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -1129,10 +1129,38 @@ local function gen_target(cfg)
+   fp:close()
+ end
+ 
++---@param msg string
++local function usage_error(msg)
++  print('Usage: nvim -l gen_vimdoc.lua output input ...')
++  print(msg)
++  os.exit(1)
++end
++
+ local function run()
+-  for _, cfg in vim.spairs(config) do
+-    gen_target(cfg)
++  local output = arg[1]
++  if not output then
++    usage_error('No output file provided')
+   end
++  local inputs = vim.list_slice(arg, 2)
++  if #inputs == 0 then
++    usage_error('No input files provided')
++  end
++
++  gen_target({
++    filename = output,
++    section_order = vim.iter(inputs):map(vim.fs.basename):totable(),
++    files = inputs,
++    section_name = vim.iter(inputs):fold({}, function(acc, file)
++      acc[vim.fs.basename(file)] = file:match('lua/([a-z_][a-z0-9_/]+)%.lua'):gsub('/', '.')
++      return acc
++    end),
++    section_fmt = function(name)
++      return string.format('Lua module: %s', name)
++    end,
++    helptag_fmt = function(name)
++      return name
++    end,
++  })
+ end
+ 
+ run()
+-- 
+2.52.0
+

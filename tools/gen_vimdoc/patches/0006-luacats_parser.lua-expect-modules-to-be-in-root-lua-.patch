@@ -1,0 +1,26 @@
+From 13c0d629e361ad537c7ce2f55b7a5b5225822332 Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Mon, 6 Apr 2026 19:41:33 +0100
+Subject: [PATCH 6/6] [luacats_parser.lua] expect modules to be in root lua/
+ directory
+
+---
+ tools/gen_vimdoc/luacats_parser.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gen_vimdoc/luacats_parser.lua b/tools/gen_vimdoc/luacats_parser.lua
+index 4420750..0cf8a95 100644
+--- a/tools/gen_vimdoc/luacats_parser.lua
++++ b/tools/gen_vimdoc/luacats_parser.lua
+@@ -490,7 +490,7 @@ function M.parse_str(str, filename)
+   local mod_return = determine_modvar(str)
+ 
+   --- @type string
+-  local module = filename:match('.*/lua/([a-z_][a-z0-9_/]+)%.lua') or filename
++  local module = filename:match('lua/([a-z_][a-z0-9_/]+)%.lua') or filename
+   module = module:gsub('/', '.')
+ 
+   local classvars = {} --- @type table<string,string>
+-- 
+2.52.0
+
