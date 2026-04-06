@@ -7,27 +7,27 @@ lua-tool = //third_party/lua:toolchain|lua
 luarocks-tool = //third_party/lua:luarocks|luarocks
 
 [Plugin "go"]
-Target = //plugins:go
-GoTool = //third_party/go:toolchain|go
-DelveTool = ///third_party/go/github.com_go-delve_delve//cmd/dlv
-ModFile = //:gomod
+target = //plugins:go
+gotool = //third_party/go:toolchain|go
+delvetool = ///third_party/go/github.com_go-delve_delve//cmd/dlv
+modfile = //:gomod
 
 [Plugin "python"]
-Target = //plugins:python
-DisableVendorFlags = true
-ModuleDir = third_party/python
+target = //plugins:python
+disablevendorflags = true
+moduledir = third_party/python
 
 [Plugin "shell"]
-Target = //plugins:shell
+target = //plugins:shell
 
 [Plugin "cc"]
-Target = //plugins:cc
+target = //plugins:cc
 
 [Sandbox]
 build = true
 test = true
 
 [Remote]
-URL =
-Instance =
-NumExecutors = 0
+url =
+instance =
+numexecutors = 0
