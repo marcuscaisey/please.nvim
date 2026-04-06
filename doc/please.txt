@@ -125,7 +125,7 @@ command to get you started.
 Lua module: please                                                    *please*
 
 setup({opts})                                                 *please.setup()*
-    Update the configuration with the provided {opts}. Should only be called
+    Updates the configuration with the provided {opts}. Should only be called
     if you want to change the defaults which are shown below.
 
     Example: >lua
@@ -141,18 +141,18 @@ setup({opts})                                                 *please.setup()*
                   history items to store for each repository.
 
 build()                                                       *please.build()*
-    If the current file is a `BUILD` file, build the target which is under the
-    cursor. Otherwise, build the target which takes the current file as an
-    input.
+    If the current file is a `BUILD` file, builds the target which is under
+    the cursor. Otherwise, builds the target which takes the current file as
+    an input.
 
 run()                                                           *please.run()*
-    If the current file is a `BUILD` file, run the target which is under the
-    cursor. Otherwise, run the target which takes the current file as an
+    If the current file is a `BUILD` file, runs the target which is under the
+    cursor. Otherwise, runs the target which takes the current file as an
     input.
 
 test({opts})                                                   *please.test()*
-    If the current file is a `BUILD` file, test the target which is under the
-    cursor. Otherwise, test the target which takes the current file as an
+    If the current file is a `BUILD` file, tests the target which is under the
+    cursor. Otherwise, tests the target which takes the current file as an
     input.
 
     Optionally (when in a source file), you can run only the test which is
@@ -166,9 +166,9 @@ test({opts})                                                   *please.test()*
                 • {under_cursor} (`boolean`) run the test under the cursor
 
 debug({opts})                                                 *please.debug()*
-    If the current file is a `BUILD` file, debug the target which is under the
-    cursor. Otherwise, debug the target which takes the current file as an
-    input.
+    If the current file is a `BUILD` file, debugs the target which is under
+    the cursor. Otherwise, debugs the target which takes the current file as
+    an input.
 
     Debug support is provided by https://github.com/mfussenegger/nvim-dap.
     This is supported for the following languages:
@@ -184,7 +184,7 @@ debug({opts})                                                 *please.debug()*
                 • {under_cursor} (`boolean`) debug the test under the cursor
 
 command({...})                                              *please.command()*
-    Run an arbitrary plz command and display the output in a popup.
+    Runs an arbitrary plz command and displays the output in a popup.
 
     Example: >lua
         local please = require('please')
@@ -195,45 +195,45 @@ command({...})                                              *please.command()*
       • {...}  (`string`) Arguments to pass to plz
 
 history()                                                   *please.history()*
-    Display a history of previous commands. Selecting one of them will run it
-    again.
+    Displays a history of previous commands run in the current repository.
+    Selecting one runs it again.
 
 clear_history()                                       *please.clear_history()*
-    Clear the command history for the current repository.
+    Clears the command history for the current repository.
 
 set_profile()                                           *please.set_profile()*
-    Set the profile that will be used by |please.build()|, |please.run()|,
-    |please.test()|, |please.debug()|, and |please.command()|. Profiles will
-    be searched for in `/etc/please`, `~/.config/please`, and the current
+    Sets the profile used by |please.build()|, |please.run()|,
+    |please.test()|, |please.debug()|, and |please.command()|. Profiles are
+    searched for in `/etc/please`, `~/.config/please`, and the current
     repository.
 
 maximise_popup()                                     *please.maximise_popup()*
-    Maximise the popup which was most recently quit or minimised.
+    Maximises the popup which was most recently quit or minimised.
 
 jump_to_target()                                     *please.jump_to_target()*
-    Jump to the location of the target which takes the current file as an
+    Jumps to the location of the target which takes the current file as an
     input.
 
-    The cursor will be moved to where the target is created if it can be found
+    The cursor is moved to where the target is created if it can be found
     which should be the case for all targets except for those with names which
     are generated when the `BUILD` file is executed.
 
 look_up_target()                                     *please.look_up_target()*
-    Look up a target by its build label and jumps to its location. If the
-    cursor is already on a build label, then this will be used. Otherwise,
-    you'll be prompted for one.
+    Looks up a target by its build label and jumps to its location. If the
+    cursor is already on a build label, then this is used. Otherwise, you'll
+    be prompted for one.
 
-    The cursor will be moved to where the target is created if it can be found
+    The cursor is moved to where the target is created if it can be found
     which should be the case for all targets except for those with names which
     are generated when the `BUILD` file is executed.
 
 yank()                                                         *please.yank()*
-    If the current file is a `BUILD` file, yank the build label of the target
-    which is under the cursor. Otherwise, yank the build label of the target
+    If the current file is a `BUILD` file, yanks the build label of the target
+    which is under the cursor. Otherwise, yanks the build label of the target
     which takes the current file as an input.
 
 toggle_debug_logging()                         *please.toggle_debug_logging()*
-    Toggle debug logging. The debug logs mostly contain which functions are
+    Toggles debug logging. The debug logs mostly contain which functions are
     being called with which arguments. This should provide enough information
     to debug most issues.
 

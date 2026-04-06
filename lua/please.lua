@@ -34,8 +34,8 @@ local config = {
 ---@class please.Opts
 ---@field max_history_items integer? The maximum number of history items to store for each repository.
 
----Update the configuration with the provided {opts}. Should only be called if you want to change the defaults which are
----shown below.
+---Updates the configuration with the provided {opts}. Should only be called if you want to change the defaults which
+---are shown below.
 ---
 ---Example:
 ---```lua
@@ -205,8 +205,8 @@ local function get_repo_root(path)
     return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
 end
 
----If the current file is a `BUILD` file, build the target which is under the cursor. Otherwise, build the target which
----takes the current file as an input.
+---If the current file is a `BUILD` file, builds the target which is under the cursor. Otherwise, builds the target
+---which takes the current file as an input.
 function M.build()
     logging.log_call('please.build')
 
@@ -228,7 +228,7 @@ function M.build()
     end)
 end
 
----If the current file is a `BUILD` file, run the target which is under the cursor. Otherwise, run the target which
+---If the current file is a `BUILD` file, runs the target which is under the cursor. Otherwise, runs the target which
 ---takes the current file as an input.
 function M.run()
     logging.log_call('please.run')
@@ -266,7 +266,7 @@ end
 ---@inlinedoc
 ---@field under_cursor boolean run the test under the cursor
 
----If the current file is a `BUILD` file, test the target which is under the cursor. Otherwise, test the target which
+---If the current file is a `BUILD` file, tests the target which is under the cursor. Otherwise, tests the target which
 ---takes the current file as an input.
 ---
 ---Optionally (when in a source file), you can run only the test which is under the cursor.
@@ -344,8 +344,8 @@ end
 ---@inlinedoc
 ---@field under_cursor boolean debug the test under the cursor
 
----If the current file is a `BUILD` file, debug the target which is under the cursor. Otherwise, debug the target which
----takes the current file as an input.
+---If the current file is a `BUILD` file, debugs the target which is under the cursor. Otherwise, debugs the target
+---which takes the current file as an input.
 ---
 ---Debug support is provided by https://github.com/mfussenegger/nvim-dap.
 ---This is supported for the following languages:
@@ -411,7 +411,7 @@ function M.debug(opts)
     end)
 end
 
----Run an arbitrary plz command and display the output in a popup.
+---Runs an arbitrary plz command and displays the output in a popup.
 ---
 ---Example:
 ---```lua
@@ -433,7 +433,7 @@ function M.command(...)
     end)
 end
 
----Display a history of previous commands. Selecting one of them will run it again.
+---Displays a history of previous commands run in the current repository. Selecting one runs it again.
 function M.history()
     logging.log_call('please.history')
 
@@ -466,7 +466,7 @@ function M.history()
     end)
 end
 
----Clear the command history for the current repository.
+---Clears the command history for the current repository.
 function M.clear_history()
     logging.log_call('please.clear_history')
 
@@ -484,8 +484,8 @@ function M.clear_history()
     end)
 end
 
----Set the profile that will be used by [please.build()], [please.run()], [please.test()], [please.debug()], and
----[please.command()]. Profiles will be searched for in `/etc/please`, `~/.config/please`, and the current repository.
+---Sets the profile used by [please.build()], [please.run()], [please.test()], [please.debug()], and [please.command()].
+---Profiles are searched for in `/etc/please`, `~/.config/please`, and the current repository.
 function M.set_profile()
     logging.log_call('please.set_profile')
 
@@ -535,7 +535,7 @@ function M.set_profile()
     end)
 end
 
----Maximise the popup which was most recently quit or minimised.
+---Maximises the popup which was most recently quit or minimised.
 function M.maximise_popup()
     logging.log_call('please.maximise_popup')
     if runner.current then
@@ -545,10 +545,10 @@ function M.maximise_popup()
     end
 end
 
----Jump to the location of the target which takes the current file as an input.
+---Jumps to the location of the target which takes the current file as an input.
 ---
----The cursor will be moved to where the target is created if it can be found which should be the case for all targets
----except for those with names which are generated when the `BUILD` file is executed.
+---The cursor is moved to where the target is created if it can be found which should be the case for all targets except
+---for those with names which are generated when the `BUILD` file is executed.
 function M.jump_to_target()
     logging.log_call('please.jump_to_target')
 
@@ -565,11 +565,11 @@ function M.jump_to_target()
     end)
 end
 
----Look up a target by its build label and jumps to its location. If the cursor is already on a build label, then this
----will be used. Otherwise, you'll be prompted for one.
+---Looks up a target by its build label and jumps to its location. If the cursor is already on a build label, then this
+---is used. Otherwise, you'll be prompted for one.
 ---
----The cursor will be moved to where the target is created if it can be found which should be the case for all targets
----except for those with names which are generated when the `BUILD` file is executed.
+---The cursor is moved to where the target is created if it can be found which should be the case for all targets except
+---for those with names which are generated when the `BUILD` file is executed.
 function M.look_up_target()
     logging.log_call('please.look_up_target')
 
@@ -604,8 +604,8 @@ function M.look_up_target()
     end)
 end
 
----If the current file is a `BUILD` file, yank the build label of the target which is under the cursor. Otherwise, yank
----the build label of the target which takes the current file as an input.
+---If the current file is a `BUILD` file, yanks the build label of the target which is under the cursor. Otherwise,
+---yanks the build label of the target which takes the current file as an input.
 function M.yank()
     logging.log_call('please.yank')
 
@@ -632,7 +632,7 @@ function M.yank()
     end)
 end
 
----Toggle debug logging. The debug logs mostly contain which functions are being called with which arguments. This
+---Toggles debug logging. The debug logs mostly contain which functions are being called with which arguments. This
 ---should provide enough information to debug most issues.
 function M.toggle_debug_logging()
     local enabled = logging.toggle_debug()
