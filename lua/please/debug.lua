@@ -94,10 +94,6 @@ local function setup()
         })
     end
 
-    -- TODO: remove after upgrading debugpy version used by plz to >= 1.5.1 which sets only uncaught by default (currently
-    -- debugpy also sets userUnhandled as well which is super annoying to use)
-    dap.defaults.plz.exception_breakpoints = { 'uncaught' }
-
     setup_complete = true
 end
 
