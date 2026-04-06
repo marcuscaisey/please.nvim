@@ -35,12 +35,6 @@ local function get_free_port()
     return port
 end
 
----Wrapper around Configuration which adds our custom fields.
----@class DapConfiguration : Configuration
----@field root string The root of the plz repo.
----@field target string The target to debug.
----@field extra_args string[]? Any extra arguments to pass to plz debug.
-
 local setup_complete = false
 
 local function setup()
@@ -50,7 +44,7 @@ local function setup()
 
     logging.debug('setting up plz debug adapter')
 
-    ---@type fun(callback: fun(adapter: Adapter), config: DapConfiguration)
+    ---@type dap.AdapterFactory
     dap.adapters.plz = function(callback, config)
         logging.log_call('dap.adapters.plz')
 
@@ -105,6 +99,24 @@ local function setup()
     dap.defaults.plz.exception_breakpoints = { 'uncaught' }
 
     setup_complete = true
+end
+
+---@class DebugAdapterConfig
+---@field root string root of the plz repo
+---@field target string target to debug
+---@field extra_args string[] extra arguments to pass to plz debug
+---@field [string] any any debug adapter specific config
+
+---@param config DebugAdapterConfig
+local function launch_debug_adapter(config)
+    setup()
+    config = vim.tbl_extend('error', config, {
+        type = 'plz',
+        name = 'Attach to plz debug',
+        request = 'attach',
+        mode = 'remote',
+    })
+    dap.run(config)
 end
 
 ---@param root string
@@ -167,8 +179,6 @@ end
 function M.launchers.go(root, target, extra_args)
     logging.log_call('debug.launchers.go')
 
-    setup()
-
     local arches, err = query.config(root, 'build.arch')
     if not arches then
         return false, string.format('launching delve: determining host arch: %s', err)
@@ -218,15 +228,11 @@ function M.launchers.go(root, target, extra_args)
         to = '',
     })
 
-    dap.run({
-        type = 'plz',
-        name = 'Launch plz debug with Delve',
-        request = 'attach',
-        mode = 'remote',
-        substitutePath = substitutePath,
+    launch_debug_adapter({
         root = root,
         target = target,
         extra_args = extra_args,
+        substitutePath = substitutePath,
     })
 
     return true
@@ -234,8 +240,6 @@ end
 
 function M.launchers.python(root, target, extra_args)
     logging.log_call('debug.launcher.python')
-
-    setup()
 
     local target_pkg = target:match('^//([^:]+):?.*$')
     local local_runtime_dir = vim.fs.joinpath(root, 'plz-out/debug', target_pkg)
@@ -278,16 +282,13 @@ function M.launchers.python(root, target, extra_args)
     }
 
     extra_args = { '-o=plugin.python.debugger:debugpy', unpack(extra_args) }
-    dap.run({
-        type = 'plz',
-        name = 'Launch plz debug with debugpy',
-        request = 'attach',
-        mode = 'remote',
-        pathMappings = path_mappings,
-        justMyCode = false,
+
+    launch_debug_adapter({
         root = root,
         target = target,
         extra_args = extra_args,
+        pathMappings = path_mappings,
+        justMyCode = false,
     })
 
     return true

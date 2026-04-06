@@ -25,3 +25,9 @@ neovim_tree_sitter_parser(
     lang = "python",
     revision = "710796b8b877a970297106e5bbc8e2afa47f86ec",
 )
+
+neovim_external_plugin(
+    name = "nvim_dap",
+    github_repo = "mfussenegger/nvim-dap",
+    revision = "45a69eba683a2c448dd9ecfc4de89511f0646b5f",
+)
