@@ -138,13 +138,14 @@ local cmd_opts = {
     debug = { 'under_cursor' },
 }
 local var_arg_cmds = { 'command' }
+local hidden_cmds = { 'setup' }
 
 vim.api.nvim_create_user_command('Please', function(args)
     local cmd_name = args.fargs[1]
     local cmd_args = { unpack(args.fargs, 2) }
 
     local cmd = please[cmd_name]
-    if not cmd then
+    if not cmd or vim.tbl_contains(hidden_cmds, cmd_name) then
         logging.error("'%s' is not a 'Please' command", cmd_name)
         return
     end
@@ -183,7 +184,9 @@ end, {
         if #cmd_line_words == 2 then
             -- Lazily required please module defined above is only required on index. Require it here since vim.tbl_keys will
             -- not trigger this.
-            local cmd_names = vim.tbl_keys(require('please'))
+            local cmd_names = vim.tbl_filter(function(cmd_name)
+                return not vim.tbl_contains(hidden_cmds, cmd_name)
+            end, vim.tbl_keys(require('please')))
             return complete_arg(arg_lead, cmd_names)
         end
 
