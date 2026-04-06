@@ -127,7 +127,7 @@ end
 ---@param opts please.runner.RunnerOpts?
 ---@return please.runner.Runner
 function Runner.start(root, args, opts)
-    logging.log_call('please.Runner.start')
+    logging.log_call('runner.Runner.start')
 
     if M.current then
         M.current:_destroy()

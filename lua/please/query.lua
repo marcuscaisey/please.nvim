@@ -54,7 +54,7 @@ end
 ---@return string?
 ---@return string? errmsg
 function M.print_field(root, target, field)
-    logging.log_call('query.print')
+    logging.log_call('query.print_field')
 
     local output, err = plz_query(root, { 'print', target, '--field', field })
     if not output then
@@ -127,7 +127,7 @@ end
 ---@param root string absolute path to the repo root
 ---@param cb fun(goroot:string?, errmsg:string?) function called on success or error
 function M.with_goroot(root, cb)
-    logging.log_call('query.go_root')
+    logging.log_call('query.with_goroot')
 
     local gotool = 'go'
     local gotools, err = M.config(root, 'plugin.go.gotool')

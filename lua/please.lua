@@ -487,7 +487,7 @@ end
 ---Set the profile that will be used by [please.build()], [please.run()], [please.test()], [please.debug()], and
 ---[please.command()]. Profiles will be searched for in `/etc/please`, `~/.config/please`, and the current repository.
 function M.set_profile()
-    logging.log_call('please.profile')
+    logging.log_call('please.set_profile')
 
     logging.log_errors('Failed to set profile', function()
         local path = get_filepath() or assert(vim.uv.cwd())

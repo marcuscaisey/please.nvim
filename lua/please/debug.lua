@@ -52,7 +52,7 @@ local function setup()
 
     ---@type fun(callback: fun(adapter: Adapter), config: DapConfiguration)
     dap.adapters.plz = function(callback, config)
-        logging.log_call('plz dap adapter')
+        logging.log_call('dap.adapters.plz')
 
         local port = get_free_port()
 
@@ -165,7 +165,7 @@ local function plz_goroot(root)
 end
 
 function M.launchers.go(root, target, extra_args)
-    logging.log_call('launch_delve')
+    logging.log_call('debug.launchers.go')
 
     setup()
 
@@ -233,7 +233,7 @@ function M.launchers.go(root, target, extra_args)
 end
 
 function M.launchers.python(root, target, extra_args)
-    logging.log_call('launch_debugpy')
+    logging.log_call('debug.launcher.python')
 
     setup()
 

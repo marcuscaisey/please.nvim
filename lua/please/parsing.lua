@@ -733,7 +733,7 @@ local parsers_by_root_node_type_by_filetype = {
 ---@return {name:string, selector:string}?
 ---@return string? errmsg
 function M.get_test_at_cursor()
-    logging.log_call('please.parsing.get_test_at_cursor')
+    logging.log_call('parsing.get_test_at_cursor')
 
     local parsers_by_root_node_type = parsers_by_root_node_type_by_filetype[vim.bo.filetype]
     if not parsers_by_root_node_type then
