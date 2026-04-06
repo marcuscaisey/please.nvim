@@ -35,10 +35,10 @@ local function get_free_port()
     return port
 end
 
-local setup_complete = false
+local debug_adapter_setup = false
 
-local function setup()
-    if setup_complete then
+local function setup_debug_adapter()
+    if debug_adapter_setup then
         return
     end
 
@@ -94,7 +94,7 @@ local function setup()
         })
     end
 
-    setup_complete = true
+    debug_adapter_setup = true
 end
 
 ---@class DebugAdapterConfig
@@ -105,7 +105,7 @@ end
 
 ---@param config DebugAdapterConfig
 local function launch_debug_adapter(config)
-    setup()
+    setup_debug_adapter()
     config = vim.tbl_extend('error', config, {
         type = 'plz',
         name = 'Attach to plz debug',
