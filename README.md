@@ -58,3 +58,4 @@ call dein#add('marcuscaisey/please.nvim')
   good `vim.ui.select` implementation.
 - [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug Adapter Protocol client
   implementation for Neovim. **This is required to use `please.debug()`.**
+- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - UI for nvim-dap.
