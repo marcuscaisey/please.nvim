@@ -60,9 +60,14 @@ some text. For example, when building a file which is an input to multiple
 targets, you'll be prompted to choose which target to build.
 
 Input and selection prompts are provided by |vim.ui.input()| and
-|vim.ui.select()| respectively. Doing so allows you to customise the
-appearance of them to your taste. See |vim.ui| and the fantastic
-https://github.com/stevearc/dressing.nvim for more information.
+|vim.ui.select()| respectively. This enables you to customise the appearance
+of these prompts to your taste by overriding |vim.ui.input()| or
+|vim.ui.select()|. There are various plugins now which provide alternative
+implementations of these hooks. Some (possibly outdated) examples are:
+  • https://github.com/ibhagwan/fzf-lua
+  • https://github.com/folke/snacks.nvim
+  • https://github.com/stevearc/dressing.nvim
+  • https://github.com/nvim-telescope/telescope-ui-select.nvim
 
 ==============================================================================
 LSP CONFIGURATION                                          *please-lsp-config*
