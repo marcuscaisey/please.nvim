@@ -20,10 +20,10 @@ end
 
 ---@module 'please'
 local please = require_on_index('please')
----@module 'please.query'
-local query = require_on_index('please.query')
----@module 'please.logging'
-local logging = require_on_index('please.logging')
+---@module '_please.query'
+local query = require_on_index('_please.query')
+---@module '_please.logging'
+local logging = require_on_index('_please.logging')
 
 vim.filetype.add({
     extension = {

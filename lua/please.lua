@@ -8,16 +8,16 @@ local function require_on_index(modname)
     })
 end
 
----@module 'please.query'
-local query = require_on_index('please.query')
----@module 'please.parsing'
-local parsing = require_on_index('please.parsing')
----@module 'please.runner'
-local runner = require_on_index('please.runner')
----@module 'please.logging'
-local logging = require_on_index('please.logging')
----@module 'please.debug'
-local debug = require_on_index('please.debug')
+---@module '_please.query'
+local query = require_on_index('_please.query')
+---@module '_please.parsing'
+local parsing = require_on_index('_please.parsing')
+---@module '_please.runner'
+local runner = require_on_index('_please.runner')
+---@module '_please.logging'
+local logging = require_on_index('_please.logging')
+---@module '_please.debug'
+local debug = require_on_index('_please.debug')
 
 local M = {}
 
@@ -63,7 +63,7 @@ local profiles_by_root = setmetatable({}, {
 
 ---@param root string
 ---@param args string[]
----@param opts please.runner.RunnerOpts?
+---@param opts _please.runner.RunnerOpts?
 local function start_runner(root, args, opts)
     local profile = profiles_by_root[root]
     if profile then

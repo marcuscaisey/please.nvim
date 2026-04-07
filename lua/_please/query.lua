@@ -1,6 +1,6 @@
-local logging = require('please.logging')
-local plz = require('please.plz')
-local runner = require('please.runner')
+local logging = require('_please.logging')
+local plz = require('_please.plz')
+local runner = require('_please.runner')
 
 local M = {}
 

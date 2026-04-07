@@ -16,9 +16,9 @@ end
 local dap = safe_require('dap')
 ---@module 'dap.repl'
 local repl = safe_require('dap.repl')
-local logging = require('please.logging')
-local query = require('please.query')
-local plz = require('please.plz')
+local logging = require('_please.logging')
+local query = require('_please.query')
+local plz = require('_please.plz')
 
 local M = {
     ---@type table<string, fun(root: string, target: string, extra_args: string[]): boolean, string?>

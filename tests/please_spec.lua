@@ -1,8 +1,8 @@
 local stub = require('luassert.stub')
 local please = require('please')
-local debug = require('please.debug')
-local runner = require('please.runner')
-local logging = require('please.logging')
+local debug = require('_please.debug')
+local runner = require('_please.runner')
+local logging = require('_please.logging')
 local temptree = require('tests.temptree')
 
 logging.toggle_debug()

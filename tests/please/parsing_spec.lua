@@ -1,5 +1,5 @@
 local temptree = require('tests.temptree')
-local parsing = require('please.parsing')
+local parsing = require('_please.parsing')
 
 local original_it = it
 ---Define a test that will pass, fail, or error.

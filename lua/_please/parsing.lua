@@ -1,4 +1,4 @@
-local logging = require('please.logging')
+local logging = require('_please.logging')
 
 vim.treesitter.language.register('python', 'please')
 
@@ -198,19 +198,19 @@ function M.get_build_label_at_cursor()
 end
 
 ---Language agnostic representation of a test and its children. A Test along with its children forms a tree of Tests.
----@class please.parsing.Test
+---@class _please.parsing.Test
 ---@field name string
 ---@field selector string The string which should be passed to the test runner to run this test.
 ---@field start integer[] The (1, 0)-based start position of the test.
 ---@field end_ integer[] The (1, 0)-based end position of the test.
----@field children please.parsing.Test[]
+---@field children _please.parsing.Test[]
 local Test = {}
 
 ---@param name string
 ---@param selector string
 ---@param node TSNode
----@param children please.parsing.Test[]?
----@return please.parsing.Test
+---@param children _please.parsing.Test[]?
+---@return _please.parsing.Test
 function Test:new(name, selector, node, children)
     self.__index = self
     local start_row, start_col, end_row, end_col = node:range()
@@ -233,7 +233,7 @@ function Test:contains(pos)
 end
 
 ---Performs a pre-order depth traversal of the test tree, calling the given function with each test.
----@param f fun(test: please.parsing.Test)
+---@param f fun(test: _please.parsing.Test)
 function Test:for_each(f)
     f(self)
     for _, child in ipairs(self.children) do
@@ -450,9 +450,9 @@ local parse_go_subtests
 ---@param parent_selector string
 ---@param receiver string
 ---@param parent_body TSNode
----@return please.parsing.Test[]
+---@return _please.parsing.Test[]
 function parse_go_subtests(lang_info, parent_name, parent_selector, receiver, parent_body)
-    local subtests = {} ---@type please.parsing.Test[]
+    local subtests = {} ---@type _please.parsing.Test[]
 
     local subtest_query = parse_go_subtest_query(lang_info)
     for captures in iter_match_captures(subtest_query, 0, parent_body, { max_start_depth = 1 }) do
@@ -522,7 +522,7 @@ local function parse_go_test_func_query(lang_info)
 end
 
 ---@param root_node TSNode
----@return please.parsing.Test?
+---@return _please.parsing.Test?
 local function parse_go_test_func(root_node)
     local lang_info = vim.treesitter.language.inspect('go')
     local query = parse_go_test_func_query(lang_info)
@@ -652,7 +652,7 @@ local function parse_go_test_suite_query(lang_info)
 end
 
 ---@param root_node TSNode
----@return please.parsing.Test?
+---@return _please.parsing.Test?
 local function parse_go_test_suite_method(root_node)
     local lang_info = vim.treesitter.language.inspect('go')
     local test_suite_method_query = parse_go_test_suite_method_query(lang_info)
@@ -684,9 +684,9 @@ local function parse_go_test_suite_method(root_node)
 end
 
 ---@param root_node TSNode
----@return please.parsing.Test?
+---@return _please.parsing.Test?
 local function parse_python_unittest_methods(root_node)
-    local test ---@type please.parsing.Test
+    local test ---@type _please.parsing.Test
     local unittest_methods_query = vim.treesitter.query.parse(
         'python',
         [[
@@ -714,7 +714,7 @@ local function parse_python_unittest_methods(root_node)
     return test
 end
 
----@type table<string, table<string, fun(root_node:TSNode):please.parsing.Test?>>
+---@type table<string, table<string, fun(root_node:TSNode):_please.parsing.Test?>>
 local parsers_by_root_node_type_by_filetype = {
     go = {
         function_declaration = parse_go_test_func,
@@ -756,7 +756,7 @@ function M.get_test_at_cursor()
         return nil, 'cursor is not in a test'
     end
 
-    local test ---@type please.parsing.Test
+    local test ---@type _please.parsing.Test
     local current_pos = vim.api.nvim_win_get_cursor(0)
     parent_test:for_each(function(t)
         if t:contains(current_pos) then

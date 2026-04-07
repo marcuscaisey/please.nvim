@@ -1,8 +1,8 @@
-local logging = require('please.logging')
-local plz = require('please.plz')
+local logging = require('_please.logging')
+local plz = require('_please.plz')
 
 local M = {
-    ---@type please.runner.Runner?
+    ---@type _please.runner.Runner?
     current = nil,
 }
 
@@ -11,14 +11,14 @@ local banner_help_hl_group = 'PleaseNvimRunnerBannerHelp'
 vim.cmd.highlight(banner_help_hl_group .. ' guifg=Pink')
 
 ---A Please command runner that displays its output in a floating window.
----@class please.runner.Runner
+---@class _please.runner.Runner
 ---@field package _bufnr integer
 ---@field package _winid integer
 ---@field package _augroup integer
 ---@field package _stopped boolean
 ---@field package _job_id integer
 ---@field package _job_exited boolean
----@field package _on_exit fun(success:boolean, runner:please.runner.Runner)?
+---@field package _on_exit fun(success:boolean, runner:_please.runner.Runner)?
 ---@field package _minimised boolean
 ---@field package _prev_cursor_position integer[]
 local Runner = {}
@@ -117,15 +117,15 @@ local function move_cursor_to_last_line()
     vim.api.nvim_feedkeys('G', 'nx', false)
 end
 
----@class please.runner.RunnerOpts
+---@class _please.runner.RunnerOpts
 ---@inlinedoc
----@field on_exit fun(success:boolean, runner:please.runner.Runner)?
+---@field on_exit fun(success:boolean, runner:_please.runner.Runner)?
 
 ---Runs a command and displays it in a floating window.
 ---@param root string
 ---@param args string[]
----@param opts please.runner.RunnerOpts?
----@return please.runner.Runner
+---@param opts _please.runner.RunnerOpts?
+---@return _please.runner.Runner
 function Runner.start(root, args, opts)
     logging.log_call('runner.Runner.start')
 
