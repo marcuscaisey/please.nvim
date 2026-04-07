@@ -4,13 +4,13 @@ of Neovim. It aims to remove the need to switch from your editor to the shell wh
 routine actions.
 
 ## Features
-  * Build, run, test, and debug a target with `please.build()`, `please.run()`, `please.test()`, and
-    `please.debug()`.
-  * Display history of previous commands and run any of them again with `please.history()`.
-  * Set the profile to use with `please.set_profile()`.
-  * Jump from a source file to its target's definition with `please.jump_to_target()`.
-  * Look up a target by its build label with `please.look_up_target()`.
-  * Yank a target's build label with `please.yank()`.
+  * Build, run, test, and debug a target with `:Please build`, `:Please run`, `:Please test`, and
+    `:Please debug`.
+  * Display history of previous commands and run any of them again with `:Please history`.
+  * Set the profile to use with `:Please set_profile`.
+  * Jump from a source file to its target's definition with `:Please jump_to_target`.
+  * Look up a target by its build label with `:Please look_up_target`.
+  * Yank a target's build label with `:Please yank`.
   * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, `*.build`, and `*.build_defs`
     files.
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting.
