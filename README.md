@@ -25,9 +25,10 @@ routine actions.
 https://user-images.githubusercontent.com/34950778/205456279-665ddfe8-de77-4f36-a337-85768bb06a37.mov
 
 Shown above:
-1. Testing the target `//gopkg:test` from `gopkg/gopkg_test.go` with `<space>pt` (`please.test()`)
-2. Jumping to the defintion of the target `//gopkg:test` from `gopkg/gopkg_test.go` with `<space>pj` (`please.jump_to_target()`)
-3. Testing the target `//gopkg:test` again, this time from the `BUILD` file (`please.test()` again)
+1. Testing the target `//gopkg:test` from `gopkg/gopkg_test.go` with `<space>pt` (`:Please test`)
+2. Jumping to the defintion of the target `//gopkg:test` from `gopkg/gopkg_test.go` with `<space>pj`
+   (`:Please jump_to_target`)
+3. Testing the target `//gopkg:test` again, this time from the `BUILD` file (`:Please test` again)
 
 ## Documentation
 Detailed documentation can be in [doc/please.txt](doc/please.txt) or by running `:help please.nvim`.
@@ -57,5 +58,5 @@ call dein#add('marcuscaisey/please.nvim')
 - [fzf-lua](https://github.com/ibhagwan/fzf-lua) - Highly extendable fuzzy finder. This provides a
   good `vim.ui.select` implementation.
 - [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug Adapter Protocol client
-  implementation for Neovim. **This is required to use `please.debug()`.**
+  implementation for Neovim. **This is required to use `:Please debug`.**
 - [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - UI for nvim-dap.
