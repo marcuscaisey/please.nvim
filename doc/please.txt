@@ -5,9 +5,9 @@
 ==============================================================================
 INTRODUCTION                                                    *please-intro*
 
-please.nvim is a plugin which allows you interact with your Please repository
-from the comfort of Neovim. The aim is to remove the need to switch from your
-editor to the shell when performing routine actions.
+please.nvim enables you to interact with your Please repository from the
+comfort of Neovim. It aims to remove the need to switch from your editor to
+the shell when performing routine actions.
 
 Features ~
   • Build, run, test, and debug a target with |please.build()|,
