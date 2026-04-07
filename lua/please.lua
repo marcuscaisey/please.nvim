@@ -210,6 +210,8 @@ end
 ---
 ---If the current file is a `BUILD` file, builds the target which is under the cursor. Otherwise, builds the target
 ---which takes the current file as an input.
+---
+---See [:Please-build] for the equivalent `:Please` command.
 function M.build()
     logging.log_call('please.build')
 
@@ -235,6 +237,8 @@ end
 ---
 ---If the current file is a `BUILD` file, runs the target which is under the cursor. Otherwise, runs the target which
 ---takes the current file as an input.
+---
+---See [:Please-run] for the equivalent `:Please` command.
 function M.run()
     logging.log_call('please.run')
 
@@ -281,6 +285,8 @@ end
 ---- Go - test functions, subtests, table tests, testify suite methods, testify suite subtests, testify suite table
 ---  tests
 ---- Python - unittest test classes, unittest test methods
+---
+---See [:Please-test] for the equivalent `:Please` command.
 ---@param opts please.TestOptions? optional keyword arguments
 function M.test(opts)
     logging.log_call('please.test')
@@ -363,6 +369,8 @@ end
 ---
 ---Optionally (when in a source file), you can debug only the test which is under the cursor. The supported languages
 ---and test types are the same as for [please.test()].
+---
+---See [:Please-debug] for the equivalent `:Please` command.
 ---@param opts please.DebugOptions? optional keyword arguments
 function M.debug(opts)
     logging.log_call('please.debug')
@@ -427,6 +435,7 @@ end
 ---local please = require('please')
 ---please.command('build', '//foo/bar/...')
 ---```
+---See [:Please-command] for the equivalent `:Please` command.
 ---@param ... string Arguments to pass to plz
 function M.command(...)
     logging.log_call('please.command')
@@ -443,6 +452,8 @@ function M.command(...)
 end
 
 ---Displays a history of previous commands run in the current repository. Selecting one runs it again.
+---
+---See [:Please-history] for the equivalent `:Please` command.
 function M.history()
     logging.log_call('please.history')
 
@@ -476,6 +487,8 @@ function M.history()
 end
 
 ---Clears the command history for the current repository.
+---
+---See [:Please-clear_history] for the equivalent `:Please` command.
 function M.clear_history()
     logging.log_call('please.clear_history')
 
@@ -496,6 +509,8 @@ end
 ---Sets the profile used by [please.build()], [please.run()], [please.test()], [please.debug()], and [please.command()].
 ---
 ---Profiles are searched for in `/etc/please`, `~/.config/please`, and the current repository.
+---
+---See [:Please-set_profile] for the equivalent `:Please` command.
 function M.set_profile()
     logging.log_call('please.set_profile')
 
@@ -546,6 +561,8 @@ function M.set_profile()
 end
 
 ---Maximises the popup which was most recently quit or minimised.
+---
+---See [:Please-maximise_popup] for the equivalent `:Please` command.
 function M.maximise_popup()
     logging.log_call('please.maximise_popup')
     if runner.current then
@@ -559,6 +576,8 @@ end
 ---
 ---The cursor is moved to where the target is created if it can be found which should be the case for all targets except
 ---for those with names which are generated when the `BUILD` file is executed.
+---
+---See [:Please-jump_to_target] for the equivalent `:Please` command.
 function M.jump_to_target()
     logging.log_call('please.jump_to_target')
 
@@ -581,6 +600,8 @@ end
 ---
 ---The cursor is moved to where the target is created if it can be found which should be the case for all targets except
 ---for those with names which are generated when the `BUILD` file is executed.
+---
+---See [:Please-look_up_target] for the equivalent `:Please` command.
 function M.look_up_target()
     logging.log_call('please.look_up_target')
 
@@ -619,6 +640,8 @@ end
 ---
 ---If the current file is a `BUILD` file, yanks the build label of the target which is under the cursor. Otherwise,
 ---yanks the build label of the target which takes the current file as an input.
+---
+---See [:Please-yank] for the equivalent `:Please` command.
 function M.yank()
     logging.log_call('please.yank')
 
@@ -649,6 +672,8 @@ end
 ---
 ---The debug logs mostly contain which functions are being called with which arguments. This should provide enough
 ---information to debug most issues.
+---
+---See [:Please-toggle_debug_logging] for the equivalent `:Please` command.
 function M.toggle_debug_logging()
     local enabled = logging.toggle_debug()
     if enabled then

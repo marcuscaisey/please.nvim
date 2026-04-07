@@ -1158,7 +1158,7 @@ local function run()
       return string.format('Lua module: %s', name)
     end,
     helptag_fmt = function(name)
-      return name
+      return string.format('%s-lua', name)
     end,
   })
 end

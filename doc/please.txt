@@ -33,26 +33,26 @@ Features ~
 
 ==============================================================================
 USAGE                                                           *please-usage*
-                                                                     *:Please*
-Lua and VimL APIs ~
-please.nvim commands can be called either through the Lua or the VimL API.
-  • Commands are written in Lua and as such the Lua API should be preferred.
-    It can't be guaranteed that all features available through the Lua API
-    will also available through the VimL API.
-  • The VimL API is mostly provided to make it easy to call commands from the
-    command line.
 
-To use the Lua API, you need to import the required module which will usually
-be `please`. For instance, |please.jump_to_target()| is executed with
->lua
+Command interface and Lua API ~
+please.nvim provides a command interface and a Lua API. All functionality is
+available through both. To use the command interface, invoke the appropriate
+`:Please` command. To use the Lua API, import the `please` module and invoke
+the appropriate function.
+
+For example, these are two equivalent ways to execute the test under the
+cursor.
+
+Command interface: >vim
+    Please test under_cursor
+<
+Lua API: >lua
     local please = require('please')
-    please.jump_to_target()
+    please.test({ under_cursor = true })
 <
-All available VimL API commands are autocompletable as arguments to the
-`:Please` command. For instance, |please.jump_to_target()| is executed with
->
-    :Please jump_to_target
-<
+See |please-commands| and |please-lua| for full documentation of the two
+interfaces.
+
 UI Customisation ~
 Some commands may prompt you to either choose from a list of options or input
 some text. For example, when building a file which is an input to multiple
@@ -122,7 +122,134 @@ command to get you started.
     vim.keymap.set('n', '<leader>py', please.yank)
 <
 ==============================================================================
-Lua module: please                                                    *please*
+COMMANDS                                           *:Please* *please-commands*
+
+:Please build                                                  *:Please-build*
+    Builds a target.
+
+    If the current file is a `BUILD` file, builds the target which is under
+    the cursor. Otherwise, builds the target which takes the current file as
+    an input.
+
+    See |please.build()| for the equivalent Lua function.
+
+:Please run                                                      *:Please-run*
+    Runs a target.
+
+    If the current file is a `BUILD` file, runs the target which is under the
+    cursor. Otherwise, runs the target which takes the current file as an
+    input.
+
+    See |please.run()| for the equivalent Lua function.
+
+:Please test [under_cursor]                                     *:Please-test*
+    Tests a target.
+
+    If the current file is a `BUILD` file, tests the target which is under the
+    cursor. Otherwise, tests the target which takes the current file as an
+    input.
+
+    Optionally (when in a source file), you can run only the test which is
+    under the cursor by passing [under_cursor]. This is supported for the
+    following languages:
+    • Go - test functions, subtests, table tests, testify suite methods,
+      testify suite subtests, testify suite table tests
+    • Python - unittest test classes, unittest test methods
+
+    See |please.test()| for the equivalent Lua function.
+
+:Please debug [under_cursor]                                   *:Please-debug*
+    Debugs a target.
+
+    If the current file is a `BUILD` file, debugs the target which is under
+    the cursor. Otherwise, debugs the target which takes the current file as
+    an input.
+
+    Debug support is provided by https://github.com/mfussenegger/nvim-dap.
+    This is supported for the following languages:
+    • Go (Delve)
+    • Python (debugpy)
+
+    Optionally (when in a source file), you can debug only the test which is
+    under the cursor by passing [under_cursor]. The supported languages and
+    test types are the same as for |please.test()|.
+
+    See |please.debug()| for the equivalent Lua function.
+
+:Please command {arg}...                                     *:Please-command*
+    Runs an arbitrary plz command and displays the output in a popup.
+
+    Example: >vim
+        Please command build //foo/bar/...
+<
+    See |please.command()| for the equivalent Lua function.
+
+:Please history                                              *:Please-history*
+    Displays a history of previous commands run in the current repository.
+    Selecting one runs it again.
+
+    See |please.history()| for the equivalent Lua function.
+
+:Please clear_history                                  *:Please-clear_history*
+    Clears the command history for the current repository.
+
+    See |please.clear_history()| for the equivalent Lua function.
+
+:Please set_profile                                      *:Please-set_profile*
+    Sets the profile used by |please.build()|, |please.run()|,
+    |please.test()|, |please.debug()|, and |please.command()|.
+
+    Profiles are searched for in `/etc/please`, `~/.config/please`, and the
+    current repository.
+
+    See |please.set_profile()| for the equivalent Lua function.
+
+:Please maximise_popup                                *:Please-maximise_popup*
+    Maximises the popup which was most recently quit or minimised.
+
+    See |please.maximise_popup()| for the equivalent Lua function.
+
+:Please jump_to_target                                *:Please-jump_to_target*
+    Jumps to the location of the target which takes the current file as an
+    input.
+
+    The cursor is moved to where the target is created if it can be found
+    which should be the case for all targets except for those with names which
+    are generated when the `BUILD` file is executed.
+
+    See |please.jump_to_target()| for the equivalent Lua function.
+
+:Please look_up_target                                *:Please-look_up_target*
+    Looks up a target by its build label and jumps to its location.
+
+    If the cursor is already on a build label, then this is used. Otherwise,
+    you'll be prompted for one.
+
+    The cursor is moved to where the target is created if it can be found
+    which should be the case for all targets except for those with names which
+    are generated when the `BUILD` file is executed.
+
+    See |please.look_up_target()| for the equivalent Lua function.
+
+:Please yank                                                    *:Please-yank*
+    Yanks a target's build label.
+
+    If the current file is a `BUILD` file, yanks the build label of the target
+    which is under the cursor. Otherwise, yanks the build label of the target
+    which takes the current file as an input.
+
+    See |please.yank()| for the equivalent Lua function.
+
+:Please toggle_debug_logging                    *:Please-toggle_debug_logging*
+    Toggles debug logging.
+
+    The debug logs mostly contain which functions are being called with which
+    arguments. This should provide enough information to debug most issues.
+
+    See |please.toggle_debug_logging()| for the equivalent Lua function.
+
+==============================================================================
+Lua module: please                                                *please-lua*
 
 setup({opts})                                                 *please.setup()*
     Updates the configuration with the provided {opts}.
@@ -149,12 +276,16 @@ build()                                                       *please.build()*
     the cursor. Otherwise, builds the target which takes the current file as
     an input.
 
+    See |:Please-build| for the equivalent `:Please` command.
+
 run()                                                           *please.run()*
     Runs a target.
 
     If the current file is a `BUILD` file, runs the target which is under the
     cursor. Otherwise, runs the target which takes the current file as an
     input.
+
+    See |:Please-run| for the equivalent `:Please` command.
 
 test({opts})                                                   *please.test()*
     Tests a target.
@@ -168,6 +299,8 @@ test({opts})                                                   *please.test()*
     • Go - test functions, subtests, table tests, testify suite methods,
       testify suite subtests, testify suite table tests
     • Python - unittest test classes, unittest test methods
+
+    See |:Please-test| for the equivalent `:Please` command.
 
     Parameters: ~
       • {opts}  (`table?`) optional keyword arguments
@@ -189,6 +322,8 @@ debug({opts})                                                 *please.debug()*
     under the cursor. The supported languages and test types are the same as
     for |please.test()|.
 
+    See |:Please-debug| for the equivalent `:Please` command.
+
     Parameters: ~
       • {opts}  (`table?`) optional keyword arguments
                 • {under_cursor} (`boolean`) debug the test under the cursor
@@ -201,6 +336,8 @@ command({...})                                              *please.command()*
         please.command('build', '//foo/bar/...')
 <
 
+    See |:Please-command| for the equivalent `:Please` command.
+
     Parameters: ~
       • {...}  (`string`) Arguments to pass to plz
 
@@ -208,8 +345,12 @@ history()                                                   *please.history()*
     Displays a history of previous commands run in the current repository.
     Selecting one runs it again.
 
+    See |:Please-history| for the equivalent `:Please` command.
+
 clear_history()                                       *please.clear_history()*
     Clears the command history for the current repository.
+
+    See |:Please-clear_history| for the equivalent `:Please` command.
 
 set_profile()                                           *please.set_profile()*
     Sets the profile used by |please.build()|, |please.run()|,
@@ -218,8 +359,12 @@ set_profile()                                           *please.set_profile()*
     Profiles are searched for in `/etc/please`, `~/.config/please`, and the
     current repository.
 
+    See |:Please-set_profile| for the equivalent `:Please` command.
+
 maximise_popup()                                     *please.maximise_popup()*
     Maximises the popup which was most recently quit or minimised.
+
+    See |:Please-maximise_popup| for the equivalent `:Please` command.
 
 jump_to_target()                                     *please.jump_to_target()*
     Jumps to the location of the target which takes the current file as an
@@ -228,6 +373,8 @@ jump_to_target()                                     *please.jump_to_target()*
     The cursor is moved to where the target is created if it can be found
     which should be the case for all targets except for those with names which
     are generated when the `BUILD` file is executed.
+
+    See |:Please-jump_to_target| for the equivalent `:Please` command.
 
 look_up_target()                                     *please.look_up_target()*
     Looks up a target by its build label and jumps to its location.
@@ -239,6 +386,8 @@ look_up_target()                                     *please.look_up_target()*
     which should be the case for all targets except for those with names which
     are generated when the `BUILD` file is executed.
 
+    See |:Please-look_up_target| for the equivalent `:Please` command.
+
 yank()                                                         *please.yank()*
     Yanks a target's build label.
 
@@ -246,11 +395,15 @@ yank()                                                         *please.yank()*
     which is under the cursor. Otherwise, yanks the build label of the target
     which takes the current file as an input.
 
+    See |:Please-yank| for the equivalent `:Please` command.
+
 toggle_debug_logging()                         *please.toggle_debug_logging()*
     Toggles debug logging.
 
     The debug logs mostly contain which functions are being called with which
     arguments. This should provide enough information to debug most issues.
+
+    See |:Please-toggle_debug_logging| for the equivalent `:Please` command.
 
 
  vim:tw=78:ts=8:sw=4:sts=4:et:ft=help:norl:
