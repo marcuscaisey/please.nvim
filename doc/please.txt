@@ -103,24 +103,19 @@ please.nvim doesn't come with any mappings defined out of the box so that you
 can customise how you use it. Below are a set of mappings for each available
 command to get you started.
 >lua
-    local please = require('please')
-    vim.keymap.set('n', '<leader>pb', please.build)
-    vim.keymap.set('n', '<leader>pr', please.run)
-    vim.keymap.set('n', '<leader>pt', please.test)
-    vim.keymap.set('n', '<leader>pct', function()
-      please.test({ under_cursor = true })
-    end)
-    vim.keymap.set('n', '<leader>pd', please.debug)
-    vim.keymap.set('n', '<leader>pcd', function()
-      please.debug({ under_cursor = true })
-    end)
-    vim.keymap.set('n', '<leader>ph', please.history)
-    vim.keymap.set('n', '<leader>pch', please.clear_history)
-    vim.keymap.set('n', '<leader>pp', please.set_profile)
-    vim.keymap.set('n', '<leader>pm', please.maximise_popup)
-    vim.keymap.set('n', '<leader>pj', please.jump_to_target)
-    vim.keymap.set('n', '<leader>pl', please.look_up_target)
-    vim.keymap.set('n', '<leader>py', please.yank)
+    vim.keymap.set('n', '<leader>pb', '<Cmd>Please build<CR>')
+    vim.keymap.set('n', '<leader>pr', '<Cmd>Please run<CR>')
+    vim.keymap.set('n', '<leader>pt', '<Cmd>Please test<CR>')
+    vim.keymap.set('n', '<leader>pct', '<Cmd>Please test under_cursor<CR>')
+    vim.keymap.set('n', '<leader>pd', '<Cmd>Please debug<CR>')
+    vim.keymap.set('n', '<leader>pcd', '<Cmd>Please debug under_cursor<CR>')
+    vim.keymap.set('n', '<leader>ph', '<Cmd>Please history<CR>')
+    vim.keymap.set('n', '<leader>pch', '<Cmd>Please clear_history<CR>')
+    vim.keymap.set('n', '<leader>pp', '<Cmd>Please set_profile<CR>')
+    vim.keymap.set('n', '<leader>pm', '<Cmd>Please maximise_popup<CR>')
+    vim.keymap.set('n', '<leader>pj', '<Cmd>Please jump_to_target<CR>')
+    vim.keymap.set('n', '<leader>pl', '<Cmd>Please look_up_target<CR>')
+    vim.keymap.set('n', '<leader>py', '<Cmd>Please yank<CR>')
 <
 ==============================================================================
 COMMANDS                                           *:Please* *please-commands*
