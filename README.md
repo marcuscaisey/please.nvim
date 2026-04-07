@@ -53,27 +53,8 @@ call dein#add('marcuscaisey/please.nvim')
 
 #### Recommended additional plugins
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Tree-sitter configurations
-  and abstraction layer for Neovim.
-- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - Highly extendable fuzzy
-  finder.
-- [dressing.nvim](https://github.com/stevearc/dressing.nvim) - Pairs with telescope.nvim to
-  provide a nice popup for inputs (`vim.ui.input`) and selections (`vim.ui.select`).
+  and abstraction layer for Neovim. This enables you to install tree-sitter parsers.
+- [fzf-lua](https://github.com/ibhagwan/fzf-lua) - Highly extendable fuzzy finder. This provides a
+  good `vim.ui.select` implementation.
 - [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug Adapter Protocol client
   implementation for Neovim. **This is required to use `please.debug()`.**
-- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - UI for nvim-dap.
-
-### `nvim-treesitter` configuration
-`please.nvim` configures the Python tree-sitter parser to be used for please files. It doesn't,
-however, configure anything else to do with
-[`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter), so it's recommended to at
-least enable syntax highlighting like so:
-```lua
-require('nvim-treesitter.configs').setup({
-  highlight = {
-    enable = true,
-  },
-})
-```
-
-For more information on configuring [`nvim-treesitter`](https://github.com/nvim-treesitter/nvim-treesitter),
-[see here](https://github.com/nvim-treesitter/nvim-treesitter#available-modules).
