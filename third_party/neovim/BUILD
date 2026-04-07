@@ -2,7 +2,7 @@ subinclude("//build_defs:neovim")
 
 neovim_toolchain(
     name = "toolchain",
-    version = "v0.11.1",
+    version = "v0.12.0",
 )
 
 neovim_tree_sitter_parser(
