@@ -6,6 +6,7 @@ routine actions.
 ## Features
   * Build, run, test, and debug a target with `:Please build`, `:Please run`, `:Please test`, and
     `:Please debug`.
+  * Run an arbitrary plz command in a popup with `:Please command`.
   * Display history of previous commands and run any of them again with `:Please history`.
   * Set the profile to use with `:Please set_profile`.
   * Jump from a source file to its target's definition with `:Please jump_to_target`.
