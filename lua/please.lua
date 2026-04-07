@@ -22,10 +22,10 @@ local debug = require_on_index('_please.debug')
 local M = {}
 
 ---@nodoc
----@class please.Config
+---@class _please.Config
 ---@field max_history_items integer The maximum number of history items to store for each repository.
 
----@type please.Config
+---@type _please.Config
 local config = {
     max_history_items = 20,
 }
@@ -77,7 +77,7 @@ local data_path = vim.fn.stdpath('data')
 ---@cast data_path string
 local command_history_path = vim.fs.joinpath(data_path, 'please-command-history.json')
 
----@return table<string, please.Command[]>
+---@return table<string, _please.Command[]>
 local function read_command_history()
     if not vim.uv.fs_stat(command_history_path) then
         return {}
@@ -100,16 +100,16 @@ local function write_command_history(history)
 end
 
 ---@nodoc
----@alias please.Command please.SimpleCommand | please.DebugCommand
+---@alias _please.Command _please.SimpleCommand | _please.DebugCommand
 
 ---@nodoc
----@class (exact) please.SimpleCommand
+---@class _please.SimpleCommand
 ---@field type 'simple'
 ---@field args table
 ---@field description string
 
 ---@nodoc
----@class please.DebugCommand
+---@class _please.DebugCommand
 ---@field type 'debug'
 ---@field lang string
 ---@field target string
@@ -117,7 +117,7 @@ end
 ---@field description string
 
 ---@param root string
----@param command please.Command
+---@param command _please.Command
 local function save_command(root, command)
     local history = read_command_history()
     if history[root] then

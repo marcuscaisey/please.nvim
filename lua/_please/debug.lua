@@ -97,13 +97,13 @@ local function setup_debug_adapter()
     debug_adapter_setup = true
 end
 
----@class DebugAdapterConfig
+---@class _please.debug.AdapterConfig
 ---@field root string root of the plz repo
 ---@field target string target to debug
 ---@field extra_args string[] extra arguments to pass to plz debug
 ---@field [string] any any debug adapter specific config
 
----@param config DebugAdapterConfig
+---@param config _please.debug.AdapterConfig
 local function launch_debug_adapter(config)
     setup_debug_adapter()
     config = vim.tbl_extend('error', config, {
