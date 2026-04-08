@@ -230,19 +230,20 @@ function it(name, block)
             table.insert(logs, ('%5s: %s'):format(level_name, msg))
         end
         local ok, err = pcall(block)
-        if not ok then
-            if #logs > 0 then
-                local function errmsg_with_logs(errmsg)
-                    return ('%s\n\nLogs:\n%s\n'):format(errmsg, table.concat(logs, '\n'))
-                end
-                if type(err) == 'table' then
-                    err.message = errmsg_with_logs(err.message)
-                else
-                    err = errmsg_with_logs(err)
-                end
-            end
-            error(err)
+        if ok then
+            return
         end
+        if #logs > 0 then
+            local function errmsg_with_logs(errmsg)
+                return ('%s\n\nLogs:\n%s\n'):format(errmsg, table.concat(logs, '\n'))
+            end
+            if type(err) == 'table' then
+                err.message = errmsg_with_logs(err.message)
+            else
+                err = errmsg_with_logs(err)
+            end
+        end
+        error(err)
     end)
 end
 

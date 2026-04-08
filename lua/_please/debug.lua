@@ -120,7 +120,7 @@ end
 ---@return string? errmsg
 local function plz_goroot(root)
     local gotools, err = query.config(root, 'plugin.go.gotool')
-    if not gotools then
+    if err then ---@cast gotools -?
         return nil, string.format('determining GOROOT: %s', err)
     end
     local gotool = gotools[1]
@@ -128,7 +128,7 @@ local function plz_goroot(root)
     if vim.startswith(gotool, ':') or vim.startswith(gotool, '//') then
         gotool = gotool:gsub('|go$', '')
         local gotool_output, err = query.output(root, gotool)
-        if not gotool_output then
+        if err then ---@cast gotool_output -?
             return nil, string.format('determining GOROOT: querying output of plugin.go.gotool target: %s', gotool, err)
         end
         return vim.fs.joinpath(root, gotool_output)
@@ -139,15 +139,14 @@ local function plz_goroot(root)
             return nil, string.format('determining GOROOT: plugin.go.gotool %s does not exist', gotool)
         end
         local goroot_res = vim.system({ gotool, 'env', 'GOROOT' }):wait()
-        if goroot_res.code == 0 then
-            return vim.trim(goroot_res.stdout)
-        else
+        if goroot_res.code ~= 0 then
             return nil, string.format('determining GOROOT: %s env GOROOT: %s', gotool, goroot_res.stderr)
         end
+        return vim.trim(goroot_res.stdout)
     end
 
     local build_paths, err = query.config(root, 'build.path')
-    if not build_paths then
+    if err then ---@cast build_paths -?
         return nil, string.format('determining GOROOT: querying value of build.path: %s', err)
     end
     for _, build_path in ipairs(build_paths) do
@@ -155,11 +154,10 @@ local function plz_goroot(root)
             local go = vim.fs.joinpath(build_path_part, gotool)
             if vim.uv.fs_stat(go) then
                 local goroot_res = vim.system({ go, 'env', 'GOROOT' }):wait()
-                if goroot_res.code == 0 then
-                    return vim.trim(goroot_res.stdout)
-                else
+                if goroot_res.code ~= 0 then
                     return nil, string.format('determing GOROOT: %s env GOROOT: %s', go, goroot_res.stderr)
                 end
+                return vim.trim(goroot_res.stdout)
             end
         end
     end
@@ -176,12 +174,12 @@ function M.launchers.go(root, target, extra_args)
     logging.log_call('debug.launchers.go')
 
     local arches, err = query.config(root, 'build.arch')
-    if not arches then
+    if err then ---@cast arches -?
         return false, string.format('launching delve: determining host arch: %s', err)
     end
     local arch = arches[1]
     local goroot, err = plz_goroot(root)
-    if not goroot then
+    if err then ---@cast goroot -?
         return false, string.format('launching delve: %s', err)
     end
 
@@ -242,7 +240,7 @@ function M.launchers.python(root, target, extra_args)
     local remote_runtime_dir = local_runtime_dir
     if vim.uv.os_uname().sysname == 'Linux' then
         local target_sandboxed, err = query.is_target_sandboxed(root, target)
-        if target_sandboxed == nil then
+        if err then ---@cast target_sandboxed -?
             return false, ('launching debugpy: %s'):format(err)
         end
         if target_sandboxed then
@@ -254,7 +252,7 @@ function M.launchers.python(root, target, extra_args)
     local local_pex_explode_dir = vim.fs.joinpath(local_runtime_dir, pex_explode_dir)
     local remote_pex_explode_dir = vim.fs.joinpath(remote_runtime_dir, pex_explode_dir)
     local target_out, err = query.print_field(root, target, 'outs')
-    if not target_out then
+    if err then ---@cast target_out -?
         return false, ('launching debugpy: %s'):format(err)
     end
 

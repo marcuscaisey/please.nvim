@@ -611,9 +611,9 @@ function M.look_up_target()
 
         ---@param target string
         local function look_up_target(target)
-            local target, errmsg = parsing.locate_target(root, target)
-            if not target then
-                logging.error('Failed to look up target: %s', errmsg)
+            local target, err = parsing.locate_target(root, target)
+            if err then ---@cast target -?
+                logging.error('Failed to look up target: %s', err)
                 return
             end
             logging.debug('opening %s at %s', target.file, vim.inspect(target.position))

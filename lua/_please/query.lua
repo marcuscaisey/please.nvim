@@ -32,7 +32,7 @@ function M.whatinputs(root, filepath)
     logging.log_call('query.whatinputs')
 
     local output, err = plz_query(root, { 'whatinputs', filepath })
-    if not output then
+    if err then ---@cast output -?
         return nil, string.format('plz query whatinputs %s: %s', filepath, err)
     end
 
@@ -57,7 +57,7 @@ function M.print_field(root, target, field)
     logging.log_call('query.print_field')
 
     local output, err = plz_query(root, { 'print', target, '--field', field })
-    if not output then
+    if err then ---@cast output -?
         return nil, string.format('plz query print %s --field %s: %s', target, field, err)
     end
 
@@ -73,7 +73,7 @@ function M.is_target_sandboxed(root, target)
     logging.log_call('query.is_target_sandboxed')
 
     local test_value, err = M.print_field(root, target, 'test')
-    if not test_value then
+    if err then ---@cast test_value -?
         return nil, string.format('determining if %s is sandboxed: %s', target, err)
     end
 
@@ -81,7 +81,7 @@ function M.is_target_sandboxed(root, target)
     local sandbox_field = target_is_test and 'test_sandbox' or 'sandbox'
 
     local sandbox_value, err = M.print_field(root, target, sandbox_field)
-    if not sandbox_value then
+    if err then ---@cast sandbox_value -?
         return nil, string.format('determining if %s is sandboxed: %s', target, err)
     end
 
@@ -97,7 +97,7 @@ function M.config(root, option)
     logging.log_call('query.config')
 
     local output, err = plz_query(root, { 'config', option })
-    if not output then
+    if err then ---@cast output -?
         return nil, string.format('plz query config %s: %s', option, err)
     end
 
@@ -113,7 +113,7 @@ function M.output(root, target)
     logging.log_call('query.output')
 
     local output, err = plz_query(root, { 'output', target })
-    if err then
+    if err then ---@cast output -?
         return nil, string.format('plz query output %s: %s', target, err)
     end
 
@@ -131,9 +131,9 @@ function M.with_goroot(root, cb)
 
     local gotool = 'go'
     local gotools, err = M.config(root, 'plugin.go.gotool')
-    if gotools then
+    if not err then ---@cast gotools -?
         gotool = gotools[1]
-    elseif not (err or ''):match('Settable field not defined') then
+    elseif not err:match('Settable field not defined') then
         cb(nil, string.format('determining GOROOT: %s', err))
         return
     end
@@ -141,7 +141,7 @@ function M.with_goroot(root, cb)
     if vim.startswith(gotool, ':') or vim.startswith(gotool, '//') then
         gotool = gotool:gsub('|go$', '')
         local gotool_output, err = M.output(root, gotool)
-        if not gotool_output then
+        if err then ---@cast gotool_output -?
             cb(nil, string.format('determining GOROOT: %s', err))
             return
         end
@@ -206,7 +206,7 @@ function M.with_goroot(root, cb)
     end
 
     local build_paths, err = M.config(root, 'build.path')
-    if not build_paths then
+    if err then ---@cast build_paths -?
         cb(nil, string.format('determining GOROOT: %s', err))
         return
     end

@@ -80,22 +80,23 @@ end
 ---@param f function
 function M.log_errors(err_msg, f)
     local ok, err = pcall(f)
-    if not ok then
-        if debug_enabled then
-            M.error('%s: %s', err_msg, err)
-            return
-        end
-        -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
-        --
-        -- some errors won't contain this information so default back to the whole error in this case (assert called with
-        -- the result of a function which returns three values i.e.
-        -- function foo()
-        --   return nil, nil, 'error message'
-        -- end
-        -- won't raise an error filename / location)
-        local user_msg = err:match('.-:%d+: (.+)') or err
-        M.error('%s: %s', err_msg, user_msg)
+    if ok then
+        return
     end
+    if debug_enabled then
+        M.error('%s: %s', err_msg, err)
+        return
+    end
+    -- strips filename / location from error messages, i.e. transforms "foo/bar:27: error occurred" -> "error occurred"
+    --
+    -- some errors won't contain this information so default back to the whole error in this case (assert called with
+    -- the result of a function which returns three values i.e.
+    -- function foo()
+    --   return nil, nil, 'error message'
+    -- end
+    -- won't raise an error filename / location)
+    local user_msg = err:match('.-:%d+: (.+)') or err
+    M.error('%s: %s', err_msg, user_msg)
 end
 
 ---Logs the args passed to a func at debug level.
