@@ -16,15 +16,17 @@ vim.keymap.set('n', '<leader>pj', '<Cmd>Please jump_to_target<CR>')
 vim.keymap.set('n', '<leader>pl', '<Cmd>Please look_up_target<CR>')
 vim.keymap.set('n', '<leader>py', '<Cmd>Please yank<CR>')
 
--- nvim-treesitter
+-- LSP
+vim.pack.add({ 'https://github.com/neovim/nvim-lspconfig' })
+vim.lsp.enable({ 'gopls', 'basedpyright' })
+
+-- Tree-sitter
 vim.pack.add({ 'https://github.com/nvim-treesitter/nvim-treesitter' })
 local treesitter = require('nvim-treesitter')
 treesitter.install({ 'go', 'python' })
-
--- treesitter
 vim.api.nvim_create_autocmd('FileType', { command = 'lua pcall(vim.treesitter.start)' })
 
--- nvim-dap
+-- DAP
 vim.pack.add({
     'https://github.com/mfussenegger/nvim-dap',
     'https://github.com/nvim-neotest/nvim-nio',
