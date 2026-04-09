@@ -1,52 +1,8 @@
 local temptree = require('tests.temptree')
+local log_handler = require('tests.log_handler')
 local parsing = require('_please.parsing')
 
-local original_it = it
----Define a test that will pass, fail, or error.
----
----You can also use `spec()` and `test()` as aliases.
----
----## Example
----```
----describe("Test something", function()
----    it("Runs a test", function()
----        assert.is.True(10 == 10)
----    end)
----end)
----```
----@param name string
----@param block fun()
-function it(name, block)
-    original_it(name, function()
-        local logs = {}
-        ---@diagnostic disable-next-line: unused-local, duplicate-set-field
-        function vim.notify(msg, level, opts)
-            local level_names = {
-                [vim.log.levels.TRACE] = 'TRACE',
-                [vim.log.levels.DEBUG] = 'DEBUG',
-                [vim.log.levels.INFO] = 'INFO',
-                [vim.log.levels.WARN] = 'WARN',
-                [vim.log.levels.ERROR] = 'ERROR',
-            }
-            local level_name = level_names[level] or 'UNKNOWN'
-            table.insert(logs, ('%5s: %s'):format(level_name, msg))
-        end
-        local ok, err = pcall(block)
-        if not ok then
-            if #logs > 0 then
-                local function errmsg_with_logs(errmsg)
-                    return ('%s\n\nLogs:\n%s\n'):format(errmsg, table.concat(logs, '\n'))
-                end
-                if type(err) == 'table' then
-                    err.message = errmsg_with_logs(err.message)
-                else
-                    err = errmsg_with_logs(err)
-                end
-            end
-            error(err)
-        end
-    end)
-end
+local it = log_handler.wrap_it(it)
 
 describe('locate_target', function()
     local test_cases = {

@@ -11,6 +11,7 @@ neovim_test(
     },
     deps = [
         ":temptree",
+        ":log_handler",
         "//:please",
         "//third_party/neovim:go_tree_sitter_parser",
         "//third_party/neovim:python_tree_sitter_parser",
@@ -20,4 +21,9 @@ neovim_test(
 neovim_library(
     name = "temptree",
     srcs = ["temptree.lua"],
+)
+
+neovim_library(
+    name = "log_handler",
+    srcs = ["log_handler.lua"],
 )
