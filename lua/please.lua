@@ -1,24 +1,3 @@
----@param modname string
----@return unknown
-local function require_on_index(modname)
-    return setmetatable({}, {
-        __index = function(_, k)
-            return require(modname)[k]
-        end,
-    })
-end
-
----@module '_please.query'
-local query = require_on_index('_please.query')
----@module '_please.parsing'
-local parsing = require_on_index('_please.parsing')
----@module '_please.runner'
-local runner = require_on_index('_please.runner')
----@module '_please.logging'
-local logging = require_on_index('_please.logging')
----@module '_please.debug'
-local debug = require_on_index('_please.debug')
-
 local M = {}
 
 ---@nodoc
@@ -65,6 +44,7 @@ local profiles_by_root = setmetatable({}, {
 ---@param args string[]
 ---@param opts _please.runner.RunnerOpts?
 local function start_runner(root, args, opts)
+    local runner = require('_please.runner')
     local profile = profiles_by_root[root]
     if profile then
         table.insert(args, 1, '--profile')
@@ -213,6 +193,10 @@ end
 ---
 ---See [:Please-build] for the equivalent `:Please` command.
 function M.build()
+    local logging = require('_please.logging')
+    local parsing = require('_please.parsing')
+    local query = require('_please.query')
+
     logging.log_call('please.build')
 
     logging.log_errors('Failed to build', function()
@@ -240,6 +224,10 @@ end
 ---
 ---See [:Please-run] for the equivalent `:Please` command.
 function M.run()
+    local logging = require('_please.logging')
+    local parsing = require('_please.parsing')
+    local query = require('_please.query')
+
     logging.log_call('please.run')
 
     logging.log_errors('Failed to run', function()
@@ -289,6 +277,10 @@ end
 ---See [:Please-test] for the equivalent `:Please` command.
 ---@param opts please.TestOptions? optional keyword arguments
 function M.test(opts)
+    local logging = require('_please.logging')
+    local parsing = require('_please.parsing')
+    local query = require('_please.query')
+
     logging.log_call('please.test')
 
     logging.log_errors('Failed to test', function()
@@ -324,6 +316,9 @@ end
 ---@param target string
 ---@param extra_args string[]
 local function run_debug_command(root, lang, target, extra_args)
+    local debug = require('_please.debug')
+    local logging = require('_please.logging')
+
     local launcher = debug.launchers[lang]
     start_runner(root, { 'build', '--config', 'dbg', target }, {
         on_exit = function(success, runner)
@@ -373,6 +368,11 @@ end
 ---See [:Please-debug] for the equivalent `:Please` command.
 ---@param opts please.DebugOptions? optional keyword arguments
 function M.debug(opts)
+    local debug = require('_please.debug')
+    local logging = require('_please.logging')
+    local parsing = require('_please.parsing')
+    local query = require('_please.query')
+
     logging.log_call('please.debug')
 
     logging.log_errors('Failed to debug', function()
@@ -438,6 +438,8 @@ end
 ---See [:Please-command] for the equivalent `:Please` command.
 ---@param ... string Arguments to pass to plz
 function M.command(...)
+    local logging = require('_please.logging')
+
     logging.log_call('please.command')
 
     local args = { ... }
@@ -455,6 +457,8 @@ end
 ---
 ---See [:Please-history] for the equivalent `:Please` command.
 function M.history()
+    local logging = require('_please.logging')
+
     logging.log_call('please.history')
 
     logging.log_errors('Failed to show command history', function()
@@ -490,6 +494,8 @@ end
 ---
 ---See [:Please-clear_history] for the equivalent `:Please` command.
 function M.clear_history()
+    local logging = require('_please.logging')
+
     logging.log_call('please.clear_history')
 
     logging.log_errors('Failed to clear command history', function()
@@ -512,6 +518,8 @@ end
 ---
 ---See [:Please-set_profile] for the equivalent `:Please` command.
 function M.set_profile()
+    local logging = require('_please.logging')
+
     logging.log_call('please.set_profile')
 
     logging.log_errors('Failed to set profile', function()
@@ -564,6 +572,9 @@ end
 ---
 ---See [:Please-maximise_popup] for the equivalent `:Please` command.
 function M.maximise_popup()
+    local logging = require('_please.logging')
+    local runner = require('_please.runner')
+
     logging.log_call('please.maximise_popup')
     if runner.current then
         runner.current:maximise()
@@ -579,6 +590,10 @@ end
 ---
 ---See [:Please-jump_to_target] for the equivalent `:Please` command.
 function M.jump_to_target()
+    local logging = require('_please.logging')
+    local parsing = require('_please.parsing')
+    local query = require('_please.query')
+
     logging.log_call('please.jump_to_target')
 
     logging.log_errors('Failed to jump to target', function()
@@ -603,6 +618,9 @@ end
 ---
 ---See [:Please-look_up_target] for the equivalent `:Please` command.
 function M.look_up_target()
+    local logging = require('_please.logging')
+    local parsing = require('_please.parsing')
+
     logging.log_call('please.look_up_target')
 
     logging.log_errors('Failed to look up target', function()
@@ -643,6 +661,10 @@ end
 ---
 ---See [:Please-yank] for the equivalent `:Please` command.
 function M.yank()
+    local logging = require('_please.logging')
+    local parsing = require('_please.parsing')
+    local query = require('_please.query')
+
     logging.log_call('please.yank')
 
     logging.log_errors('Failed to yank', function()
@@ -675,6 +697,8 @@ end
 ---
 ---See [:Please-toggle_debug_logging] for the equivalent `:Please` command.
 function M.toggle_debug_logging()
+    local logging = require('_please.logging')
+
     local enabled = logging.toggle_debug()
     if enabled then
         logging.info('debug logs enabled')

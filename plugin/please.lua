@@ -8,23 +8,6 @@ if vim.g.loaded_please then
     return
 end
 
----@param modname string
----@return unknown
-local function require_on_index(modname)
-    return setmetatable({}, {
-        __index = function(_, k)
-            return require(modname)[k]
-        end,
-    })
-end
-
----@module 'please'
-local please = require_on_index('please')
----@module '_please.query'
-local query = require_on_index('_please.query')
----@module '_please.logging'
-local logging = require_on_index('_please.logging')
-
 vim.filetype.add({
     extension = {
         build_defs = 'please',
@@ -76,6 +59,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
             return
         end
 
+        local logging = require('_please.logging')
+        local query = require('_please.query')
+
         local goroot, err = query.goroot(plz_root)
         if err then ---@cast goroot -?
             logging.warn('configuring gopls in repository "%s": %s', plz_root, err)
@@ -108,6 +94,9 @@ local var_arg_cmds = { 'command' }
 local hidden_cmds = { 'setup' }
 
 vim.api.nvim_create_user_command('Please', function(args)
+    local please = require('please')
+    local logging = require('_please.logging')
+
     local cmd_name = args.fargs[1]
     local cmd_args = { unpack(args.fargs, 2) }
 
@@ -149,11 +138,10 @@ end, {
         -- If there's only two words in the command line, then we're completing the command name. i.e. If cmd_line looks
         -- like 'Please te'.
         if #cmd_line_words == 2 then
-            -- Lazily required please module defined above is only required on index. Require it here since vim.tbl_keys will
-            -- not trigger this.
+            local please = require('please')
             local cmd_names = vim.tbl_filter(function(cmd_name)
                 return not vim.tbl_contains(hidden_cmds, cmd_name)
-            end, vim.tbl_keys(require('please')))
+            end, vim.tbl_keys(please))
             return complete_arg(arg_lead, cmd_names)
         end
 
