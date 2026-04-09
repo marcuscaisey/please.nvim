@@ -53,70 +53,37 @@ vim.lsp.config('please', {
     workspace_required = true,
 })
 
----@type table<integer, string>
-local buf_goroots = {}
+---@type table<integer, boolean>
+local seen_go_clients = {}
 
-vim.api.nvim_create_autocmd('VimEnter', {
+vim.api.nvim_create_autocmd('LspAttach', {
+    desc = 'Configure gopls to use appropriate GOROOT when started in a Please repository',
     group = vim.api.nvim_create_augroup('please.nvim_gopls_config', {}),
-    desc = 'Configure gopls language server to use appropriate GOROOT when started in a Please repository',
-    callback = function()
-        if not vim.lsp.config.gopls then
+    pattern = '*.go',
+    callback = function(ev)
+        if seen_go_clients[ev.data.client_id] then
             return
         end
-        local original_cmd = vim.lsp.config.gopls.cmd
-        if type(original_cmd) ~= 'table' then
+        seen_go_clients[ev.data.client_id] = true
+
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if not client or client.name ~= 'gopls' then
             return
         end
-        local original_root_dir = vim.lsp.config.gopls.root_dir
-        if not original_root_dir then
+
+        local plz_root = vim.fs.root(ev.match, '.plzconfig')
+        if not plz_root then
             return
         end
-        ---@type vim.lsp.Config
-        local config = {
-            root_dir = function(bufnr, cb)
-                local filename = vim.api.nvim_buf_get_name(bufnr)
-                local plz_root = vim.fs.root(filename, '.plzconfig')
-                if not plz_root then
-                    if type(original_root_dir) == 'string' then
-                        cb(original_root_dir)
-                    else
-                        original_root_dir(bufnr, cb)
-                    end
-                    return
-                end
-                -- If this call is not scheduled, two FileType events fire causing root_dir to be called twice. Not sure why...
-                vim.schedule(function()
-                    query.with_goroot(plz_root, function(goroot, err)
-                        if goroot then
-                            buf_goroots[bufnr] = goroot
-                        else
-                            logging.warn('starting gopls in repository "%s": %s', plz_root, err)
-                        end
-                        if type(original_root_dir) == 'string' then
-                            cb(original_root_dir)
-                        else
-                            original_root_dir(bufnr, cb)
-                        end
-                    end)
-                end)
-            end,
-            cmd = function(dispatchers)
-                local config = vim.lsp.config.gopls
-                local bufnr = vim.api.nvim_get_current_buf()
-                local goroot = buf_goroots[bufnr]
-                if goroot then
-                    config = vim.deepcopy(config)
-                    config.cmd_env = config.cmd_env or {}
-                    config.cmd_env.GOROOT = goroot
-                end
-                return vim.lsp.rpc.start(original_cmd, dispatchers, {
-                    cwd = config.cmd_cwd,
-                    env = config.cmd_env,
-                    detached = config.detached,
-                })
-            end,
-        }
-        vim.lsp.config('gopls', config)
+
+        local goroot, err = query.goroot(plz_root)
+        if err then ---@cast goroot -?
+            logging.warn('configuring gopls in repository "%s": %s', plz_root, err)
+            return
+        end
+
+        client.settings = vim.tbl_deep_extend('force', client.settings, { gopls = { env = { GOROOT = goroot } } })
+        client:notify('workspace/didChangeConfiguration', { settings = vim.NIL })
     end,
 })
 

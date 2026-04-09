@@ -83,10 +83,11 @@ please.nvim configures the `please` LSP client to use `plz tool lps` for
 Gopls GOROOT ~
 The gopls language server uses the `GOROOT` environment variable to determine
 where the standard library is located. The go-rules Please plugin allows
-configuring the version of Go to use via the `GoTool` `.plzconfig` setting.
+configuring the version of Go to use via the `plugin.go.gotool` `.plzconfig`
+setting.
 
-please.nvim configures `gopls` using |vim.lsp.config()| to use the appropriate
-`GOROOT` when started in a Please repository, based on the `GoTool` setting.
+please.nvim configures `gopls` to use the appropriate `GOROOT` when started in
+a Please repository, based on the `plugin.go.gotool` `.plzconfig` setting.
 This means that operations like jumping to a definition or listing references
 with standard library modules will refer to the correct location for the
 version of Go defined by the repository.

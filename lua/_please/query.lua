@@ -1,6 +1,5 @@
 local logging = require('_please.logging')
 local plz = require('_please.plz')
-local runner = require('_please.runner')
 
 local M = {}
 
@@ -120,120 +119,59 @@ function M.output(root, target)
     return output
 end
 
----Determines the appropriate GOROOT for a repo and passes it to the given callback.
----The result is passed to a callback because a target may need to be built to create the GOROOT. Progress will be shown
----in a floating window in this case.
----Determining the GOROOT may fail. In this case, the callback will be passed `nil`, `errmsg`.
+---Returns the appropriate GOROOT for a repo.
 ---@param root string absolute path to the repo root
----@param cb fun(goroot:string?, errmsg:string?) function called on success or error
-function M.with_goroot(root, cb)
-    logging.log_call('query.with_goroot')
+---@return string?
+---@return string? errmsg
+function M.goroot(root)
+    logging.log_call('query.goroot')
 
+    -- This is the default value set by the go plugin. We set it here because plz query config doesn't return default
+    -- values from plugins.
     local gotool = 'go'
     local gotools, err = M.config(root, 'plugin.go.gotool')
     if not err then ---@cast gotools -?
         gotool = gotools[1]
     elseif not err:match('Settable field not defined') then
-        cb(nil, string.format('determining GOROOT: %s', err))
-        return
+        return nil, string.format('resolving GOROOT: %s', err)
     end
 
+    local go_cmd ---@type string[]?
     if vim.startswith(gotool, ':') or vim.startswith(gotool, '//') then
-        gotool = gotool:gsub('|go$', '')
-        local gotool_output, err = M.output(root, gotool)
-        if err then ---@cast gotool_output -?
-            cb(nil, string.format('determining GOROOT: %s', err))
-            return
+        go_cmd = { plz, 'run', gotool }
+    elseif vim.startswith(gotool, '/') then
+        if vim.fn.executable(gotool) ~= 1 then
+            return nil, string.format('resolving GOROOT: plugin.go.gotool "%s" is not executable', gotool)
         end
-        local rel_goroot = vim.trim(gotool_output)
-        local goroot = vim.fs.joinpath(root, rel_goroot)
-        if not vim.uv.fs_stat(goroot) then
-            local msg = logging.format(
-                'GOROOT "%s" for repository "%s" does not exist. Build plugin.go.gotool target "%s" to create it?',
-                rel_goroot,
-                root,
-                gotool
-            )
-            local ok, result = pcall(vim.fn.confirm, msg, '&Yes\n&No', 1, 'Question')
-            if not ok and result ~= 'Keyboard interrupt' then
-                error(result)
-            end
-            local build = ok and result == 1
-            if not build then
-                cb(
-                    nil,
-                    string.format(
-                        'determining GOROOT: GOROOT "%s" for repository "%s" does not exist',
-                        rel_goroot,
-                        root
-                    )
-                )
-                return
-            end
-            runner.Runner.start(root, { 'build', gotool }, {
-                on_exit = function(success, runner)
-                    if success then
-                        runner:minimise()
-                        logging.info('built plugin.go.gotool target "%s" successfully', gotool)
-                        cb(goroot)
-                    else
-                        cb(
-                            nil,
-                            string.format('determining GOROOT: building plugin.go.gotool target "%s" failed', gotool)
-                        )
-                    end
-                end,
-            })
-            return
+        go_cmd = { gotool }
+    else
+        local build_paths, err = M.config(root, 'build.path')
+        if err then ---@cast build_paths -?
+            return nil, string.format('resolving GOROOT: %s', err)
         end
-        cb(goroot)
-        return
-    end
-
-    if vim.startswith(gotool, '/') then
-        if not vim.uv.fs_stat(gotool) then
-            cb(nil, string.format('determining GOROOT: plugin.go.gotool "%s" does not exist', gotool))
-            return
-        end
-        local goroot_res = vim.system({ gotool, 'env', 'GOROOT' }):wait()
-        if goroot_res.code == 0 then
-            cb(vim.trim(goroot_res.stdout))
-            return
-        else
-            cb(nil, string.format('determining GOROOT: %s env GOROOT: %s', gotool, goroot_res.stderr))
-            return
-        end
-    end
-
-    local build_paths, err = M.config(root, 'build.path')
-    if err then ---@cast build_paths -?
-        cb(nil, string.format('determining GOROOT: %s', err))
-        return
-    end
-    for _, build_path in ipairs(build_paths) do
-        for path in vim.gsplit(build_path, ':') do
+        for _, path in ipairs(build_paths) do
             local go = vim.fs.joinpath(path, gotool)
-            if vim.uv.fs_stat(go) then
-                local goroot_res = vim.system({ go, 'env', 'GOROOT' }):wait()
-                if goroot_res.code == 0 then
-                    cb(vim.trim(goroot_res.stdout))
-                    return
-                else
-                    cb(nil, string.format('determining GOROOT: %s env GOROOT: %s', go, goroot_res.stderr))
-                    return
-                end
+            if vim.fn.executable(go) == 1 then
+                go_cmd = { go }
+                break
             end
+        end
+        if not go_cmd then
+            return nil,
+                string.format(
+                    'resolving GOROOT: plugin.go.gotool "%s" not found in build.path "%s"',
+                    gotool,
+                    table.concat(build_paths, ':')
+                )
         end
     end
 
-    cb(
-        nil,
-        string.format(
-            'determining GOROOT: plugin.go.gotool "%s" not found in build.path "%s"',
-            gotool,
-            table.concat(build_paths, ':')
-        )
-    )
+    local cmd = vim.list_extend(go_cmd, { 'env', 'GOROOT' })
+    local res = vim.system(cmd):wait()
+    if res.code ~= 0 then
+        return nil, string.format('resolving GOROOT: %s: %s', table.concat(cmd, ' '), vim.trim(res.stderr))
+    end
+    return vim.trim(res.stdout)
 end
 
 return M
