@@ -74,7 +74,7 @@ function M.is_target_sandboxed(root, target)
 
     local test_value, err = M.print_field(root, target, 'test')
     if err then ---@cast test_value -?
-        return nil, string.format('determining if %s is sandboxed: %s', target, err)
+        return nil, string.format('checking if %s is sandboxed: %s', target, err)
     end
 
     local target_is_test = test_value == 'True'
@@ -82,7 +82,7 @@ function M.is_target_sandboxed(root, target)
 
     local sandbox_value, err = M.print_field(root, target, sandbox_field)
     if err then ---@cast sandbox_value -?
-        return nil, string.format('determining if %s is sandboxed: %s', target, err)
+        return nil, string.format('checking if %s is sandboxed: %s', target, err)
     end
 
     return sandbox_value == 'True'

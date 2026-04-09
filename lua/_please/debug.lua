@@ -175,7 +175,7 @@ function M.launchers.go(root, target, extra_args)
 
     local arches, err = query.config(root, 'build.arch')
     if err then ---@cast arches -?
-        return false, string.format('launching delve: determining host arch: %s', err)
+        return false, string.format('launching delve: resolving host arch: %s', err)
     end
     local arch = arches[1]
     local goroot, err = plz_goroot(root)
