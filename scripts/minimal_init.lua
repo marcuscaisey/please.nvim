@@ -1,5 +1,3 @@
-vim.g.mapleader = ' '
-
 -- please.nvim
 vim.pack.add({ 'https://github.com/marcuscaisey/please.nvim' })
 
