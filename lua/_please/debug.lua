@@ -115,61 +115,6 @@ local function launch_debug_adapter(config)
     dap.run(config)
 end
 
----@param root string
----@return string?
----@return string? errmsg
-local function plz_goroot(root)
-    local gotools, err = query.config(root, 'plugin.go.gotool')
-    if err then ---@cast gotools -?
-        return nil, string.format('determining GOROOT: %s', err)
-    end
-    local gotool = gotools[1]
-
-    if vim.startswith(gotool, ':') or vim.startswith(gotool, '//') then
-        gotool = gotool:gsub('|go$', '')
-        local gotool_output, err = query.output(root, gotool)
-        if err then ---@cast gotool_output -?
-            return nil, string.format('determining GOROOT: querying output of plugin.go.gotool target: %s', gotool, err)
-        end
-        return vim.fs.joinpath(root, gotool_output)
-    end
-
-    if vim.startswith(gotool, '/') then
-        if not vim.uv.fs_stat(gotool) then
-            return nil, string.format('determining GOROOT: plugin.go.gotool %s does not exist', gotool)
-        end
-        local goroot_res = vim.system({ gotool, 'env', 'GOROOT' }):wait()
-        if goroot_res.code ~= 0 then
-            return nil, string.format('determining GOROOT: %s env GOROOT: %s', gotool, goroot_res.stderr)
-        end
-        return vim.trim(goroot_res.stdout)
-    end
-
-    local build_paths, err = query.config(root, 'build.path')
-    if err then ---@cast build_paths -?
-        return nil, string.format('determining GOROOT: querying value of build.path: %s', err)
-    end
-    for _, build_path in ipairs(build_paths) do
-        for build_path_part in vim.gsplit(build_path, ':') do
-            local go = vim.fs.joinpath(build_path_part, gotool)
-            if vim.uv.fs_stat(go) then
-                local goroot_res = vim.system({ go, 'env', 'GOROOT' }):wait()
-                if goroot_res.code ~= 0 then
-                    return nil, string.format('determing GOROOT: %s env GOROOT: %s', go, goroot_res.stderr)
-                end
-                return vim.trim(goroot_res.stdout)
-            end
-        end
-    end
-
-    return nil,
-        string.format(
-            'determining GOROOT: plugin.go.gotool %s not found in build.path %s',
-            gotool,
-            table.concat(build_paths, ':')
-        )
-end
-
 function M.launchers.go(root, target, extra_args)
     logging.log_call('debug.launchers.go')
 
@@ -178,7 +123,7 @@ function M.launchers.go(root, target, extra_args)
         return false, string.format('launching delve: resolving host arch: %s', err)
     end
     local arch = arches[1]
-    local goroot, err = plz_goroot(root)
+    local goroot, err = query.goroot(root)
     if err then ---@cast goroot -?
         return false, string.format('launching delve: %s', err)
     end

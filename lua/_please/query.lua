@@ -103,22 +103,6 @@ function M.config(root, option)
     return vim.split(output, '\n')
 end
 
----Wrapper around plz query output which returns the output of the given target.
----@param root string: absolute path to the repo root
----@param target string: target to query
----@return string?
----@return string? errmsg
-function M.output(root, target)
-    logging.log_call('query.output')
-
-    local output, err = plz_query(root, { 'output', target })
-    if err then ---@cast output -?
-        return nil, string.format('plz query output %s: %s', target, err)
-    end
-
-    return output
-end
-
 ---Returns the appropriate GOROOT for a repo.
 ---@param root string absolute path to the repo root
 ---@return string?
