@@ -99,14 +99,14 @@ local function open_win(bufnr, augroup)
     vim.hl.range(bg_bufnr, hl_ns, banner_help_hl_group, { 0, indent + 45 }, { 0, indent + 68 }) -- please.maximise_popup()
 
     vim.api.nvim_create_autocmd('WinLeave', {
+        desc = 'Close the foreground and background windows when the foreground window is left',
         group = augroup,
         buffer = bufnr,
-        desc = 'Close the foreground and background windows when the foreground window is left.',
+        once = true,
         callback = function()
             vim.api.nvim_win_close(fg_winid, false)
             vim.api.nvim_win_close(bg_winid, false)
         end,
-        once = true,
     })
 
     return fg_winid
@@ -192,9 +192,9 @@ function Runner.start(root, args, opts)
 
     -- It's easy to get stuck in terminal mode without any indication that you need to press <c-\><c-n> to get out
     vim.api.nvim_create_autocmd('TermEnter', {
+        desc = 'Exit terminal mode',
         group = augroup,
         buffer = bufnr,
-        desc = 'Exit terminal mode',
         callback = function()
             vim.cmd.stopinsert()
         end,
@@ -210,9 +210,9 @@ function Runner.start(root, args, opts)
     end, { buffer = bufnr })
 
     vim.api.nvim_create_autocmd('WinLeave', {
+        desc = 'Set minimised flag and save cursor position',
         group = augroup,
         buffer = runner._bufnr,
-        desc = 'Set minimised flag and save cursor position',
         callback = function()
             runner._minimised = true
             runner._prev_cursor_position = vim.api.nvim_win_get_cursor(0)
