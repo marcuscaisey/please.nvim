@@ -50,11 +50,11 @@ vim.api.nvim_create_autocmd('LspAttach', {
         seen_go_clients[ev.data.client_id] = true
 
         local client = vim.lsp.get_client_by_id(ev.data.client_id)
-        if not client or client.name ~= 'gopls' then
+        if not client or client.name ~= 'gopls' or not client.root_dir then
             return
         end
 
-        local plz_root = vim.fs.root(ev.match, '.plzconfig')
+        local plz_root = vim.fs.root(client.root_dir, '.plzconfig')
         if not plz_root then
             return
         end
