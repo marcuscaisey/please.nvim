@@ -15,11 +15,14 @@ routine actions.
   * `please` configured as the `filetype` for `BUILD`, `BUILD.plz`, `*.build`, and `*.build_defs`
     files.
   * `ini` configured as the `filetype` for `.plzconfig` files to enable better syntax highlighting.
-  * `please` LSP client configured to use `plz tool lps` for `please` files.
-  * [gopls](https://go.dev/gopls) language server configured to use appropriate `GOROOT` when
-    started in a Please respository.
   * Python tree-sitter parser configured to be used for please files to enable better syntax
     highlighting and use of all tree-sitter features in build files.
+  * `please` LSP client configured to use `plz tool lps` for `please` files.
+  * Language servers [gopls](https://go.dev/gopls),
+    [golangci-lint-langserver](https://github.com/nametake/golangci-lint-langserver),
+    [basedpyright](https://github.com/detachhead/basedpyright), and
+    [pyright](https://github.com/microsoft/pyright) automatically configured for use in a Please
+    repository.
 
 ## Demo
 https://user-images.githubusercontent.com/34950778/205456279-665ddfe8-de77-4f36-a337-85768bb06a37.mov

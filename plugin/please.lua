@@ -36,12 +36,18 @@ vim.lsp.config('please', {
     workspace_required = true,
 })
 
+---@param dir string?
+---@return boolean
+local function dir_is_plz_root(dir)
+    return dir ~= nil and vim.uv.fs_stat(vim.fs.joinpath(dir, '.plzconfig')) ~= nil
+end
+
 ---@type table<integer, boolean>
 local seen_go_clients = {}
 
 vim.api.nvim_create_autocmd('LspAttach', {
-    desc = 'Configure gopls to use appropriate GOROOT when started in a Please repository',
-    group = vim.api.nvim_create_augroup('please.nvim_gopls_config', {}),
+    desc = 'Configure gopls and golangci-lint-langserver for use in a Please repository',
+    group = vim.api.nvim_create_augroup('please.nvim_go_lsp_config', {}),
     pattern = '*.go',
     callback = function(ev)
         if seen_go_clients[ev.data.client_id] then
@@ -50,25 +56,100 @@ vim.api.nvim_create_autocmd('LspAttach', {
         seen_go_clients[ev.data.client_id] = true
 
         local client = vim.lsp.get_client_by_id(ev.data.client_id)
-        if not client or client.name ~= 'gopls' or not client.root_dir then
-            return
-        end
-
-        local plz_root = vim.fs.root(client.root_dir, '.plzconfig')
-        if not plz_root then
+        if
+            not client
+            or (client.name ~= 'gopls' and client.name ~= 'golangci_lint_ls')
+            or not dir_is_plz_root(client.root_dir)
+        then
             return
         end
 
         local logging = require('_please.logging')
         local query = require('_please.query')
 
-        local goroot, err = query.goroot(plz_root)
+        local goroot, err = query.goroot(client.root_dir)
         if err then ---@cast goroot -?
-            logging.warn('configuring gopls in repository "%s": %s', plz_root, err)
+            logging.warn('configuring %s in repository "%s": %s', client.name, client.root_dir, err)
             return
         end
 
-        client.settings = vim.tbl_deep_extend('force', client.settings, { gopls = { env = { GOROOT = goroot } } })
+        local config = vim.deepcopy(client.config)
+
+        local path = vim.tbl_get(config, 'cmd_env', 'PATH') or vim.env.PATH
+        config.cmd_env = vim.tbl_deep_extend('force', config.cmd_env or {}, {
+            PATH = ('%s/bin:%s'):format(goroot, path),
+        })
+
+        if client.name == 'gopls' then
+            local directory_filters = vim.deepcopy(vim.tbl_get(client.settings, 'gopls', 'directoryFilters'))
+                or { '-**/node_modules' }
+            local plz_out_filter = '-plz-out'
+            if not vim.list_contains(directory_filters, plz_out_filter) then
+                table.insert(directory_filters, plz_out_filter)
+            end
+            config.settings = vim.tbl_deep_extend('force', client.settings, {
+                gopls = { directoryFilters = directory_filters },
+            })
+        end
+
+        local client_id = vim.lsp.start(config, {
+            bufnr = ev.buf,
+            reuse_client = function()
+                return false
+            end,
+        })
+        if client_id then
+            seen_go_clients[client_id] = true
+            client:stop(true)
+        end
+    end,
+})
+
+---@type table<integer, boolean>
+local seen_python_clients = {}
+
+vim.api.nvim_create_autocmd('LspAttach', {
+    desc = 'Configure pyright and basedpyright for use in a Please repository',
+    group = vim.api.nvim_create_augroup('please.nvim_python_lsp_config', {}),
+    pattern = '*.py',
+    callback = function(ev)
+        if seen_python_clients[ev.data.client_id] then
+            return
+        end
+        seen_python_clients[ev.data.client_id] = true
+
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if
+            not client
+            or (client.name ~= 'pyright' and client.name ~= 'basedpyright')
+            or not dir_is_plz_root(client.root_dir)
+        then
+            return
+        end
+
+        local section = client.name == 'basedpyright' and 'basedpyright' or 'python'
+
+        local extra_paths = vim.deepcopy(vim.tbl_get(client.settings, section, 'analysis', 'extraPaths')) or {}
+        local venv_path = 'plz-out/python/venv'
+        if not vim.list_contains(extra_paths, venv_path) then
+            table.insert(extra_paths, 1, venv_path)
+        end
+
+        local exclude = vim.deepcopy(vim.tbl_get(client.settings, section, 'analysis', 'exclude'))
+            or { '**/node_modules', '**/__pycache__', '**/.*' }
+        local plz_out_path = 'plz-out'
+        if not vim.list_contains(exclude, plz_out_path) then
+            table.insert(exclude, plz_out_path)
+        end
+
+        client.settings = vim.tbl_deep_extend('force', client.settings, {
+            [section] = {
+                analysis = {
+                    extraPaths = extra_paths,
+                    exclude = exclude,
+                },
+            },
+        })
         client:notify('workspace/didChangeConfiguration', { settings = vim.NIL })
     end,
 })

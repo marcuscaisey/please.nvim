@@ -26,8 +26,10 @@ Features ~
     syntax highlighting.
   • `please` LSP client configured to use `plz tool lps` for `please` files.
     See |please-lsp-client|.
-  • gopls language server configured to use appropriate `GOROOT` when started
-    in a Please respository. See |please-gopls-GOROOT|.
+  • Language servers gopls, golangci-lint-langserver, basedpyright, and
+    pyright automatically configured for use in a Please repository. See
+    |please-gopls-config|, |please-golangci-lint-langserver-config|,
+    |please-basedpyright-config|, and |please-pyright-config|.
   • Python tree-sitter parser configured to be used for please files to enable
     better syntax highlighting and use of all tree-sitter features in build
     files.
@@ -79,22 +81,75 @@ please.nvim configures the `please` LSP client to use `plz tool lps` for
 >lua
     vim.lsp.enable('please')
 <
-                                                         *please-gopls-GOROOT*
-Gopls GOROOT ~
-The gopls language server uses the `GOROOT` environment variable to determine
-where the standard library is located. The go-rules Please plugin allows
-configuring the version of Go to use via the `plugin.go.gotool` `.plzconfig`
-setting.
+                                                         *please-gopls-config*
+gopls Configuration ~
+please.nvim detects when `gopls` has been started in a Please repository and
+restarts it with the following configuration changes:
+  • Append `-plz-out` to the `gopls.directoryFilters` setting to exclude
+    `plz-out` from the workspace.
+  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
+    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
+    The go-rules Please plugin allows configuring the `go` executable to use
+    via `plugin.go.gotool` and `gopls` uses the `go` executable found on its
+    `PATH` to determine where the standard library is located. So this `PATH`
+    change means that operations like jumping to a definition or listing
+    references with standard library packages will refer to the correct
+    location for the Go toolchain configured for the repository.
 
-please.nvim configures `gopls` to use the appropriate `GOROOT` when started in
-a Please repository, based on the `plugin.go.gotool` `.plzconfig` setting.
-This means that operations like jumping to a definition or listing references
-with standard library modules will refer to the correct location for the
-version of Go defined by the repository.
+See also:
+  • https://go.dev/gopls/settings
+  • https://github.com/please-build/go-rules/blob/master/.plzconfig
 
-See also: ~
-  • https://go.dev/gopls
-  • https://github.com/please-build/go-rules
+                                      *please-golangci-lint-langserver-config*
+golangci-lint-langserver Configuration ~
+please.nvim detects when `golangci-lint-langserver` has been started in a
+Please repository and restarts it with the following configuration changes:
+  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
+    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
+    The go-rules Please plugin allows configuring the `go` executable to use
+    via `plugin.go.gotool` and `golangci-lint-langserver` uses the `go`
+    executable found on its `PATH` to determine where the standard library is
+    located. So this `PATH` change means that checks will be performed against
+    the standard library packages in the Go toolchain configured for the
+    repository.
+
+See also:
+  • https://github.com/nametake/golangci-lint-langserver
+  • https://github.com/please-build/go-rules/blob/master/.plzconfig
+
+                                                  *please-basedpyright-config*
+basedpyright Configuration ~
+please.nvim detects when `basedpyright` has been started in a Please
+repository and sends a `workspace/didChangeConfiguration` notification after
+making the following setting changes:
+  • Append `plz-out` to `basedpyright.analysis.exclude` to exclude `plz-out`
+    from the workspace.
+  • Prepend `plz-out/python/venv` to `basedpyright.analysis.extraPaths`. The
+    `python_wheel` and `pip_library` rules from the python-rules Please plugin
+    symlink the downloaded packages into `plz-out/python/venv` so this means
+    that `basedpyright` will be able to find them.
+
+See also:
+  • https://docs.basedpyright.com/latest/configuration/language-server-settings
+  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
+  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
+
+                                                       *please-pyright-config*
+pyright Configuration ~
+please.nvim detects when `pyright` has been started in a Please
+repository and sends a `workspace/didChangeConfiguration` notification after
+making the following setting changes:
+  • Append `plz-out` to `python.analysis.exclude` to exclude `plz-out`
+    from the workspace.
+  • Prepend `plz-out/python/venv` to `python.analysis.extraPaths`. The
+    `python_wheel` and `pip_library` rules from the python-rules Please plugin
+    symlink the downloaded packages into `plz-out/python/venv` so this means
+    that pyright` will be able to find them.
+
+See also:
+  • https://microsoft.github.io/pyright/#/settings
+  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
+  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
 
 ==============================================================================
 SETUP                                                           *please-setup*
