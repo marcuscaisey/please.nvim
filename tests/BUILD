@@ -10,8 +10,8 @@ neovim_test(
         "PLEASE_NVIM_PLZ": "third_party/please/plz",
     },
     deps = [
-        ":temptree",
         ":log_handler",
+        ":temptree",
         "//:please",
         "//third_party/neovim:go_tree_sitter_parser",
         "//third_party/neovim:python_tree_sitter_parser",
