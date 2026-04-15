@@ -6,12 +6,12 @@
 INTRODUCTION                                                    *please-intro*
 
 please.nvim enables you to interact with your Please repository from the
-comfort of Neovim. It aims to remove the need to switch from your editor to
-the shell when performing routine actions.
+comfort of Neovim.
 
+                                                             *please-features*
 Features ~
-  • Build, run, test, and debug a target with |:Please-build|,
-    |:Please-run|, |:Please-test|, and |:Please-debug|.
+  • Build, run, test, and debug a target with |:Please-build|, |:Please-run|,
+    |:Please-test|, and |:Please-debug|.
   • Run an arbitrary plz command in a popup with |:Please-command|.
   • Display history of previous commands and run any of them again with
     |:Please-history|.
@@ -28,15 +28,23 @@ Features ~
     See |please-lsp-client|.
   • Language servers gopls, golangci-lint-langserver, basedpyright, and
     pyright automatically configured for use in a Please repository. See
-    |please-gopls-config|, |please-golangci-lint-langserver-config|,
-    |please-basedpyright-config|, and |please-pyright-config|.
+    |please-gopls|, |please-golangci-lint-langserver|, |please-basedpyright|,
+    and |please-pyright|.
   • Python tree-sitter parser configured to be used for please files to enable
     better syntax highlighting and use of all tree-sitter features in build
     files.
 
 ==============================================================================
+QUICKSTART                                                 *please-quickstart*
+
+1. Open a test file in a Please repository.
+2. Execute `:Please test` to test the target corresponding to the test file in
+   a popup.
+
+==============================================================================
 USAGE                                                           *please-usage*
 
+                                                           *please-interfaces*
 Command interface and Lua API ~
 please.nvim provides a command interface and a Lua API. All functionality is
 available through both. To use the command interface, invoke the appropriate
@@ -56,110 +64,8 @@ Lua API: >lua
 See |please-commands| and |please-lua| for full documentation of the two
 interfaces.
 
-UI Customisation ~
-Some commands may prompt you to either choose from a list of options or input
-some text. For example, when building a file which is an input to multiple
-targets, you'll be prompted to choose which target to build.
-
-Input and selection prompts are provided by |vim.ui.input()| and
-|vim.ui.select()| respectively. This enables you to customise the appearance
-of these prompts to your taste by overriding |vim.ui.input()| or
-|vim.ui.select()|. There are various plugins now which provide alternative
-implementations of these hooks. Some (possibly outdated) examples are:
-  • https://github.com/ibhagwan/fzf-lua
-  • https://github.com/folke/snacks.nvim
-  • https://github.com/stevearc/dressing.nvim
-  • https://github.com/nvim-telescope/telescope-ui-select.nvim
-
-==============================================================================
-LSP CONFIGURATION                                          *please-lsp-config*
-
-                                                           *please-lsp-client*
-Please LSP Client ~
-please.nvim configures the `please` LSP client to use `plz tool lps` for
-`please` files using |vim.lsp.config()|. Call |vim.lsp.enable| to enable it:
->lua
-    vim.lsp.enable('please')
-<
-                                                         *please-gopls-config*
-gopls Configuration ~
-please.nvim detects when `gopls` has been started in a Please repository and
-restarts it with the following configuration changes:
-  • Append `-plz-out` to the `gopls.directoryFilters` setting to exclude
-    `plz-out` from the workspace.
-  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
-    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
-    The go-rules Please plugin allows configuring the `go` executable to use
-    via `plugin.go.gotool` and `gopls` uses the `go` executable found on its
-    `PATH` to determine where the standard library is located. So this `PATH`
-    change means that operations like jumping to a definition or listing
-    references with standard library packages will refer to the correct
-    location for the Go toolchain configured for the repository.
-
-See also:
-  • https://go.dev/gopls/settings
-  • https://github.com/please-build/go-rules/blob/master/.plzconfig
-
-                                      *please-golangci-lint-langserver-config*
-golangci-lint-langserver Configuration ~
-please.nvim detects when `golangci-lint-langserver` has been started in a
-Please repository and restarts it with the following configuration changes:
-  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
-    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
-    The go-rules Please plugin allows configuring the `go` executable to use
-    via `plugin.go.gotool` and `golangci-lint-langserver` uses the `go`
-    executable found on its `PATH` to determine where the standard library is
-    located. So this `PATH` change means that checks will be performed against
-    the standard library packages in the Go toolchain configured for the
-    repository.
-
-See also:
-  • https://github.com/nametake/golangci-lint-langserver
-  • https://github.com/please-build/go-rules/blob/master/.plzconfig
-
-                                                  *please-basedpyright-config*
-basedpyright Configuration ~
-please.nvim detects when `basedpyright` has been started in a Please
-repository and sends a `workspace/didChangeConfiguration` notification after
-making the following setting changes:
-  • Append `plz-out` to `basedpyright.analysis.exclude` to exclude `plz-out`
-    from the workspace.
-  • Prepend `plz-out/python/venv` to `basedpyright.analysis.extraPaths`. The
-    `python_wheel` and `pip_library` rules from the python-rules Please plugin
-    symlink the downloaded packages into `plz-out/python/venv` so this means
-    that `basedpyright` will be able to find them.
-
-See also:
-  • https://docs.basedpyright.com/latest/configuration/language-server-settings
-  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
-  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
-
-                                                       *please-pyright-config*
-pyright Configuration ~
-please.nvim detects when `pyright` has been started in a Please
-repository and sends a `workspace/didChangeConfiguration` notification after
-making the following setting changes:
-  • Append `plz-out` to `python.analysis.exclude` to exclude `plz-out`
-    from the workspace.
-  • Prepend `plz-out/python/venv` to `python.analysis.extraPaths`. The
-    `python_wheel` and `pip_library` rules from the python-rules Please plugin
-    symlink the downloaded packages into `plz-out/python/venv` so this means
-    that pyright` will be able to find them.
-
-See also:
-  • https://microsoft.github.io/pyright/#/settings
-  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
-  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
-
-==============================================================================
-SETUP                                                           *please-setup*
-
-please.nvim does not require any setup to be used. However, you can customise
-the behaviour of the plugin by calling |please.setup()|.
-
-==============================================================================
-MAPPINGS                                                     *please-mappings*
-
+                                                             *please-mappings*
+Mappings ~
 please.nvim doesn't come with any mappings defined out of the box so that you
 can customise how you use it. Below are a set of mappings for each available
 command to get you started.
@@ -178,6 +84,111 @@ command to get you started.
     vim.keymap.set('n', '<leader>pl', '<Cmd>Please look_up_target<CR>')
     vim.keymap.set('n', '<leader>py', '<Cmd>Please yank<CR>')
 <
+                                                                *please-setup*
+Setup ~
+please.nvim does not require any setup to be used. However, you can customise
+the behaviour of the plugin by calling |please.setup()|.
+
+                                                     *please-ui-customisation*
+UI Customisation ~
+Some commands may prompt you to either choose from a list of options or input
+some text. For example, when building a file which is an input to multiple
+targets, you'll be prompted to choose which target to build.
+
+Input and selection prompts are provided by |vim.ui.input()| and
+|vim.ui.select()| respectively. This enables you to customise the appearance
+of these prompts to your taste by overriding |vim.ui.input()| or
+|vim.ui.select()|. There are various plugins now which provide alternative
+implementations of these hooks. Some (possibly outdated) examples are:
+  • https://github.com/ibhagwan/fzf-lua
+  • https://github.com/folke/snacks.nvim
+  • https://github.com/stevearc/dressing.nvim
+  • https://github.com/nvim-telescope/telescope-ui-select.nvim
+
+==============================================================================
+LSP CONFIGURATION                                          *please-lsp-config*
+
+please.nvim automatically configures various aspects of your LSP setup.
+
+                                                           *please-lsp-client*
+Please LSP Client ~
+please.nvim automatically configures the `please` LSP client to use `plz tool
+lps` for `please` files using |vim.lsp.config()|. Call |vim.lsp.enable| to
+enable it:
+>lua
+    vim.lsp.enable('please')
+<
+                                                                *please-gopls*
+gopls ~
+please.nvim automatically detects when `gopls` has been started in a Please
+repository and restarts it with the following configuration changes:
+  • Append `-plz-out` to the `gopls.directoryFilters` setting to exclude
+    `plz-out` from the workspace.
+  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
+    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
+    The go-rules Please plugin allows configuring the `go` executable to use
+    via `plugin.go.gotool` and `gopls` uses the `go` executable found on its
+    `PATH` to determine where the standard library is located. So this `PATH`
+    change means that operations like jumping to a definition or listing
+    references with standard library packages will refer to the correct
+    location for the Go toolchain configured for the repository.
+
+See also:
+  • https://go.dev/gopls/settings
+  • https://github.com/please-build/go-rules/blob/master/.plzconfig
+
+                                             *please-golangci-lint-langserver*
+golangci-lint-langserver ~
+please.nvim automatically detects when `golangci-lint-langserver` has been
+started in a Please repository and restarts it with the following
+configuration changes:
+  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
+    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
+    The go-rules Please plugin allows configuring the `go` executable to use
+    via `plugin.go.gotool` and `golangci-lint-langserver` uses the `go`
+    executable found on its `PATH` to determine where the standard library is
+    located. So this `PATH` change means that checks will be performed against
+    the standard library packages in the Go toolchain configured for the
+    repository.
+
+See also:
+  • https://github.com/nametake/golangci-lint-langserver
+  • https://github.com/please-build/go-rules/blob/master/.plzconfig
+
+                                                         *please-basedpyright*
+basedpyright ~
+please.nvim automatically detects when `basedpyright` has been started in a
+Please repository and sends a `workspace/didChangeConfiguration` notification
+after making the following setting changes:
+  • Append `plz-out` to `basedpyright.analysis.exclude` to exclude `plz-out`
+    from the workspace.
+  • Prepend `plz-out/python/venv` to `basedpyright.analysis.extraPaths`. The
+    `python_wheel` and `pip_library` rules from the python-rules Please plugin
+    symlink the downloaded packages into `plz-out/python/venv` so this means
+    that `basedpyright` will be able to find them.
+
+See also:
+  • https://docs.basedpyright.com/latest/configuration/language-server-settings
+  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
+  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
+
+                                                              *please-pyright*
+pyright ~
+please.nvim automatically detects when `pyright` has been started in a Please
+repository and sends a `workspace/didChangeConfiguration` notification after
+making the following setting changes:
+  • Append `plz-out` to `python.analysis.exclude` to exclude `plz-out`
+    from the workspace.
+  • Prepend `plz-out/python/venv` to `python.analysis.extraPaths`. The
+    `python_wheel` and `pip_library` rules from the python-rules Please plugin
+    symlink the downloaded packages into `plz-out/python/venv` so this means
+    that pyright` will be able to find them.
+
+See also:
+  • https://microsoft.github.io/pyright/#/settings
+  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
+  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
+
 ==============================================================================
 COMMANDS                                           *:Please* *please-commands*
 
