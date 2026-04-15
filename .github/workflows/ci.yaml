@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
+      - name: Install dependencies
+        run: ./pleasew build //third_party/neovim:toolchain_0_12
       - name: Typecheck with lua-language-server
         uses: mrcjkb/lua-typecheck-action@v0
         with:
