@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
       - name: Install Please
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Apply AppArmor profile
@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
       - name: Lint with Stylua
-        uses: JohnnyMorganz/stylua-action@main
+        uses: JohnnyMorganz/stylua-action@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
       - name: Install Please
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Lint with plz format
