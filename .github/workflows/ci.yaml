@@ -38,10 +38,12 @@ jobs:
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
-      - name: Install Please
-        run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
+      - name: Apply AppArmor profile
+        run: |
+          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
+          sudo systemctl reload apparmor.service
       - name: Install dependencies
-        run: plz build //third_party/neovim:toolchain_0_12
+        run: ./pleasew build //third_party/neovim:toolchain_0_12
       - name: Typecheck with lua-language-server
         uses: mrcjkb/lua-typecheck-action@v0
         with:
