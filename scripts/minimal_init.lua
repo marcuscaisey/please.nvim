@@ -29,7 +29,7 @@ end
 -- Tree-sitter
 vim.pack.add({ 'https://github.com/nvim-treesitter/nvim-treesitter' })
 local treesitter = require('nvim-treesitter')
-treesitter.install({ 'go', 'python' })
+treesitter.install({ 'go', 'ini', 'python' })
 vim.api.nvim_create_autocmd('FileType', { command = 'lua pcall(vim.treesitter.start)' })
 
 -- DAP
