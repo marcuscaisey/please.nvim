@@ -12,11 +12,11 @@
     "library": [
       "${3rd}/busted/library",
       "${3rd}/luassert/library",
-      "${workspaceFolder}/lua",
-      "${workspaceFolder}/plz-out/nvim",
-      "${workspaceFolder}/plz-out/nvim/runtime_0.12.0",
-      "${workspaceFolder}/plz-out/lua",
-      "${workspaceFolder}/third_party/lua/library"
+      "lua",
+      "plz-out/nvim",
+      "plz-out/nvim/runtime_0.12.0",
+      "plz-out/lua",
+      "third_party/lua/library"
     ]
   }
 }
