@@ -3,9 +3,8 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
+  pull_request: ~
+
 jobs:
   test:
     name: Test
@@ -33,6 +32,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --check --color always .
+  typecheck-lua:
+    name: Typecheck Lua
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v6
+      - name: Typecheck with lua-language-server
+        uses: mrcjkb/lua-typecheck-action@v0
+        with:
+          directories: |
+            lua
+            tests
   lint-build:
     name: Lint BUILD
     runs-on: ubuntu-latest
