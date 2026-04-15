@@ -1,8 +1,13 @@
 subinclude("//build_defs:neovim")
 
 neovim_toolchain(
-    name = "toolchain",
-    version = "v0.11.1",
+    name = "toolchain_0_12_0",
+    version = "v0.12.0",
+)
+
+neovim_toolchain(
+    name = "toolchain_0_11_0",
+    version = "v0.11.0",
 )
 
 neovim_tree_sitter_parser(

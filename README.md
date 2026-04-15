@@ -53,7 +53,7 @@ Shown above:
 ### Installation
 
 > [!NOTE]
-> Neovim >= 0.11.1 is required to use please.nvim
+> Neovim >= 0.11.0 is required to use please.nvim
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 

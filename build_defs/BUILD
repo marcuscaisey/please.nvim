@@ -1,4 +1,10 @@
 export_file(
+    name = "nvim_versions",
+    src = "nvim_versions.build_defs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
     name = "lua",
     src = "lua.build_defs",
     visibility = ["PUBLIC"],

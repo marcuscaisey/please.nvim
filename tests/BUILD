@@ -1,4 +1,4 @@
-subinclude("//build_defs:neovim")
+subinclude("//build_defs:neovim", "//build_defs:nvim_versions")
 
 neovim_test(
     name = "please_spec",
@@ -9,6 +9,7 @@ neovim_test(
     env = {
         "PLEASE_NVIM_PLZ": "third_party/please/plz",
     },
+    nvim_versions = NVIM_VERSIONS,
     deps = [
         ":log_handler",
         ":temptree",

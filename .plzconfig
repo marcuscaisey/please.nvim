@@ -2,7 +2,7 @@
 version = 17.29.1
 
 [BuildConfig]
-nvim-tool = //third_party/neovim:toolchain|nvim
+nvim-tool = //third_party/neovim:toolchain_0_12_0|nvim
 lua-tool = //third_party/lua:toolchain|lua
 luarocks-tool = //third_party/lua:luarocks|luarocks
 
