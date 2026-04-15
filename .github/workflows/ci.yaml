@@ -50,6 +50,7 @@ jobs:
           directories: |
             lua
             tests
+          configpath: .luarc.json
   lint-build:
     name: Lint BUILD
     runs-on: ubuntu-latest
