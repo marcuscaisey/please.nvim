@@ -1,99 +1,199 @@
-#!/usr/bin/env bash
+#!/bin/sh
+
+set -e
 set -u
 
-RED="\x1B[31m"
-GREEN="\x1B[32m"
-YELLOW="\x1B[33m"
-RESET="\x1B[0m"
+ESC="$(printf '\033')"
 
-DEFAULT_URL_BASE="https://get.please.build"
-
-OS="$(uname)"
-
-if [[ $OS == "Darwin" ]]; then
-    # switch between mac amd64/arm64
-    ARCH="$(uname -m)"
+if [ "${NOCOLOR+x}" != 'x' ] || [ "${NO_COLOR+x}" != 'x' ]; then
+    RED="${ESC}[31m"
+    GREEN="${ESC}[32m"
+    YELLOW="${ESC}[33m"
+    RESET="${ESC}[0m"
 else
-    # default to amd64 on other operating systems
-    # because we only build intel binaries
-    ARCH="amd64"
+    RED=''
+    GREEN=''
+    YELLOW=''
+    RESET=''
 fi
 
-# Check PLZ_CONFIG_PROFILE or fall back to arguments for a profile.
-PROFILE="${PLZ_CONFIG_PROFILE:-$(sed -E 's/.*--profile[= ]([^ ]+).*/\1/g' <<< "$*")}"
+OS=""
+ARCH=""
 
-# Config files on order of precedence high to low.
-CONFIGS=(
-  ".plzconfig.local"
-  "${PROFILE:+.plzconfig.$PROFILE}"
-  ".plzconfig_${OS}_${ARCH}"
-  ".plzconfig"
-  "$HOME/.config/please/plzconfig"
-  "/etc/please/plzconfig"
-)
-
-function read_config() {
-   grep -i "$1" "${CONFIGS[@]}" 2>/dev/null | head -n 1
-}
-
-# We might already have it downloaded...
-LOCATION="$(read_config "^location" | cut -d '=' -f 2 | tr -d ' ')"
-if [ -z "$LOCATION" ]; then
-    if [ -z "$HOME" ]; then
-        echo -e >&2 "${RED}\$HOME not set, not sure where to look for Please.${RESET}"
+case "$(uname)" in
+    Linux)
+        OS=linux
+        case "$(uname -m)" in
+            x86_64) ARCH=amd64 ;;
+            aarch64*|armv8b|armv8l) ARCH=arm64 ;;
+        esac
+        ;;
+    Darwin)
+        OS=darwin
+        case "$(uname -m)" in
+            x86_64) ARCH=amd64 ;;
+            arm64) ARCH=arm64 ;;
+        esac
+        ;;
+    FreeBSD)
+        OS=freebsd
+        case "$(uname -m)" in
+            amd64) ARCH=amd64 ;;
+        esac
+        ;;
+    *)
+        printf >&2 '%bPlease does not support the %s operating system.%b\n' \
+            "${RED}" "$(uname)" "${RESET}"
         exit 1
-    fi
-    LOCATION="${HOME}/.please"
-else
-    # It can contain a literal ~, need to explicitly handle that.
-    LOCATION="${LOCATION/\~/$HOME}"
-fi
-# If this exists at any version, let it handle any update.
-TARGET="${LOCATION}/please"
-if [ -f "$TARGET" ]; then
-    exec "$TARGET" ${PLZ_ARGS:-} "$@"
-fi
+        ;;
+esac
 
-URL_BASE="$(read_config "^downloadlocation" | cut -d '=' -f 2 | tr -d ' ')"
-if [ -z "$URL_BASE" ]; then
-    URL_BASE=$DEFAULT_URL_BASE
-fi
-URL_BASE="${URL_BASE%/}"
-
-VERSION="$(read_config "^version[^a-z]")"
-VERSION="${VERSION#*=}"    # Strip until after first =
-VERSION="${VERSION/ /}"    # Remove all spaces
-VERSION="${VERSION#>=}"    # Strip any initial >=
-if [ -z "$VERSION" ]; then
-    echo -e >&2 "${YELLOW}Can't determine version, will use latest.${RESET}"
-    VERSION=$(curl -fsSL ${URL_BASE}/latest_version)
-fi
-
-# Find the os / arch to download. You can do this quite nicely with go env
-# but we use this script on machines that don't necessarily have Go itself.
-if [ "$OS" = "Linux" ]; then
-    GOOS="linux"
-elif [ "$OS" = "Darwin" ]; then
-    GOOS="darwin"
-elif [ "$OS" = "FreeBSD" ]; then
-    GOOS="freebsd"
-else
-    echo -e >&2 "${RED}Unknown operating system $OS${RESET}"
+if [ -z "$ARCH" ]; then
+    printf >&2 '%bPlease does not support the %s architecture on %s.%b\n' \
+        "${RED}" "$(uname -m)" "$(uname)" "${RESET}"
     exit 1
 fi
 
-PLEASE_URL="${URL_BASE}/${GOOS}_${ARCH}/${VERSION}/please_${VERSION}.tar.xz"
-DIR="${LOCATION}/${VERSION}"
-# Potentially we could reuse this but it's easier not to really.
-if [ ! -d "$DIR" ]; then
-    rm -rf "$DIR"
+DEFAULT_URL_BASE='https://get.please.build'
+
+has_command () {
+    command -v "${1}" > /dev/null 2>&1
+}
+
+get_profile () {
+    while [ "${#}" -gt 0 ]
+    do
+        case "${1}" in
+            --profile=*) echo "${1#*=}"; return;;
+            --profile) echo "${2}"; return;;
+            *) shift;;
+        esac
+    done
+}
+
+# Check `PLZ_CONFIG_PROFILE` or fall back to arguments for a profile.
+PROFILE="${PLZ_CONFIG_PROFILE:-$(get_profile "${@}")}"
+
+# Find repo root by traversing up until we find .plzconfig
+find_repo_root() {
+    dir="$PWD"
+    while true; do
+        [ -f "$dir/.plzconfig" ] && echo "$dir" && return 0
+        [ "$dir" = "/" ] && return 0
+        dir="$(dirname "$dir")"
+    done
+}
+
+REPO_ROOT="$(find_repo_root)"
+
+# Config files on order of precedence high to low.
+CONFIGS="$(cat <<- EOS
+	${REPO_ROOT:+${REPO_ROOT}/.plzconfig.local}
+	${REPO_ROOT:+${PROFILE:+${REPO_ROOT}/.plzconfig.${PROFILE}}}
+	${REPO_ROOT:+${REPO_ROOT}/.plzconfig_${OS}_${ARCH}}
+	${REPO_ROOT:+${REPO_ROOT}/.plzconfig}
+	${HOME}/.config/please/plzconfig
+	/etc/please/plzconfig
+EOS
+)"
+
+read_config() {
+    # Disable globbing to ensure word-splitting is safe.
+    set -f
+
+    old_ifs="${IFS}"
+    search_term="${1}"
+
+    IFS='
+'
+
+    # This is intended, we *do* want word-splitting here.
+    # shellcheck disable=2086
+    set -- ${CONFIGS}
+
+    grep -i "${search_term}" "${@}" 2> /dev/null | head -n 1
+
+    IFS="${old_ifs}"
+    set +f
+}
+
+# We might already have it downloaded...
+LOCATION="$(read_config '^\s*location' | cut -d '=' -f 2 | tr -d ' ')"
+
+if [ "${LOCATION:+x}" != 'x' ]; then
+    if [ "${HOME:+x}" != 'x' ]; then
+        # shellcheck disable=2016
+        printf >&2 '%b$HOME not set, not sure where to look for Please.%b\n' "${RED}" "${RESET}"
+        exit 1
+    fi
+
+    LOCATION="${HOME}/.please"
+else
+    # It can contain a literal ~, need to explicitly handle that.
+    LOCATION="$(echo "${LOCATION}" | sed "s|~|${HOME}|")"
 fi
-echo -e >&2 "${GREEN}Downloading Please ${VERSION} to ${DIR}...${RESET}"
-mkdir -p "$DIR"
-curl -fsSL "${PLEASE_URL}" | tar -xJpf- --strip-components=1 -C "$DIR"
+
+# If this exists at any version, let it handle any update.
+TARGET="${LOCATION}/please"
+
+if [ -f "${TARGET}" ]; then
+    # shellcheck disable=2086
+    exec "${TARGET}" ${PLZ_ARGS:-} "${@}"
+fi
+
+URL_BASE="$(read_config '^\s*downloadlocation' | cut -d '=' -f 2 | tr -d ' ')"
+
+if [ "${URL_BASE:+x}" != 'x' ]; then
+    URL_BASE="${DEFAULT_URL_BASE}"
+fi
+
+URL_BASE="${URL_BASE%/}"
+
+VERSION="$(read_config '^\s*version[^a-z]')"
+VERSION="${VERSION#*=}"                    # Strip until after first =
+VERSION="$(echo "${VERSION}" | tr -d ' ')" # Remove all spaces
+VERSION="${VERSION#>=}"                    # Strip any initial >=
+
+if has_command curl; then
+    TRANSFER_TOOL='curl'
+    TRANSFER_SILENT_OPTS='-fsSL'
+    TRANSFER_PROGRESS_OPTS='-fSL'
+elif has_command wget; then
+    TRANSFER_TOOL='wget'
+    TRANSFER_SILENT_OPTS='-qO-'
+    TRANSFER_PROGRESS_OPTS='-O-'
+else
+    printf >&2 '%bUnable to find a command for network operations%b\n' "${RED}" "${RESET}"
+    printf >&2 'Please install either curl or wget\n'
+    exit 1
+fi
+
+if [ "${VERSION:+x}" != 'x' ]; then
+    printf >&2 "%bCan't determine version, will use latest.%b\n" "${YELLOW}" "${RESET}"
+    VERSION=$(${TRANSFER_TOOL} ${TRANSFER_SILENT_OPTS} "${URL_BASE}"/latest_version)
+fi
+
+PLEASE_URL="${URL_BASE}/${OS}_${ARCH}/${VERSION}/please_${VERSION}.tar.xz"
+DIR="${LOCATION}/${VERSION}"
+
+# Potentially we could reuse this but it's easier not to really.
+if [ ! -d "${DIR}" ]; then
+    rm -Rf "${DIR}"
+fi
+
+printf >&2 '%bDownloading Please %s to %s...%b\n' "${GREEN}" "${VERSION}" "${DIR}" "${RESET}"
+mkdir -p "${DIR}"
+${TRANSFER_TOOL} ${TRANSFER_PROGRESS_OPTS} "${PLEASE_URL}" | tar -xJpf- --strip-components=1 -C "${DIR}"
+if [ $? -ne 0 ]; then
+    printf >&2 '%bFailed to download Please%b\n' "${RED}" "${RESET}"
+    exit 1
+fi
+
 # Link it all back up a dir
-for x in $(ls "$DIR"); do
-    ln -sf "${DIR}/${x}" "$LOCATION"
+for x in "${DIR}"/*; do
+    ln -sf "${x}" "${LOCATION}"
 done
-echo -e >&2 "${GREEN}Should be good to go now, running plz...${RESET}"
-exec "$TARGET" ${PLZ_ARGS:-} "$@"
+
+printf >&2 '%bShould be good to go now, running plz...%b\n' "${GREEN}" "${RESET}"
+# shellcheck disable=2086
+exec "${TARGET}" ${PLZ_ARGS:-} "${@}"
