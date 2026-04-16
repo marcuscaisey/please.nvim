@@ -47,10 +47,6 @@ jobs:
         run: ./pleasew build //third_party/neovim:toolchain_0_12_0 //third_party/neovim:nvim_dap
       - name: Typecheck with lua-language-server
         uses: mrcjkb/lua-typecheck-action@main
-        # TODO: remove both of these
-        with:
-          directories: .
-          configpath: .luarc.json
   lint-build:
     name: Lint BUILD
     runs-on: ubuntu-latest
