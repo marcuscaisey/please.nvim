@@ -3,8 +3,8 @@ subinclude("//build_defs:neovim")
 filegroup(
     name = "lua_deps",
     srcs = [
-        ":toolchain_0_12_0",
         ":nvim_dap",
+        ":toolchain_0_12_0",
     ],
 )
 
