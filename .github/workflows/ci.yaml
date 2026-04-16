@@ -47,9 +47,7 @@ jobs:
       - name: Typecheck with lua-language-server
         uses: mrcjkb/lua-typecheck-action@v0
         with:
-          directories: |
-            lua
-            tests
+          directories: .
           configpath: .luarc.json
   lint-build:
     name: Lint BUILD
