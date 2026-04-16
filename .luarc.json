@@ -16,8 +16,11 @@
       "lua",
       "plz-out/nvim",
       "plz-out/nvim/runtime_0.12.0",
-      "plz-out/lua",
-      "third_party/lua/library"
+      "plz-out/lua"
+    ],
+    "ignoreDir": [
+      "plz-out",
+      "tools/gen_vimdoc"
     ]
   }
 }
