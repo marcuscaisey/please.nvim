@@ -27,29 +27,37 @@ def neovim_toolchain(name:str, version:str, hashes:list=[], visibility:list=["PU
 
     download = remote_file(
         name = tag(name, "download"),
+        out = f"{name}.tar.gz",
         url = urls_by_os[CONFIG.HOSTOS],
         hashes = hashes,
-        extract = True,
     )
 
-    lua = genrule(
-        name = tag(name, "lua"),
+    extract = genrule(
+        name = tag(name, "extract"),
         srcs = [download],
-        output_dirs = ["_out"],
-        cmd = "mkdir _out && cp -r $SRCS/share/nvim/runtime/lua/* _out",
+        outs = [name],
+        tools = [CONFIG.ARCAT_TOOL],
+        cmd = "$TOOL x $SRCS -o _out && mkdir $OUT && mv _out/*/* $OUT",
+    )
+
+    runtime = genrule(
+        name = tag(name, "runtime"),
+        srcs = [extract],
+        outs = [f"{name}_runtime"],
+        cmd = "mkdir $OUT && cp -r $SRCS/share/nvim/runtime/lua/* $OUT",
         labels = ["link:plz-out/nvim/runtime_" + version.lstrip("v")],
     )
 
     return genrule(
         name = name,
-        srcs = [download],
+        srcs = [extract],
         cmd = "mv $SRCS $OUT",
         outs = [name],
         entry_points = {
             "nvim": f"{name}/bin/nvim",
         },
         binary = True,
-        deps = [lua],
+        deps = [extract, runtime],
         output_is_complete = True,
         visibility = visibility,
         building_description = "Installing...",
