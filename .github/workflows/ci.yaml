@@ -3,16 +3,15 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
+  pull_request: ~
+
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
       - name: Install Please
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Apply AppArmor profile
@@ -26,19 +25,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
       - name: Lint with Stylua
-        uses: JohnnyMorganz/stylua-action@main
+        uses: JohnnyMorganz/stylua-action@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --check --color always .
+  typecheck-lua:
+    name: Typecheck Lua
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v6
+      - name: Apply AppArmor profile
+        run: |
+          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
+          sudo systemctl reload apparmor.service
+      - name: Install dependencies
+        run: ./pleasew build //third_party/neovim:lua_deps
+      - name: Typecheck with lua-language-server
+        uses: mrcjkb/lua-typecheck-action@main
   lint-build:
     name: Lint BUILD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
       - name: Install Please
         run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Lint with plz format

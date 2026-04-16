@@ -1,5 +1,13 @@
 subinclude("//build_defs:neovim")
 
+filegroup(
+    name = "lua_deps",
+    srcs = [
+        ":nvim_dap",
+        ":toolchain_0_12_0",
+    ],
+)
+
 neovim_toolchain(
     name = "toolchain_0_12_0",
     version = "v0.12.0",
