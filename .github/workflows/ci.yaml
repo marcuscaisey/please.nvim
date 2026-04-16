@@ -12,14 +12,12 @@ jobs:
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
-      - name: Install Please
-        run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Apply AppArmor profile
         run: |
           sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
           sudo systemctl reload apparmor.service
       - name: Run tests
-        run: plz test
+        run: ./pleasew test
   lint-lua:
     name: Lint Lua
     runs-on: ubuntu-latest
@@ -52,11 +50,9 @@ jobs:
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
-      - name: Install Please
-        run: curl https://get.please.build | bash && echo ~/.please >> $GITHUB_PATH
       - name: Lint with plz format
         run: |
-          plz format --write
+          ./pleasew format --write
           if ! git diff --quiet; then
               echo 'The following files need to be formatted with "plz format --write"':
               git --no-pager diff --name-only
