@@ -12,6 +12,7 @@
     "library": [
       "${3rd}/busted/library",
       "${3rd}/luassert/library",
+      "third_party/lua/library",
       "lua",
       "plz-out/nvim",
       "plz-out/nvim/runtime_0.12.0",
