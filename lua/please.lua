@@ -28,7 +28,7 @@ local config = {
 function M.setup(opts)
     vim.validate('opts', opts, 'table')
     vim.validate('opts.max_history_items', opts.max_history_items, 'number', true)
-    config = vim.tbl_deep_extend('force', config, opts)
+    config = vim.tbl_deep_extend(1, config, opts)
 end
 
 local default_profile = os.getenv('PLZ_CONFIG_PROFILE')
