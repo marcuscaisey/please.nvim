@@ -14,7 +14,7 @@
       "${3rd}/luassert/library",
       "third_party/lua/library",
       "lua",
-      "plz-out/nvim",
+      "plz-out/nvim/plugins",
       "plz-out/nvim/runtime_0.12.0",
       "plz-out/lua"
     ],

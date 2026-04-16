@@ -230,7 +230,7 @@ def neovim_external_plugin(name:str, github_repo:str, revision:str, hashes:list=
         srcs = [download],
         output_dirs = ["_out"],
         cmd = "mkdir -p _out && cp -r $SRCS/lua/* _out",
-        labels = ["link:plz-out/nvim"],
+        labels = ["link:plz-out/nvim/plugins"],
     )
     return filegroup(
         name = name,
