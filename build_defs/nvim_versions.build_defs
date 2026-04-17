@@ -1,4 +1,4 @@
 NVIM_VERSIONS = {
-    "0.11.0": "//third_party/neovim:toolchain_0_11_0|nvim",
-    "0.12.0": "//third_party/neovim:toolchain_0_12_0|nvim",
+    "0.11.0": "//third_party/neovim:toolchain_0_11|nvim",
+    "0.12.0": "//third_party/neovim:toolchain_stable|nvim",
 }

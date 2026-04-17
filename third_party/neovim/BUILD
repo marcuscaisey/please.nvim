@@ -4,17 +4,17 @@ filegroup(
     name = "lua_deps",
     srcs = [
         ":nvim_dap",
-        ":toolchain_0_12_0",
+        ":toolchain_stable",
     ],
 )
 
 neovim_toolchain(
-    name = "toolchain_0_12_0",
-    version = "v0.12.0",
+    name = "toolchain_stable",
+    version = "stable",
 )
 
 neovim_toolchain(
-    name = "toolchain_0_11_0",
+    name = "toolchain_0_11",
     version = "v0.11.0",
 )
 

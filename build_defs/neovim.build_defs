@@ -45,7 +45,7 @@ def neovim_toolchain(name:str, version:str, hashes:list=[], visibility:list=["PU
         srcs = [extract],
         outs = [f"{name}_runtime"],
         cmd = "mkdir $OUT && cp -r $SRCS/share/nvim/runtime/lua/* $OUT",
-        labels = ["link:plz-out/nvim/runtime_" + version.lstrip("v")],
+        labels = [f"dlink:plz-out/nvim/runtime_{name}"],
     )
 
     return genrule(
