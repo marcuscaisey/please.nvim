@@ -1,0 +1,63 @@
+name: Test and Typecheck Lua
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  list-nvim-toolchains:
+    name: List Neovim toolchains
+    runs-on: ubuntu-latest
+    outputs:
+      toolchains: ${{ steps.list-nvim-toolchains.outputs.toolchains }}
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v6
+      - name: Apply AppArmor profile
+        run: |
+          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
+          sudo systemctl reload apparmor.service
+      - name: List Neovim toolchains
+        id: list-nvim-toolchains
+        run: echo toolchains=$(python3 scripts/neovim_toolchains.py) >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Test (Neovim ${{ matrix.toolchain.version }})
+    needs: list-nvim-toolchains
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v6
+      - name: Apply AppArmor profile
+        run: |
+          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
+          sudo systemctl reload apparmor.service
+      - name: Run tests
+        run: ./pleasew --override buildconfig.nvim-tool:'${{ matrix.toolchain.nvim }}' test
+    strategy:
+      matrix:
+        toolchain: ${{ fromJSON(needs.list-nvim-toolchains.outputs.toolchains) }}
+      fail-fast: false
+
+  typecheck-lua:
+    name: Typecheck Lua (Neovim ${{ matrix.toolchain.version }})
+    needs: list-nvim-toolchains
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v6
+      - name: Apply AppArmor profile
+        run: |
+          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
+          sudo systemctl reload apparmor.service
+      - name: Install dependencies
+        run: ./pleasew build ${{ matrix.toolchain.target }} //third_party/neovim:plugins
+      - name: Typecheck with lua-language-server
+        uses: mrcjkb/lua-typecheck-action@main
+        env:
+          TOOLCHAIN_TARGET_NAME: ${{ matrix.toolchain.target_name }}
+    strategy:
+      matrix:
+        toolchain: ${{ fromJSON(needs.list-nvim-toolchains.outputs.toolchains) }}
+      fail-fast: false

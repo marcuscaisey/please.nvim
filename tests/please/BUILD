@@ -1,9 +1,8 @@
-subinclude("//build_defs:neovim", "//build_defs:nvim_versions")
+subinclude("//build_defs:neovim")
 
 neovim_test(
     name = "parsing_spec",
     src = "parsing_spec.lua",
-    nvim_versions = NVIM_VERSIONS,
     deps = [
         "//:please",
         "//tests:log_handler",
@@ -14,9 +13,8 @@ neovim_test(
 )
 
 neovim_test(
-    name = "parsing_spec_go_tree_sitter_parser_0_23",
+    name = "parsing_spec_legacy_go_parser",
     src = "parsing_spec.lua",
-    nvim_versions = NVIM_VERSIONS,
     deps = [
         "//:please",
         "//tests:log_handler",
