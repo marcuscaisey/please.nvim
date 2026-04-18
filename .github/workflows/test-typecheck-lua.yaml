@@ -1,4 +1,4 @@
-name: Test and Typecheck Lua
+name: Test and Typecheck Lua Code
 on:
   schedule:
     - cron: "0 0 * * 1"
@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  list-nvim-toolchains:
-    name: List Neovim toolchains
+  list-neovim-toolchains:
+    name: List Neovim Toolchains
     runs-on: ubuntu-latest
     outputs:
-      toolchains: ${{ steps.list-nvim-toolchains.outputs.toolchains }}
+      toolchains: ${{ steps.generate-toolchain-list.outputs.toolchains }}
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
@@ -18,13 +18,13 @@ jobs:
         run: |
           sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
           sudo systemctl reload apparmor.service
-      - name: List Neovim toolchains
-        id: list-nvim-toolchains
+      - name: Generate toolchain list
+        id: generate-toolchain-list
         run: echo toolchains=$(python3 scripts/neovim_toolchains.py) >> "$GITHUB_OUTPUT"
 
   test:
     name: Test (Neovim ${{ matrix.toolchain.version }})
-    needs: list-nvim-toolchains
+    needs: list-neovim-toolchains
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
@@ -37,12 +37,12 @@ jobs:
         run: ./pleasew --override buildconfig.nvim-tool:'${{ matrix.toolchain.nvim }}' test
     strategy:
       matrix:
-        toolchain: ${{ fromJSON(needs.list-nvim-toolchains.outputs.toolchains) }}
+        toolchain: ${{ fromJSON(needs.list-neovim-toolchains.outputs.toolchains) }}
       fail-fast: false
 
-  typecheck-lua:
-    name: Typecheck Lua (Neovim ${{ matrix.toolchain.version }})
-    needs: list-nvim-toolchains
+  typecheck-lua-code:
+    name: Typecheck Lua Code (Neovim ${{ matrix.toolchain.version }})
+    needs: list-neovim-toolchains
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
@@ -53,11 +53,11 @@ jobs:
           sudo systemctl reload apparmor.service
       - name: Install dependencies
         run: ./pleasew build ${{ matrix.toolchain.target }} //third_party/neovim:plugins
-      - name: Typecheck with lua-language-server
+      - name: Run Lua typecheck
         uses: mrcjkb/lua-typecheck-action@main
         env:
           TOOLCHAIN_TARGET_NAME: ${{ matrix.toolchain.target_name }}
     strategy:
       matrix:
-        toolchain: ${{ fromJSON(needs.list-nvim-toolchains.outputs.toolchains) }}
+        toolchain: ${{ fromJSON(needs.list-neovim-toolchains.outputs.toolchains) }}
       fail-fast: false

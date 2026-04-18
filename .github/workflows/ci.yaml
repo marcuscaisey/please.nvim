@@ -7,34 +7,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-typecheck-lua:
-    name: Test and Typecheck Lua
+  test-and-typecheck-lua-code:
+    name: Test and Typecheck Lua Code
     uses: ./.github/workflows/test-typecheck-lua.yaml
 
   check-neovim-toolchain-versions:
     name: Check Neovim Toolchain Versions
-    uses: ./.github/workflows/check-neovim-toolchains-versions.yaml
+    uses: ./.github/workflows/check-neovim-toolchain-versions.yaml
 
-  lint-lua:
-    name: Lint Lua
+  lint-lua-code:
+    name: Lint Lua Code
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
-      - name: Lint with Stylua
+      - name: Run Stylua
         uses: JohnnyMorganz/stylua-action@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --check --color always .
 
-  lint-build:
-    name: Lint BUILD
+  lint-build-files:
+    name: Lint BUILD Files
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
-      - name: Lint with plz format
+      - name: Run BUILD file format check
         run: |
           ./pleasew format --write
           if ! git diff --quiet; then
