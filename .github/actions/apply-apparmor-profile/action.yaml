@@ -1,0 +1,11 @@
+name: Apply AppArmor Profile
+description: Install AppArmor profile and reload AppArmor service
+runs:
+  using: composite
+  steps:
+    - name: Install AppArmor profile
+      run: sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
+      shell: bash
+    - name: Reload AppArmor service
+      run: sudo systemctl reload apparmor.service
+      shell: bash

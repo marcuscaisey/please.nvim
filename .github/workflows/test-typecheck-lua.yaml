@@ -15,9 +15,7 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@v6
       - name: Apply AppArmor profile
-        run: |
-          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
-          sudo systemctl reload apparmor.service
+        uses: ./.github/actions/apply-apparmor-profile
       - name: Generate toolchain list
         id: generate-toolchain-list
         run: echo toolchains=$(python3 scripts/neovim_toolchains.py) >> "$GITHUB_OUTPUT"
@@ -30,9 +28,7 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@v6
       - name: Apply AppArmor profile
-        run: |
-          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
-          sudo systemctl reload apparmor.service
+        uses: ./.github/actions/apply-apparmor-profile
       - name: Run tests
         run: ./pleasew --override buildconfig.nvim-tool:'${{ matrix.toolchain.nvim }}' test
     strategy:
@@ -48,9 +44,7 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@v6
       - name: Apply AppArmor profile
-        run: |
-          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
-          sudo systemctl reload apparmor.service
+        uses: ./.github/actions/apply-apparmor-profile
       - name: Install dependencies
         run: ./pleasew build ${{ matrix.toolchain.target }} //third_party/neovim:plugins
       - name: Run Lua typecheck
