@@ -34,11 +34,5 @@ jobs:
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
-      - name: Run BUILD file format check
-        run: |
-          ./pleasew format --write
-          if ! git diff --quiet; then
-              echo 'The following files need to be formatted with "plz format --write"':
-              git --no-pager diff --name-only
-              exit 1
-          fi
+      - name: Run BUILD file formatting check
+        run: ./scripts/check_build_file_formatting.sh
