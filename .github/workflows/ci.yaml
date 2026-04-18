@@ -9,7 +9,7 @@ on:
 jobs:
   test-and-typecheck-lua-code:
     name: Test and Typecheck Lua Code
-    uses: ./.github/workflows/test-typecheck-lua.yaml
+    uses: ./.github/workflows/test-and-typecheck-lua-code.yaml
 
   check-neovim-toolchain-versions:
     name: Check Neovim Toolchain Versions
