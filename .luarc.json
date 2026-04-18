@@ -2,11 +2,10 @@
     "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
     "runtime": {
         "version": "LuaJIT",
-        "pathStrict": true,
-        "path": [
-            "?.lua",
-            "?/init.lua"
-        ]
+        "pathStrict": true
+    },
+    "type": {
+        "checkTableShape": true
     },
     "workspace": {
         "library": [

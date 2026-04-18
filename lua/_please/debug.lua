@@ -44,7 +44,6 @@ local function setup_debug_adapter()
 
     logging.debug('setting up plz debug adapter')
 
-    ---@type dap.AdapterFactory
     dap.adapters.plz = function(callback, config)
         logging.log_call('dap.adapters.plz')
 
@@ -106,13 +105,13 @@ end
 ---@param config _please.debug.AdapterConfig
 local function launch_debug_adapter(config)
     setup_debug_adapter()
-    config = vim.tbl_extend('error', config, {
+    local dap_config = {
         type = 'plz',
-        name = 'Attach to plz debug',
         request = 'attach',
-        mode = 'remote',
-    })
-    dap.run(config)
+        name = 'Attach to plz debug',
+    }
+    dap_config = vim.tbl_deep_extend('error', dap_config, config)
+    dap.run(dap_config)
 end
 
 function M.launchers.go(root, target, extra_args)
