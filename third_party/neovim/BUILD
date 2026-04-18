@@ -1,21 +1,25 @@
 subinclude("//build_defs:neovim")
 
 filegroup(
-    name = "lua_deps",
+    name = "plugins",
     srcs = [
         ":nvim_dap",
-        ":toolchain_stable",
     ],
 )
 
 neovim_toolchain(
     name = "toolchain_stable",
-    version = "stable",
+    version = "0.12.1",
 )
 
 neovim_toolchain(
-    name = "toolchain_0_11",
-    version = "v0.11.0",
+    name = "toolchain_0_11_latest",
+    version = "0.11.7",
+)
+
+neovim_toolchain(
+    name = "toolchain_0_11_0",
+    version = "0.11.0",
 )
 
 neovim_tree_sitter_parser(

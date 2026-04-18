@@ -12,10 +12,12 @@
     "library": [
       "${3rd}/busted/library",
       "${3rd}/luassert/library",
+      "${3rd}/luv/library",
       "third_party/lua/library",
       "lua",
       "plz-out/nvim/plugins",
       "plz-out/nvim/runtime_toolchain_stable",
+      "plz-out/nvim/runtime_${env:TOOLCHAIN_TARGET_NAME}",
       "plz-out/lua"
     ],
     "ignoreDir": [

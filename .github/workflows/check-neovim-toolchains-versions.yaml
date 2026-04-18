@@ -1,0 +1,22 @@
+name: Check Neovim Toolchain Versions
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  check-neovim-toolchain-versions:
+    name: Check Neovim Toolchain Versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v6
+      - name: Apply AppArmor profile
+        run: |
+          sudo cp .github/workflows/please.please_sandbox /etc/apparmor.d
+          sudo systemctl reload apparmor.service
+      - name: Check Neovim Toolchain Versions
+        run: python3 scripts/check_neovim_toolchain_versions.py
+        env:
+          GH_TOKEN: ${{ github.token }}

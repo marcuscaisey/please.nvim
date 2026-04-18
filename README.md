@@ -53,7 +53,9 @@ Shown above:
 ### Installation
 
 > [!NOTE]
-> Neovim >= 0.11.0 is required to use please.nvim
+> please.nvim supports the latest two Neovim minor versions.
+> CI tests against the minimum supported version and the latest patch of each supported minor.
+> The current minimum supported version is 0.11.0.
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 

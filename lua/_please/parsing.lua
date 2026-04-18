@@ -248,6 +248,7 @@ local GO_STATEMENT_LIST_VERSION = { 0, 25, 0 }
 ---@param version number[]
 ---@return boolean
 local function is_lang_version_ge(lang_info, version)
+    ---@diagnostic disable-next-line: undefined-field
     local metadata = lang_info.metadata or {}
     local lang_version = { metadata.major_version or 0, metadata.minor_version or 0, metadata.patch_version or 0 }
     return vim.version.ge(lang_version, version)
