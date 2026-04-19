@@ -1,3 +1,7 @@
+vim.g.loaded_python3_provider = 0
+
+vim.o.signcolumn = 'yes'
+
 -- please.nvim
 vim.pack.add({ 'https://github.com/marcuscaisey/please.nvim' })
 -- vim.cmd('set runtimepath^=.')
@@ -45,3 +49,8 @@ dap.listeners.before.launch.dapui_config = dapui.open
 dap.listeners.before.event_terminated.dapui_config = dapui.close
 dap.listeners.before.event_exited.dapui_config = dapui.close
 dapui.setup()
+
+-- fzf
+vim.pack.add({ 'https://github.com/ibhagwan/fzf-lua' })
+local fzf = require('fzf-lua')
+fzf.setup({ ui_select = true })
