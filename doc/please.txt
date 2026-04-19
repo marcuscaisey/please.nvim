@@ -27,9 +27,9 @@ Features ~
   • `please` LSP client configured to use `plz tool lps` for `please` files.
     See |please-lsp-client|.
   • Language servers gopls, golangci-lint-langserver, basedpyright, and
-    pyright automatically configured for use in a Please repository. See
-    |please-gopls|, |please-golangci-lint-langserver|, |please-basedpyright|,
-    and |please-pyright|.
+    pyright configured for use in a Please repository. See |please-gopls|,
+    |please-golangci-lint-langserver|, |please-basedpyright|, and
+    |please-pyright|.
   • Python tree-sitter parser configured to be used for please files to enable
     better syntax highlighting and use of all tree-sitter features in build
     files.
@@ -108,20 +108,19 @@ implementations of these hooks. Some (possibly outdated) examples are:
 ==============================================================================
 LSP CONFIGURATION                                          *please-lsp-config*
 
-please.nvim automatically configures various aspects of your LSP setup.
+please.nvim configures various aspects of your LSP setup.
 
                                                            *please-lsp-client*
 Please LSP Client ~
-please.nvim automatically configures the `please` LSP client to use `plz tool
-lps` for `please` files using |vim.lsp.config()|. Call |vim.lsp.enable| to
-enable it:
+please.nvim configures the `please` LSP client to use `plz tool lps` for
+`please` files using |vim.lsp.config()|. Call |vim.lsp.enable| to enable it:
 >lua
     vim.lsp.enable('please')
 <
                                                                 *please-gopls*
 gopls ~
-please.nvim automatically detects when `gopls` has been started in a Please
-repository and restarts it with the following configuration changes:
+please.nvim detects when `gopls` has been started in a Please repository and
+restarts it with the following configuration changes:
   • Append `-plz-out` to the `gopls.directoryFilters` setting to exclude
     `plz-out` from the workspace.
   • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
@@ -139,9 +138,8 @@ See also:
 
                                              *please-golangci-lint-langserver*
 golangci-lint-langserver ~
-please.nvim automatically detects when `golangci-lint-langserver` has been
-started in a Please repository and restarts it with the following
-configuration changes:
+please.nvim detects when `golangci-lint-langserver` has been started in a
+Please repository and restarts it with the following configuration changes:
   • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
     configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
     The go-rules Please plugin allows configuring the `go` executable to use
@@ -157,9 +155,9 @@ See also:
 
                                                          *please-basedpyright*
 basedpyright ~
-please.nvim automatically detects when `basedpyright` has been started in a
-Please repository and sends a `workspace/didChangeConfiguration` notification
-after making the following setting changes:
+please.nvim detects when `basedpyright` has been started in a Please
+repository and sends a `workspace/didChangeConfiguration` notification after
+making the following setting changes:
   • Append `plz-out` to `basedpyright.analysis.exclude` to exclude `plz-out`
     from the workspace.
   • Prepend `plz-out/python/venv` to `basedpyright.analysis.extraPaths`. The
@@ -174,9 +172,9 @@ See also:
 
                                                               *please-pyright*
 pyright ~
-please.nvim automatically detects when `pyright` has been started in a Please
-repository and sends a `workspace/didChangeConfiguration` notification after
-making the following setting changes:
+please.nvim detects when `pyright` has been started in a Please repository and
+sends a `workspace/didChangeConfiguration` notification after making the
+following setting changes:
   • Append `plz-out` to `python.analysis.exclude` to exclude `plz-out`
     from the workspace.
   • Prepend `plz-out/python/venv` to `python.analysis.extraPaths`. The
