@@ -100,22 +100,29 @@ Neovim.
 > CI tests against the minimum supported version and the latest patch of each supported minor.
 > The current minimum supported version is 0.11.0.
 
-Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+Install using your favourite plugin manager. See below for snippest for some popular ones.
+
+#### [vim.pack](https://neovim.io/doc/user/pack/#_plugin-manager)
+
+> [!NOTE]
+> Requires Neovim >= 0.12.
 
 ```lua
-use({ 'marcuscaisey/please.nvim' })
+vim.pack.add({
+    {
+        src = 'https://github.com/marcuscaisey/please.nvim',
+        version = vim.version.range('1.*'), -- Use for stability; omit to use master branch for the latest features
+    },
+})
 ```
 
-Using [vim-plug](https://github.com/junegunn/vim-plug)
+#### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
-```viml
-Plug 'marcuscaisey/please.nvim'
-```
-
-Using [dein](https://github.com/Shougo/dein.vim)
-
-```viml
-call dein#add('marcuscaisey/please.nvim')
+```lua
+{
+    'kylechui/nvim-surround',
+    version = '1.*', -- Use for stability; omit to use master branch for the latest features
+}
 ```
 
 #### Recommended additional plugins
