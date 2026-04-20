@@ -72,7 +72,7 @@ of Neovim.
   files.
 - `ini` configured as the `'filetype'` for `.plzconfig` files to enable better syntax highlighting.
 - Python tree-sitter parser configured to be used for please files to enable better syntax
-  highlighting and use of all tree-sitter features in build files.
+  highlighting and use of all tree-sitter features in BUILD files.
 - `please` LSP client configured to use `plz tool lps` for `please` files.
 - Language servers [gopls](https://go.dev/gopls),
   [golangci-lint-langserver](https://github.com/nametake/golangci-lint-langserver),

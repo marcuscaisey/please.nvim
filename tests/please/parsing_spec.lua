@@ -169,13 +169,13 @@ describe('locate_target', function()
                 'no_targets/',
             },
             target = '//no_targets:target',
-            expected_err = 'no build file exists for package "no_targets"',
+            expected_err = 'no BUILD file exists for package "no_targets"',
         },
         {
             name = 'should return error if pkg path does not exist',
             tree = { '.plzconfig' },
             target = '//does/not/exist:target',
-            expected_err = 'no build file exists for package "does/not/exist"',
+            expected_err = 'no BUILD file exists for package "does/not/exist"',
         },
         {
             name = 'should return error if target is not a valid build label',

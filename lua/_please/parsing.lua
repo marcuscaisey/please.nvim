@@ -132,7 +132,7 @@ function M.locate_target(root, target)
         end
     end
 
-    return nil, string.format('no build file exists for package "%s"', pkg)
+    return nil, string.format('no BUILD file exists for package "%s"', pkg)
 end
 
 local function cursor_in_node_range(node)

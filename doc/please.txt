@@ -31,7 +31,7 @@ Features ~
     |please-golangci-lint-langserver|, |please-basedpyright|, and
     |please-pyright|.
   • Python tree-sitter parser configured to be used for please files to enable
-    better syntax highlighting and use of all tree-sitter features in build
+    better syntax highlighting and use of all tree-sitter features in BUILD
     files.
 
 ==============================================================================
