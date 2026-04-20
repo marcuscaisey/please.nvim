@@ -20,9 +20,9 @@ Features ~
     |:Please-jump_to_target|.
   • Look up a target by its build label with |:Please-look_up_target|.
   • Yank a target's build label with |:Please-yank|.
-  • `please` configured as the 'filetype' for `BUILD`, `BUILD.plz`, `*.build`,
+  • `please` configured as the |'filetype'| for `BUILD`, `BUILD.plz`, `*.build`,
     and `*.build_defs` files.
-  • `ini` configured as the 'filetype' for `.plzconfig` files to enable better
+  • `ini` configured as the |'filetype'| for `.plzconfig` files to enable better
     syntax highlighting.
   • `please` LSP client configured to use `plz tool lps` for `please` files.
     See |please-lsp-client|.
