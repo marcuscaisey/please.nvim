@@ -162,6 +162,34 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end,
 })
 
+vim.api.nvim_create_autocmd('BufWritePost', {
+    desc = 'Run puku fmt on saved file in a Please repository',
+    group = vim.api.nvim_create_augroup('please.nvim_puku_fmt', {}),
+    pattern = '*.go',
+    callback = function(ev)
+        local config = require('_please.config')
+        local puku_command = config.get().puku_command
+        if not puku_command then
+            return
+        end
+        local root = vim.fs.root(ev.match, '.plzconfig')
+        if not root then
+            return
+        end
+        local cmd = vim.deepcopy(puku_command)
+        table.insert(cmd, 'fmt')
+        table.insert(cmd, ev.match)
+        vim.system(cmd, { cwd = root }, function(res)
+            local output = res.code == 0 and vim.trim(res.stdout) or vim.trim(res.stderr)
+            if output ~= '' then
+                vim.schedule(function()
+                    vim.notify('puku: ' .. output, vim.log.levels.INFO)
+                end)
+            end
+        end)
+    end,
+})
+
 ---Returns all candidates which start with the prefix, sorted.
 ---@param prefix string
 ---@param candidates string[]

@@ -7,6 +7,7 @@ local M = {}
 ---@field configure_golangci_lint_langserver boolean? Whether to configure the golangci-lint-langserver language server for use in a Please repository. Defaults to true.
 ---@field configure_basedpyright boolean? Whether to configure the basedpyright language server for use in a Please repository. Defaults to true.
 ---@field configure_pyright boolean? Whether to configure the pyright language server for use in a Please repository. Defaults to true.
+---@field puku_command string[]? Command to execute puku. Defaults to nil which means that puku formatting is not enabled.
 
 ---Updates the configuration with the provided {opts}.
 ---
@@ -21,6 +22,7 @@ local M = {}
 ---    configure_golangci_lint_langserver = true,
 ---    configure_basedpyright = true,
 ---    configure_pyright = true,
+---    puku_command = nil,
 ---})
 ---```
 ---@param opts please.Opts

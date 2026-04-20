@@ -5,6 +5,15 @@ vim.o.signcolumn = 'yes'
 -- please.nvim
 vim.pack.add({ 'https://github.com/marcuscaisey/please.nvim' })
 -- vim.cmd('set runtimepath^=.')
+local please = require('please')
+please.setup({
+    -- max_history_items = 20,
+    -- configure_gopls = true,
+    -- configure_golangci_lint_langserver = true,
+    -- configure_basedpyright = true,
+    -- configure_pyright = true,
+    puku_command = { 'plz', 'puku' },
+})
 
 -- LSP
 vim.pack.add({ 'https://github.com/neovim/nvim-lspconfig', 'https://github.com/mason-org/mason.nvim' })

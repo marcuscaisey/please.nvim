@@ -78,6 +78,7 @@ Neovim.
   [golangci-lint-langserver](https://github.com/nametake/golangci-lint-langserver),
   [basedpyright](https://github.com/detachhead/basedpyright), and
   [pyright](https://github.com/microsoft/pyright) configured for use in a Please repository.
+- Runs `puku fmt` when a Go file is saved.
 
 ## Getting started
 

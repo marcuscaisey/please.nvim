@@ -26,13 +26,14 @@ Features ~
     syntax highlighting.
   • `please` LSP client configured to use `plz tool lps` for `please` files.
     See |please-lsp-client|.
+  • Python tree-sitter parser configured to be used for please files to enable
+    better syntax highlighting and use of all tree-sitter features in BUILD
+    files.
   • Language servers gopls, golangci-lint-langserver, basedpyright, and
     pyright configured for use in a Please repository. See |please-gopls|,
     |please-golangci-lint-langserver|, |please-basedpyright|, and
     |please-pyright|.
-  • Python tree-sitter parser configured to be used for please files to enable
-    better syntax highlighting and use of all tree-sitter features in BUILD
-    files.
+  • Runs `puku fmt` when a Go file is saved. See |please-puku|.
 
 ==============================================================================
 QUICKSTART                                                 *please-quickstart*
@@ -200,6 +201,21 @@ See also:
   • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
 
 ==============================================================================
+PUKU                                                             *please-puku*
+
+If `puku_command` has been set via |please.setup()|, please.nvim will run
+`puku fmt` when a Go file is saved. Puku is a tool for maintaining Go build
+targets and `puku fmt` updates BUILD files based on the imports in Go source
+files.
+
+To configure a different `puku_command` for different repositories, consider
+enabling |'exrc'| and calling |please.setup()| with a different `puku_command`
+in `.nvim.lua`.
+
+See also:
+  • https://github.com/please-build/puku
+
+==============================================================================
 COMMANDS                                           *:Please* *please-commands*
 
 :Please build                                                  *:Please-build*
@@ -343,6 +359,7 @@ setup({opts})                                                 *please.setup()*
            configure_golangci_lint_langserver = true,
            configure_basedpyright = true,
            configure_pyright = true,
+           puku_command = nil,
         })
 <
 
@@ -362,6 +379,9 @@ setup({opts})                                                 *please.setup()*
                 • {configure_pyright} (`boolean?`) Whether to configure the
                   pyright language server for use in a Please repository.
                   Defaults to true.
+                • {puku_command} (`string[]?`) Command to execute puku.
+                  Defaults to nil which means that puku formatting is not
+                  enabled.
 
 build()                                                       *please.build()*
     Builds a target.

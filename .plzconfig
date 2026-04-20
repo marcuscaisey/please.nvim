@@ -5,6 +5,7 @@ version = 17.29.1
 nvim-tool = //third_party/neovim:toolchain_stable|nvim
 lua-tool = //third_party/lua:toolchain|lua
 luarocks-tool = //third_party/lua:luarocks|luarocks
+puku-version = "1.17.1"
 
 [Plugin "go"]
 target = //plugins:go
@@ -31,3 +32,8 @@ test = true
 url =
 instance =
 numexecutors = 0
+
+[Alias "puku"]
+Cmd = run //third_party/binary:puku --
+PositionalLabels = true
+Desc = A tool to update BUILD files in Go packages
