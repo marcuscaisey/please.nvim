@@ -1,17 +1,12 @@
 local M = {}
 
----@nodoc
----@class _please.Config
----@field max_history_items integer The maximum number of history items to store for each repository.
-
----@type _please.Config
-local config = {
-    max_history_items = 20,
-}
-
 ---@inlinedoc
 ---@class please.Opts
----@field max_history_items integer? The maximum number of history items to store for each repository.
+---@field max_history_items integer? The maximum number of history items to store for each repository. Defaults to 20.
+---@field configure_gopls boolean? Whether to configure the gopls language server for use in a Please repository. Defaults to true.
+---@field configure_golangci_lint_langserver boolean? Whether to configure the golangci-lint-langserver language server for use in a Please repository. Defaults to true.
+---@field configure_basedpyright boolean? Whether to configure the basedpyright language server for use in a Please repository. Defaults to true.
+---@field configure_pyright boolean? Whether to configure the pyright language server for use in a Please repository. Defaults to true.
 
 ---Updates the configuration with the provided {opts}.
 ---
@@ -21,14 +16,17 @@ local config = {
 ---```lua
 ---local please = require('please')
 ---please.setup({
----   max_history_items = 20,
+---    max_history_items = 20,
+---    configure_gopls = true,
+---    configure_golangci_lint_langserver = true,
+---    configure_basedpyright = true,
+---    configure_pyright = true,
 ---})
 ---```
 ---@param opts please.Opts
 function M.setup(opts)
-    vim.validate('opts', opts, 'table')
-    vim.validate('opts.max_history_items', opts.max_history_items, 'number', true)
-    config = vim.tbl_deep_extend('force', config, opts)
+    local config = require('_please.config')
+    config.update(opts)
 end
 
 local default_profile = os.getenv('PLZ_CONFIG_PROFILE')
@@ -99,13 +97,14 @@ end
 ---@param root string
 ---@param command _please.Command
 local function save_command(root, command)
+    local config = require('_please.config')
     local history = read_command_history()
     if history[root] then
         history[root] = vim.iter(history[root])
             :filter(function(history_item)
                 return history_item.description ~= command.description
             end)
-            :take(config.max_history_items - 1)
+            :take(config.get().max_history_items - 1)
             :totable()
     else
         history[root] = {}

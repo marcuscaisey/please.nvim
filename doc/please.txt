@@ -132,6 +132,9 @@ restarts it with the following configuration changes:
     references with standard library packages will refer to the correct
     location for the Go toolchain configured for the repository.
 
+This behaviour can be disabled by passing `configure_gopls = false` to
+|please.setup()|.
+
 See also:
   • https://go.dev/gopls/settings
   • https://github.com/please-build/go-rules/blob/master/.plzconfig
@@ -149,6 +152,9 @@ Please repository and restarts it with the following configuration changes:
     the standard library packages in the Go toolchain configured for the
     repository.
 
+This behaviour can be disabled by passing
+`configure_golangci_lint_langserver = false` to |please.setup()|.
+
 See also:
   • https://github.com/nametake/golangci-lint-langserver
   • https://github.com/please-build/go-rules/blob/master/.plzconfig
@@ -164,6 +170,9 @@ making the following setting changes:
     `python_wheel` and `pip_library` rules from the python-rules Please plugin
     symlink the downloaded packages into `plz-out/python/venv` so this means
     that `basedpyright` will be able to find them.
+
+This behaviour can be disabled by passing `configure_basedpyright = false` to
+|please.setup()|.
 
 See also:
   • https://docs.basedpyright.com/latest/configuration/language-server-settings
@@ -181,6 +190,9 @@ following setting changes:
     `python_wheel` and `pip_library` rules from the python-rules Please plugin
     symlink the downloaded packages into `plz-out/python/venv` so this means
     that pyright` will be able to find them.
+
+This behaviour can be disabled by passing `configure_pyright = false` to
+|please.setup()|.
 
 See also:
   • https://microsoft.github.io/pyright/#/settings
@@ -326,14 +338,30 @@ setup({opts})                                                 *please.setup()*
     Example: >lua
         local please = require('please')
         please.setup({
-          max_history_items = 20,
+           max_history_items = 20,
+           configure_gopls = true,
+           configure_golangci_lint_langserver = true,
+           configure_basedpyright = true,
+           configure_pyright = true,
         })
 <
 
     Parameters: ~
       • {opts}  (`table`) A table with the following fields:
                 • {max_history_items} (`integer?`) The maximum number of
-                  history items to store for each repository.
+                  history items to store for each repository. Defaults to 20.
+                • {configure_gopls} (`boolean?`) Whether to configure the
+                  gopls language server for use in a Please repository.
+                  Defaults to true.
+                • {configure_golangci_lint_langserver} (`boolean?`) Whether to
+                  configure the golangci-lint-langserver language server for
+                  use in a Please repository. Defaults to true.
+                • {configure_basedpyright} (`boolean?`) Whether to configure
+                  the basedpyright language server for use in a Please
+                  repository. Defaults to true.
+                • {configure_pyright} (`boolean?`) Whether to configure the
+                  pyright language server for use in a Please repository.
+                  Defaults to true.
 
 build()                                                       *please.build()*
     Builds a target.

@@ -36,10 +36,10 @@ vim.lsp.config('please', {
     workspace_required = true,
 })
 
----@param dir string?
+---@param dir string
 ---@return boolean
 local function dir_is_plz_root(dir)
-    return dir ~= nil and vim.uv.fs_stat(vim.fs.joinpath(dir, '.plzconfig')) ~= nil
+    return vim.uv.fs_stat(vim.fs.joinpath(dir, '.plzconfig')) ~= nil
 end
 
 ---@type table<integer, boolean>
@@ -56,10 +56,14 @@ vim.api.nvim_create_autocmd('LspAttach', {
         seen_go_clients[ev.data.client_id] = true
 
         local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if not client or not client.root_dir or not dir_is_plz_root(client.root_dir) then
+            return
+        end
+
+        local config = require('_please.config')
         if
-            not client
-            or (client.name ~= 'gopls' and client.name ~= 'golangci_lint_ls')
-            or not dir_is_plz_root(client.root_dir)
+            not (client.name == 'gopls' and config.get().configure_gopls)
+            and not (client.name == 'golangci_lint_ls' and config.get().configure_golangci_lint_langserver)
         then
             return
         end
@@ -119,10 +123,14 @@ vim.api.nvim_create_autocmd('LspAttach', {
         seen_python_clients[ev.data.client_id] = true
 
         local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if not client or not client.root_dir or not dir_is_plz_root(client.root_dir) then
+            return
+        end
+
+        local config = require('_please.config')
         if
-            not client
-            or (client.name ~= 'pyright' and client.name ~= 'basedpyright')
-            or not dir_is_plz_root(client.root_dir)
+            not (client.name == 'pyright' and config.get().configure_pyright)
+            and not (client.name == 'basedpyright' and config.get().configure_basedpyright)
         then
             return
         end
