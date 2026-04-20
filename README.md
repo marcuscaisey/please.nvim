@@ -1,7 +1,7 @@
 # please.nvim [![CI](https://github.com/marcuscaisey/please.nvim/actions/workflows/ci.yaml/badge.svg)](https://github.com/marcuscaisey/please.nvim/actions/workflows/ci.yaml)
 
-please.nvim is a plugin which enables you to interact with your Please repository from the comfort
-of Neovim.
+please.nvim is a plugin which enables you to interact with Please repositories from the comfort of
+Neovim.
 
 ## Features
 
@@ -84,7 +84,7 @@ of Neovim.
 ### Quickstart
 
 > [!NOTE]
-> These steps require Neovim >= 0.12.
+> These steps require Neovim >= 0.12 to use `vim.pack`.
 
 1. Open a test file in a Please repository.
 2. Execute
@@ -130,5 +130,4 @@ call dein#add('marcuscaisey/please.nvim')
 
 ## Documentation
 
-Detailed documentation can found be in [doc/please.txt](doc/please.txt) or by executing
-`:help please.nvim`.
+See [doc/please.txt](doc/please.txt) or execute `:help please.nvim`.

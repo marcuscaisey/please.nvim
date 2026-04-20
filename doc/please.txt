@@ -1,12 +1,12 @@
-*please.txt* A plugin to make you more productive in Neovim when using Please.
+*please.txt*                A plugin for interacting with Please repositories.
 *please.nvim*
                                        Type |gO| to see the table of contents.
 
 ==============================================================================
 INTRODUCTION                                                    *please-intro*
 
-please.nvim enables you to interact with your Please repository from the
-comfort of Neovim.
+please.nvim enables you to interact with Please repositories from the comfort
+of Neovim.
 
                                                              *please-features*
 Features ~
