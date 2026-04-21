@@ -21,10 +21,6 @@ jobs:
         id: generate-toolchain-list
         run: echo toolchains=$(python3 scripts/neovim_toolchains.py) >> "$GITHUB_OUTPUT"
 
-  check-neovim-toolchain-versions:
-    name: Check Neovim Toolchain Versions
-    uses: ./.github/workflows/check-neovim-toolchain-versions.yaml
-
   test:
     name: Test (Neovim ${{ matrix.toolchain.version }})
     needs: list-neovim-toolchains
@@ -82,3 +78,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Run BUILD file formatting check
         run: ./scripts/lint_build_files.sh
+
+  check-neovim-toolchain-versions:
+    name: Check Neovim Toolchain Versions
+    uses: ./.github/workflows/check-neovim-toolchain-versions.yaml
