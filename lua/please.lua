@@ -13,6 +13,8 @@ local M = {}
 ---
 ---Should only be called if you want to change the defaults which are shown below.
 ---
+---Execute `:checkhealth please` to view the current configuration.
+---
 ---Example:
 ---```lua
 ---local please = require('please')

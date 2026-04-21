@@ -64,6 +64,9 @@ Additional dependencies are required for some features:
     |:Please-yank| in BUILD files
   • https://github.com/mfussenegger/nvim-dap for |:Please-debug|
 
+Execute `:checkhealth please` to verify that the required dependencies are
+available and to see whether any feature-specific dependencies are missing.
+
                                                            *please-interfaces*
 Command interface and Lua API ~
 please.nvim provides a command interface and a Lua API. All functionality is
@@ -378,6 +381,8 @@ setup({opts})                                                 *please.setup()*
 
     Should only be called if you want to change the defaults which are shown
     below.
+
+    Execute `:checkhealth please` to view the current configuration.
 
     Example: >lua
         local please = require('please')

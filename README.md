@@ -100,6 +100,9 @@ look_up_target`, and `:Please build`, `:Please run`, `:Please test`, `:Please de
 yank` in BUILD files
 - [nvim-dap](https://github.com/mfussenegger/nvim-dap) for `:Please debug`
 
+Execute `:checkhealth please` to verify that the required dependencies are available and to see
+whether any feature-specific dependencies are missing.
+
 ## Getting started
 
 ### Quickstart
