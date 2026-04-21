@@ -19,7 +19,7 @@ jobs:
         uses: ./.github/actions/apply-apparmor-profile
       - name: Generate toolchain list
         id: generate-toolchain-list
-        run: echo toolchains=$(./pleasew run //scripts:neovim_toolchains) >> "$GITHUB_OUTPUT"
+        run: echo toolchains=$(./pleasew run //tools:neovim_toolchains) >> "$GITHUB_OUTPUT"
 
   test:
     name: Test (Neovim ${{ matrix.toolchain.version }})
@@ -79,7 +79,7 @@ jobs:
       - name: Apply AppArmor profile
         uses: ./.github/actions/apply-apparmor-profile
       - name: Run BUILD file linter
-        run: ./pleasew run //scripts:lint_build_files
+        run: ./pleasew run //tools:lint_build_files
 
   check-neovim-toolchain-versions:
     name: Check Neovim Toolchain Versions
