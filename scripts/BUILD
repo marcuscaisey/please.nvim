@@ -7,3 +7,8 @@ python_binary(
         "//third_party/python:requests",
     ],
 )
+
+python_binary(
+    name = "neovim_toolchains",
+    main = "neovim_toolchains.py",
+)

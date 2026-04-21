@@ -19,7 +19,7 @@ jobs:
         uses: ./.github/actions/apply-apparmor-profile
       - name: Generate toolchain list
         id: generate-toolchain-list
-        run: echo toolchains=$(python3 scripts/neovim_toolchains.py) >> "$GITHUB_OUTPUT"
+        run: echo toolchains=$(./pleasew run //scripts:neovim_toolchains) >> "$GITHUB_OUTPUT"
 
   test:
     name: Test (Neovim ${{ matrix.toolchain.version }})

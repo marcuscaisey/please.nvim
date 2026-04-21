@@ -84,7 +84,7 @@ def repo_neovim_toolchain_versions() -> list[str]:
     return repo_versions
 
 
-def run(*args):
+def run(*args: str) -> str:
     try:
         result = subprocess.run([*args], capture_output=True, check=True, text=True)
     except subprocess.CalledProcessError as e:
