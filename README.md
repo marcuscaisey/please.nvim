@@ -80,6 +80,26 @@ Neovim.
   [pyright](https://github.com/microsoft/pyright) configured for use in a Please repository.
 - Runs `puku fmt` when a Go file is saved.
 
+## Requirements
+
+please.nvim requires:
+
+- Neovim >= 0.11.0
+- [Please](https://please.build)
+
+please.nvim supports the latest two Neovim minor versions. CI tests against the minimum supported
+version and the latest patch of each supported minor.
+
+Additional dependencies are required for some features:
+
+- [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go) for `:Please test under_cursor`
+  and `:Please debug under_cursor` in Go files
+- [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python) for `:Please test
+under_cursor` and `:Please debug under_cursor` in Python files, `:Please jump_to_target`, `:Please
+look_up_target`, and `:Please build`, `:Please run`, `:Please test`, `:Please debug`, and `:Please
+yank` in BUILD files
+- [nvim-dap](https://github.com/mfussenegger/nvim-dap) for `:Please debug`
+
 ## Getting started
 
 ### Quickstart
@@ -95,11 +115,6 @@ Neovim.
 4. Execute `:lua vim.pack.del({ 'please.nvim' }, { force = true })` to uninstall `please.nvim`.
 
 ### Installation
-
-> [!NOTE]
-> please.nvim supports the latest two Neovim minor versions.
-> CI tests against the minimum supported version and the latest patch of each supported minor.
-> The current minimum supported version is 0.11.0.
 
 Install using your favourite plugin manager. See below for snippets for some popular ones.
 
@@ -134,8 +149,6 @@ vim.pack.add({
   and abstraction layer for Neovim. This enables you to install tree-sitter parsers.
 - [fzf-lua](https://github.com/ibhagwan/fzf-lua) - Highly extendable fuzzy finder. This provides a
   good `vim.ui.select` implementation.
-- [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug Adapter Protocol client
-  implementation for Neovim. **This is required to use `:Please debug`.**
 - [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - UI for nvim-dap.
 
 ## Documentation

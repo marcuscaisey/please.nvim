@@ -45,6 +45,25 @@ QUICKSTART                                                 *please-quickstart*
 ==============================================================================
 USAGE                                                           *please-usage*
 
+                                                         *please-requirements*
+Requirements ~
+please.nvim requires:
+  • Neovim >= 0.11.0
+  • https://please.build
+
+please.nvim supports the latest two Neovim minor versions. CI tests against
+the minimum supported version and the latest patch of each supported minor.
+
+Additional dependencies are required for some features:
+  • https://github.com/tree-sitter/tree-sitter-go for
+    |:Please-test-under_cursor| and |:Please-debug-under_cursor| in Go files
+  • https://github.com/tree-sitter/tree-sitter-python for
+    |:Please-test-under_cursor| and |:Please-debug-under_cursor| in Python
+    files, |:Please-jump_to_target|, |:Please-look_up_target|, and
+    |:Please-build|, |:Please-run|, |:Please-test|, |:Please-debug|, and
+    |:Please-yank| in BUILD files
+  • https://github.com/mfussenegger/nvim-dap for |:Please-debug|
+
                                                            *please-interfaces*
 Command interface and Lua API ~
 please.nvim provides a command interface and a Lua API. All functionality is
@@ -105,6 +124,15 @@ implementations of these hooks. Some (possibly outdated) examples are:
   • https://github.com/folke/snacks.nvim
   • https://github.com/stevearc/dressing.nvim
   • https://github.com/nvim-telescope/telescope-ui-select.nvim
+
+                                                  *please-recommended-plugins*
+Recommended additional plugins ~
+  • https://github.com/nvim-treesitter/nvim-treesitter - Tree-sitter
+    configurations and abstraction layer for Neovim. This enables you to
+    install tree-sitter parsers.
+  • https://github.com/ibhagwan/fzf-lua - Highly extendable fuzzy finder. This
+    provides a good `vim.ui.select` implementation.
+  • https://github.com/rcarriga/nvim-dap-ui - UI for nvim-dap.
 
 ==============================================================================
 LSP CONFIGURATION                                          *please-lsp-config*
@@ -236,7 +264,7 @@ COMMANDS                                           *:Please* *please-commands*
 
     See |please.run()| for the equivalent Lua function.
 
-:Please test [under_cursor]                                     *:Please-test*
+:Please test [under_cursor]         *:Please-test* *:Please-test-under_cursor*
     Tests a target.
 
     If the current file is a `BUILD` file, tests the target which is under the
@@ -252,7 +280,7 @@ COMMANDS                                           *:Please* *please-commands*
 
     See |please.test()| for the equivalent Lua function.
 
-:Please debug [under_cursor]                                   *:Please-debug*
+:Please debug [under_cursor]      *:Please-debug* *:Please-debug-under_cursor*
     Debugs a target.
 
     If the current file is a `BUILD` file, debugs the target which is under
