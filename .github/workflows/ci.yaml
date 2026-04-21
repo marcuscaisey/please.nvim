@@ -76,8 +76,10 @@ jobs:
     steps:
       - name: Checkout commit
         uses: actions/checkout@v6
-      - name: Run BUILD file formatting check
-        run: ./scripts/lint_build_files.sh
+      - name: Apply AppArmor profile
+        uses: ./.github/actions/apply-apparmor-profile
+      - name: Run BUILD file linter
+        run: ./pleasew run //scripts:lint_build_files
 
   check-neovim-toolchain-versions:
     name: Check Neovim Toolchain Versions

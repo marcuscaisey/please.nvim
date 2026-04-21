@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-./pleasew format --write
-if ! git diff --quiet; then
-    echo 'The following files need to be formatted with "plz format --write"':
-    git --no-pager diff --name-only
+if ./pleasew format --quiet; then
+    printf '\x1b[1;32mBUILD files formatted correctly\x1b[0m\n'
+else
+    printf '\x1b[1;31mBUILD files not formatted correctly. Run "plz format --write".\x1b[0m\n'
     exit 1
 fi
