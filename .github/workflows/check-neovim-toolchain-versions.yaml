@@ -14,6 +14,4 @@ jobs:
       - name: Apply AppArmor profile
         uses: ./.github/actions/apply-apparmor-profile
       - name: Run toolchain version check
-        run: python3 scripts/check_neovim_toolchain_versions.py
-        env:
-          GH_TOKEN: ${{ github.token }}
+        run: ./pleasew run //scripts:check_neovim_toolchain_version
