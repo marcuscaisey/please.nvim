@@ -81,4 +81,4 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@v6
       - name: Run BUILD file formatting check
-        run: ./scripts/check_build_file_formatting.sh
+        run: ./scripts/lint_build_files.sh
