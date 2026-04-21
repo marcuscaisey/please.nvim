@@ -192,14 +192,18 @@ function DebugLauncherSpy:new(lang)
 end
 
 function DebugLauncherSpy:assert_called_with(root, target, extra_args)
-    assert.is_true(self._called, ('%s debug launcher has not been called'):format(self._lang))
-    assert.equal(root, self._root, ('incorrect root passed to %s debug launcher'):format(self._lang))
-    assert.equal(target, self._target, ('incorrect target passed to %s debug launcher'):format(self._lang))
-    assert.same(extra_args, self._extra_args, ('incorrect extra_args passed to %s debug launcher'):format(self._lang))
+    assert.is_true(self._called, string.format('%s debug launcher has not been called', self._lang))
+    assert.equal(root, self._root, string.format('incorrect root passed to %s debug launcher', self._lang))
+    assert.equal(target, self._target, string.format('incorrect target passed to %s debug launcher', self._lang))
+    assert.same(
+        extra_args,
+        self._extra_args,
+        string.format('incorrect extra_args passed to %s debug launcher', self._lang)
+    )
 end
 
 function DebugLauncherSpy:assert_not_called()
-    assert.is_false(self._called, ('%s debug launcher has been called'):format(self._lang))
+    assert.is_false(self._called, string.format('%s debug launcher has been called', self._lang))
 end
 
 describe('build', function()

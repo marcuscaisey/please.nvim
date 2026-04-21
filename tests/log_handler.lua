@@ -32,7 +32,7 @@ function M.wrap_it(it)
                     [vim.log.levels.ERROR] = 'ERROR',
                 }
                 local level_name = level_names[level] or 'UNKNOWN'
-                table.insert(logs, ('%5s: %s'):format(level_name, msg))
+                table.insert(logs, string.format('%5s: %s', level_name, msg))
             end
             local ok, err = pcall(block)
             if ok then
@@ -40,7 +40,7 @@ function M.wrap_it(it)
             end
             if #logs > 0 then
                 local function errmsg_with_logs(errmsg)
-                    return ('%s\n\nLogs:\n%s\n'):format(errmsg, table.concat(logs, '\n'))
+                    return string.format('%s\n\nLogs:\n%s\n', errmsg, table.concat(logs, '\n'))
                 end
                 if type(err) == 'table' then
                     err.message = errmsg_with_logs(err.message)

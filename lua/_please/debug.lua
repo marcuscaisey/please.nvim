@@ -185,7 +185,7 @@ function M.launchers.python(root, target, extra_args)
     if vim.uv.os_uname().sysname == 'Linux' then
         local target_sandboxed, err = query.is_target_sandboxed(root, target)
         if err then ---@cast target_sandboxed -?
-            return false, ('launching debugpy: %s'):format(err)
+            return false, string.format('launching debugpy: %s', err)
         end
         if target_sandboxed then
             remote_runtime_dir = '/tmp/plz_sandbox'
@@ -197,7 +197,7 @@ function M.launchers.python(root, target, extra_args)
     local remote_pex_explode_dir = vim.fs.joinpath(remote_runtime_dir, pex_explode_dir)
     local target_out, err = query.print_field(root, target, 'outs')
     if err then ---@cast target_out -?
-        return false, ('launching debugpy: %s'):format(err)
+        return false, string.format('launching debugpy: %s', err)
     end
 
     local path_mappings = {

@@ -81,7 +81,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
         local path = vim.tbl_get(config, 'cmd_env', 'PATH') or vim.env.PATH
         config.cmd_env = vim.tbl_deep_extend('force', config.cmd_env or {}, {
-            PATH = ('%s/bin:%s'):format(goroot, path),
+            PATH = string.format('%s/bin:%s', goroot, path),
         })
 
         if client.name == 'gopls' then
