@@ -101,9 +101,11 @@ Neovim.
 > CI tests against the minimum supported version and the latest patch of each supported minor.
 > The current minimum supported version is 0.11.0.
 
-Install using your favourite plugin manager. See below for snippest for some popular ones.
+Install using your favourite plugin manager. See below for snippets for some popular ones.
 
-#### [vim.pack](https://neovim.io/doc/user/pack/#_plugin-manager)
+#### Snippets
+
+##### [vim.pack](https://neovim.io/doc/user/pack/#_plugin-manager)
 
 > [!NOTE]
 > Requires Neovim >= 0.12.
@@ -117,7 +119,7 @@ vim.pack.add({
 })
 ```
 
-#### [lazy.nvim](https://github.com/folke/lazy.nvim)
+##### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
 {
