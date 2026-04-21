@@ -123,7 +123,7 @@ vim.pack.add({
 
 ```lua
 {
-    'kylechui/nvim-surround',
+    'marcuscaisey/please.nvim',
     version = '1.*', -- Use for stability; omit to use master branch for the latest features
 }
 ```
