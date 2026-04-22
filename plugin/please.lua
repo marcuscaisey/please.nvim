@@ -17,18 +17,47 @@ vim.filetype.add({
             return vim.fs.root(path, '.plzconfig') and 'please'
         end,
     },
-    filename = {
-        BUILD = function(path)
-            if vim.fs.root(path, '.plzconfig') then
-                return 'please'
-            end
-            return 'bzl'
-        end,
-        ['BUILD.plz'] = 'please',
-    },
     pattern = {
         ['%.plzconfig.*'] = 'dosini',
     },
+})
+
+local build_file_names_by_root = {} ---@type table<string, string[]>
+
+vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+    desc = 'Set filetype to please if file is a build file',
+    group = vim.api.nvim_create_augroup('please.nvim_set_build_file_filetype', {}),
+    callback = function(ev)
+        local root = vim.fs.root(ev.match, '.plzconfig')
+        if not root then
+            return
+        end
+
+        local query = require('_please.query')
+
+        local build_file_names = build_file_names_by_root[root]
+        if not build_file_names then
+            local build_file_names_from_config, err = query.config(root, 'parse.buildfilename')
+            if err then
+                build_file_names = { 'BUILD', 'BUILD.plz' }
+                local logging = require('_please.logging')
+                logging.debug(
+                    'Resolving build file names in repository "%s": %s. Falling back to %s.',
+                    root,
+                    err,
+                    vim.inspect(build_file_names)
+                )
+            else ---@cast build_file_names_from_config -?
+                build_file_names = build_file_names_from_config
+            end
+            build_file_names_by_root[root] = build_file_names
+        end
+
+        local filename = vim.fs.basename(ev.match)
+        if vim.list_contains(build_file_names, filename) then
+            vim.bo[ev.buf].filetype = 'please'
+        end
+    end,
 })
 
 vim.treesitter.language.register('python', 'please')

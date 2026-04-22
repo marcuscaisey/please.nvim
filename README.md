@@ -68,8 +68,9 @@ Neovim.
     <img src="https://github.com/user-attachments/assets/62601a8c-c28c-488e-b729-807ebb0fc0e6" />
 </details>
 
-- `please` configured as the `'filetype'` for `BUILD`, `BUILD.plz`, `*.build`, and `*.build_defs`
-  files.
+- `please` configured as the `'filetype'` for build files: `*.build`, `*.build_defs`, and the build
+  file names set as `parse.buildfilename` in `.plzconfig` (defaults to `BUILD` and `BUILD.plz`).
+  is configured as `parse.buildfilename` (defaults to `BUILD` and `BUILD.plz`).
 - `ini` configured as the `'filetype'` for `.plzconfig` files to enable better syntax highlighting.
 - Python tree-sitter parser configured to be used for please files to enable better syntax
   highlighting and use of all tree-sitter features in BUILD files.

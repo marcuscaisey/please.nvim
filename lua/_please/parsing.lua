@@ -1,10 +1,9 @@
 local logging = require('_please.logging')
+local query = require('_please.query')
 
 vim.treesitter.language.register('python', 'please')
 
 local M = {}
-
-local build_file_names = { 'BUILD', 'BUILD.plz' }
 
 ---Checks if the parser for the given filetype is installed and if not prompts the user to install it.
 ---@param filetype string
@@ -90,6 +89,8 @@ local function ts_range_to_nvim_range(ts_start_row, ts_start_col)
     return { ts_start_row + 1, ts_start_col }
 end
 
+local build_file_names_by_root = {} ---@type table<string, string[]>
+
 ---Returns the BUILD file containing a target and its (1, 0)-based position in that file.
 ---If the location of the target in the BUILD file can't be found (it might be dynamically created), then position will
 ---be {1, 0}.
@@ -102,6 +103,16 @@ function M.locate_target(root, target)
 
     check_parser_installed('please')
 
+    local build_file_names = build_file_names_by_root[root]
+    if not build_file_names then
+        local build_file_names_from_config, err = query.config(root, 'parse.buildfilename')
+        if err then ---@cast build_file_names_from_config -?
+            return nil, string.format('locating target "%s": %s', target, err)
+        end
+        build_file_names = build_file_names_from_config
+        build_file_names_by_root[root] = build_file_names
+    end
+
     local pkg, name = target:match('^//([^:]*):([^/]+)$')
     if not pkg then
         pkg = target:match('^//([^:]+)$')
@@ -110,7 +121,7 @@ function M.locate_target(root, target)
         end
     end
     if not pkg then
-        return nil, string.format('"%s" is not a valid build label', target)
+        return nil, string.format('locating target "%s": not a valid build label', target)
     end
     local pkg_path = vim.fs.joinpath(root, pkg)
     for _, build_file_name in ipairs(build_file_names) do
@@ -132,7 +143,7 @@ function M.locate_target(root, target)
         end
     end
 
-    return nil, string.format('no BUILD file exists for package "%s"', pkg)
+    return nil, string.format('locating target "%s": no BUILD file exists for package "%s"', target, pkg)
 end
 
 local function cursor_in_node_range(node)

@@ -41,10 +41,13 @@ describe('locate_target', function()
             expected_position = { 1, 0 },
         },
         {
-            name = 'should return location of target in a BUILD.plz file',
+            name = 'should return location of target in a filename from parse.buildfilename setting',
             tree = {
-                '.plzconfig',
-                ['BUILD.plz'] = [[
+                ['.plzconfig'] = [[
+                    [Parse]
+                    buildfilename = BUILD.test
+                ]],
+                ['BUILD.test'] = [[
                     export_file(
                         name = "foo",
                         src = "foo.txt",
@@ -53,7 +56,7 @@ describe('locate_target', function()
                 'foo.txt',
             },
             target = '//:foo',
-            expected_file = 'BUILD.plz',
+            expected_file = 'BUILD.test',
             expected_position = { 1, 0 },
         },
         {
@@ -163,25 +166,25 @@ describe('locate_target', function()
             expected_position = { 6, 0 },
         },
         {
-            name = 'should return error if pkg path exists but BUILD or BUILD.plz file does not',
+            name = 'should return error if pkg path exists but build file does not',
             tree = {
                 '.plzconfig',
                 'no_targets/',
             },
             target = '//no_targets:target',
-            expected_err = 'no BUILD file exists for package "no_targets"',
+            expected_err = 'locating target "//no_targets:target": no BUILD file exists for package "no_targets"',
         },
         {
             name = 'should return error if pkg path does not exist',
             tree = { '.plzconfig' },
             target = '//does/not/exist:target',
-            expected_err = 'no BUILD file exists for package "does/not/exist"',
+            expected_err = 'locating target "//does/not/exist:target": no BUILD file exists for package "does/not/exist"',
         },
         {
             name = 'should return error if target is not a valid build label',
             tree = { '.plzconfig' },
             target = 'foo',
-            expected_err = '"foo" is not a valid build label',
+            expected_err = 'locating target "foo": not a valid build label',
         },
     }
 
