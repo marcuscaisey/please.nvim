@@ -7,6 +7,15 @@ neovim_plugin(
     ],
 )
 
+filegroup(
+    name = "docs",
+    srcs = [
+        "README.md",
+        "doc/please.txt",
+    ],
+    visibility = ["PUBLIC"],
+)
+
 export_file(
     name = "gomod",
     src = "go.mod",

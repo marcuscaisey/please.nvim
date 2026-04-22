@@ -1,4 +1,4 @@
-subinclude("//build_defs:neovim")
+subinclude("//build_defs:neovim", "///python//build_defs:python")
 
 neovim_test(
     name = "please_spec",
@@ -26,4 +26,13 @@ neovim_library(
 neovim_library(
     name = "log_handler",
     srcs = ["log_handler.lua"],
+)
+
+python_test(
+    name = "docs_min_neovim_version_sync_test",
+    srcs = ["docs_min_neovim_version_sync_test.py"],
+    data = [
+        "//:docs",
+        "//:please",
+    ],
 )
