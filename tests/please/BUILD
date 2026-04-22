@@ -3,6 +3,8 @@ subinclude("//build_defs:neovim")
 neovim_test(
     name = "parsing_spec",
     src = "parsing_spec.lua",
+    data = ["//third_party/please:plz"],
+    env = {"PLEASE_NVIM_PLZ": "third_party/please/plz"},
     deps = [
         "//:please",
         "//tests:log_handler",
@@ -15,6 +17,8 @@ neovim_test(
 neovim_test(
     name = "parsing_spec_legacy_go_parser",
     src = "parsing_spec.lua",
+    data = ["//third_party/please:plz"],
+    env = {"PLEASE_NVIM_PLZ": "third_party/please/plz"},
     deps = [
         "//:please",
         "//tests:log_handler",
