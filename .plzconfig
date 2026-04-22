@@ -12,6 +12,7 @@ target = //plugins:go
 gotool = //third_party/go:toolchain|go
 delvetool = ///third_party/go/github.com_go-delve_delve//cmd/dlv
 modfile = //:gomod
+importpath = github.com/marcuscaisey/please.nvim
 
 [Plugin "python"]
 target = //plugins:python
