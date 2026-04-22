@@ -1,10 +1,3 @@
-local ok, dap = pcall(require, 'dap')
-if not ok then
-    error(
-        'nvim-dap is required to use please.debug but it is not installed. Install it from https://github.com/mfussenegger/nvim-dap.'
-    )
-end
-local repl = require('dap.repl')
 local logging = require('_please.logging')
 local query = require('_please.query')
 local plz = require('_please.plz')
@@ -33,6 +26,14 @@ local function setup_debug_adapter()
 
     logging.debug('setting up plz debug adapter')
 
+    local ok, dap = pcall(require, 'dap')
+    if not ok then
+        logging.error(
+            'Failed to debug: nvim-dap is required for debugging but it is not installed. Install it from https://github.com/mfussenegger/nvim-dap.'
+        )
+        return
+    end
+    local repl = require('dap.repl')
     dap.adapters.plz = function(callback, config)
         logging.log_call('dap.adapters.plz')
 
@@ -104,6 +105,7 @@ local function launch_debug_adapter(config)
         name = 'Attach to plz debug',
     }
     dap_config = vim.tbl_deep_extend('error', dap_config, config)
+    local dap = require('dap')
     dap.run(dap_config)
 end
 
