@@ -8,16 +8,9 @@ function M.toggle_debug()
     return debug_enabled
 end
 
----@param msg string
----@param ... string
----@return string
-function M.format(msg, ...)
-    local formatted_msg = string.format(msg, ...)
-    return string.format('[please.nvim]: %s', formatted_msg)
-end
-
 local function log(msg, level, ...)
-    local formatted_msg = M.format(msg, ...)
+    local formatted_msg = string.format(msg, ...)
+    formatted_msg = string.format('[please.nvim]: %s', formatted_msg)
     if vim.in_fast_event() then
         vim.schedule(function()
             vim.notify(formatted_msg, level)
