@@ -10,8 +10,12 @@ end
 
 vim.filetype.add({
     extension = {
-        build_defs = 'please',
-        build = 'please',
+        build_defs = function(path)
+            return vim.fs.root(path, '.plzconfig') and 'please'
+        end,
+        build = function(path)
+            return vim.fs.root(path, '.plzconfig') and 'please'
+        end,
     },
     filename = {
         BUILD = function(path)
