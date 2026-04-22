@@ -34,6 +34,7 @@ vim.lsp.enable({
     'basedpyright',
     'golangci_lint_ls',
     'gopls',
+    'please',
     -- 'pyright',
 })
 local mason = require('mason')
