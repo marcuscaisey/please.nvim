@@ -73,7 +73,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
         local goroot, err = query.goroot(client.root_dir)
         if err then ---@cast goroot -?
-            logging.warn('configuring %s in repository "%s": %s', client.name, client.root_dir, err)
+            logging.debug('configuring %s in repository "%s": %s', client.name, client.root_dir, err)
             return
         end
 
@@ -167,26 +167,29 @@ vim.api.nvim_create_autocmd('BufWritePost', {
     group = vim.api.nvim_create_augroup('please.nvim_puku_fmt', {}),
     pattern = '*.go',
     callback = function(ev)
+        local root = vim.fs.root(ev.match, '.plzconfig')
+        if not root then
+            return
+        end
+
         local config = require('_please.config')
         local puku_command = config.get().puku_command
         if not puku_command then
             return
         end
-        local root = vim.fs.root(ev.match, '.plzconfig')
-        if not root then
-            return
-        end
+
+        local logging = require('_please.logging')
         local cmd = vim.deepcopy(puku_command)
-        table.insert(cmd, 'fmt')
-        table.insert(cmd, ev.match)
-        vim.system(cmd, { cwd = root }, function(res)
+        vim.list_extend(cmd, { 'fmt', ev.match })
+        local ok, err = pcall(vim.system, cmd, { cwd = root }, function(res)
             local output = res.code == 0 and vim.trim(res.stdout) or vim.trim(res.stderr)
             if output ~= '' then
-                vim.schedule(function()
-                    vim.notify('puku: ' .. output, vim.log.levels.INFO)
-                end)
+                logging.info('puku: %s', output)
             end
         end)
+        if not ok then
+            logging.debug('Failed to format BUILD files with "%s": %s', table.concat(cmd, ' '), err)
+        end
     end,
 })
 

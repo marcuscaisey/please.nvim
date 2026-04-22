@@ -8,7 +8,11 @@ local M = {}
 ---@return string?
 ---@return string?
 local function plz_query(root, args)
-    local res = vim.system({ plz, '--repo_root', root, 'query', unpack(args) }):wait()
+    local ok, obj_or_err = pcall(vim.system, { plz, '--repo_root', root, 'query', unpack(args) })
+    if not ok then
+        return nil, tostring(obj_or_err)
+    end
+    local res = obj_or_err:wait()
     if res.code ~= 0 then
         local stderr = vim.trim(res.stderr)
         if not stderr:match('\n') then
@@ -151,7 +155,11 @@ function M.goroot(root)
     end
 
     local cmd = vim.list_extend(go_cmd, { 'env', 'GOROOT' })
-    local res = vim.system(cmd):wait()
+    local ok, obj_or_err = pcall(vim.system, cmd)
+    if not ok then
+        return nil, string.format('resolving GOROOT: %s: %s', table.concat(cmd, ' '), obj_or_err)
+    end
+    local res = obj_or_err:wait()
     if res.code ~= 0 then
         return nil, string.format('resolving GOROOT: %s: %s', table.concat(cmd, ' '), vim.trim(res.stderr))
     end

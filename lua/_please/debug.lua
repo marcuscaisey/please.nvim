@@ -71,7 +71,11 @@ local function setup_debug_adapter()
             end
         end
 
-        vim.system(cmd, { stdout = stdout, stderr = stderr }, on_exit)
+        local ok, err = pcall(vim.system, cmd, { stdout = stdout, stderr = stderr }, on_exit)
+        if not ok then
+            logging.error('Failed to start debugger with "%s": %s', table.concat(cmd, ' '), err)
+            return
+        end
 
         callback({
             type = 'server',
