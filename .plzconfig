@@ -1,5 +1,5 @@
 [Please]
-version = 17.29.1
+version = 17.30.0
 
 [BuildConfig]
 nvim-tool = //third_party/neovim:toolchain_stable|nvim
