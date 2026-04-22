@@ -1118,7 +1118,7 @@ local function gen_target(cfg)
     fmt(' vim:tw=78:ts=8:sw=%d:sts=%d:et:ft=help:norl:\n', INDENTATION, INDENTATION)
   )
 
-  local doc_file = vim.fs.joinpath('doc', cfg.filename)
+  local doc_file = cfg.filename
 
   if vim.uv.fs_stat(doc_file) then
     delete_lines_below(doc_file, first_section_tag)

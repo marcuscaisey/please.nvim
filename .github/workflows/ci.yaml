@@ -21,8 +21,8 @@ jobs:
         id: generate-toolchain-list
         run: echo toolchains=$(./pleasew run //tools:neovim_toolchains) >> "$GITHUB_OUTPUT"
 
-  test:
-    name: Test (Neovim ${{ matrix.toolchain.version }})
+  test-plugin:
+    name: Test Plugin (Neovim ${{ matrix.toolchain.version }})
     needs: list-neovim-toolchains
     runs-on: ubuntu-latest
     steps:
@@ -31,11 +31,22 @@ jobs:
       - name: Apply AppArmor profile
         uses: ./.github/actions/apply-apparmor-profile
       - name: Run tests
-        run: ./pleasew --override buildconfig.nvim-tool:'${{ matrix.toolchain.nvim }}' test
+        run: ./pleasew --override buildconfig.nvim-tool:'${{ matrix.toolchain.nvim }}' --include neovim_test test
     strategy:
       matrix:
         toolchain: ${{ fromJSON(needs.list-neovim-toolchains.outputs.toolchains) }}
       fail-fast: false
+
+  test-other:
+    name: Test Other
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v6
+      - name: Apply AppArmor profile
+        uses: ./.github/actions/apply-apparmor-profile
+      - name: Run tests
+        run: ./pleasew --exclude neovim_test test
 
   typecheck-lua-code:
     name: Typecheck Lua Code (Neovim ${{ matrix.toolchain.version }})

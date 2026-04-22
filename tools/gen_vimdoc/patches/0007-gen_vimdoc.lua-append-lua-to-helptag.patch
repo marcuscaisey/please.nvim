@@ -1,0 +1,25 @@
+From 64e9945000f7ba85dae589bbdc5a674f1a2df09c Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Wed, 22 Apr 2026 09:31:30 +0100
+Subject: [PATCH] [gen_vimdoc.lua] append -lua to helptag
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index 6ce3fa6..97ef918 100644
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -1158,7 +1158,7 @@ local function run()
+       return string.format('Lua module: %s', name)
+     end,
+     helptag_fmt = function(name)
+-      return name
++      return string.format('%s-lua', name)
+     end,
+   })
+ end
+-- 
+2.53.0
+

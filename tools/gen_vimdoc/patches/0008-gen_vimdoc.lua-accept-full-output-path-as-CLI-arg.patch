@@ -1,0 +1,25 @@
+From 947b682d2afc9d8f000b6ee413dd2c3ba3eea7b7 Mon Sep 17 00:00:00 2001
+From: Marcus Caisey <marcus@teckna.com>
+Date: Wed, 22 Apr 2026 11:00:20 +0100
+Subject: [PATCH] [gen_vimdoc.lua] accept full output path as CLI arg
+
+---
+ tools/gen_vimdoc/gen_vimdoc.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gen_vimdoc/gen_vimdoc.lua b/tools/gen_vimdoc/gen_vimdoc.lua
+index 97ef918..0f7e1d0 100644
+--- a/tools/gen_vimdoc/gen_vimdoc.lua
++++ b/tools/gen_vimdoc/gen_vimdoc.lua
+@@ -1118,7 +1118,7 @@ local function gen_target(cfg)
+     fmt(' vim:tw=78:ts=8:sw=%d:sts=%d:et:ft=help:norl:\n', INDENTATION, INDENTATION)
+   )
+ 
+-  local doc_file = vim.fs.joinpath('doc', cfg.filename)
++  local doc_file = cfg.filename
+ 
+   if vim.uv.fs_stat(doc_file) then
+     delete_lines_below(doc_file, first_section_tag)
+-- 
+2.53.0
+
