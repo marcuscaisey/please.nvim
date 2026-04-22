@@ -1,21 +1,10 @@
-local function safe_require(module)
-    return setmetatable({}, {
-        __index = function(_, key)
-            local ok, value = pcall(require, module)
-            if not ok then
-                error(
-                    'nvim-dap is required to use please.debug but it is not installed. Install it from https://github.com/mfussenegger/nvim-dap.'
-                )
-            end
-            return value[key]
-        end,
-    })
+local ok, dap = pcall(require, 'dap')
+if not ok then
+    error(
+        'nvim-dap is required to use please.debug but it is not installed. Install it from https://github.com/mfussenegger/nvim-dap.'
+    )
 end
-
----@module 'dap'
-local dap = safe_require('dap')
----@module 'dap.repl'
-local repl = safe_require('dap.repl')
+local repl = require('dap.repl')
 local logging = require('_please.logging')
 local query = require('_please.query')
 local plz = require('_please.plz')
