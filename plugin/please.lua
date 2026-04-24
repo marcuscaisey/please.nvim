@@ -8,14 +8,60 @@ if vim.g.loaded_please then
     return
 end
 
+---Port of the Go standard library os.UserCacheDir function.
+---@return string?
+---@return string? errmsg
+local function user_cache_dir()
+    local dir = ''
+
+    local sysname = vim.uv.os_uname().sysname
+    if sysname == 'Windows_NT' then
+        dir = vim.env.LOCALAPPDATA
+        if not dir or dir == '' then
+            return nil, '%LocalAppData% is not defined'
+        end
+    elseif sysname == 'Darwin' then
+        dir = vim.env.HOME
+        if not dir or dir == '' then
+            return nil, '$HOME is not defined'
+        end
+        dir = dir .. '/Library/Caches'
+    else -- Unix
+        dir = vim.env.XDG_CACHE_HOME
+        if not dir or dir == '' then
+            dir = vim.env.HOME
+            if not dir or dir == '' then
+                return nil, 'neither $XDG_CACHE_HOME nor $HOME are defined'
+            end
+            dir = dir .. '/.cache'
+        elseif not vim.startswith(dir, '/') then
+            return nil, 'path in $XDG_CACHE_HOME is relative'
+        end
+    end
+
+    return dir
+end
+
+---@param path string
+---@return string?
+local function build_defs_filetype_matcher(path)
+    if vim.fs.root(path, '.plzconfig') then
+        return 'please'
+    end
+    local user_cache_dir = user_cache_dir()
+    if not user_cache_dir then
+        return nil
+    end
+    local plz_cache_dir = vim.fs.joinpath(user_cache_dir, 'please')
+    if vim.fs.dirname(path) == plz_cache_dir then
+        return 'please'
+    end
+end
+
 vim.filetype.add({
     extension = {
-        build_defs = function(path)
-            return vim.fs.root(path, '.plzconfig') and 'please'
-        end,
-        build = function(path)
-            return vim.fs.root(path, '.plzconfig') and 'please'
-        end,
+        build = build_defs_filetype_matcher,
+        build_defs = build_defs_filetype_matcher,
     },
     pattern = {
         ['%.plzconfig.*'] = 'dosini',
