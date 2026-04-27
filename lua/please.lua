@@ -308,8 +308,8 @@ function M.test(opts)
             targets = assert(query.whatinputs(root, filepath))
         end
 
-        select_if_many(targets, { prompt = 'Select target to test:' }, function(targets)
-            save_and_run_simple_command(root, { 'test', targets, unpack(extra_args) })
+        select_if_many(targets, { prompt = 'Select target to test:' }, function(target)
+            save_and_run_simple_command(root, { 'test', target, unpack(extra_args) })
         end)
     end)
 end
