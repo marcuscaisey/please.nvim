@@ -121,7 +121,6 @@ local function move_cursor_to_last_line()
 end
 
 ---@class _please.runner.RunnerOpts
----@inlinedoc
 ---@field on_exit fun(success:boolean, runner:_please.runner.Runner)?
 
 ---Runs a command and displays it in a floating window.
