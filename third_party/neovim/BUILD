@@ -9,7 +9,7 @@ filegroup(
 
 neovim_toolchain(
     name = "toolchain_stable",
-    version = "0.12.1",
+    version = "0.12.2",
 )
 
 neovim_toolchain(
