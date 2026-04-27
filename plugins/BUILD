@@ -1,6 +1,5 @@
 plugin_repo(
     name = "cc",
-    # owner = "marcuscaisey",
     plugin = "cc-rules",
     revision = "v0.7.1",
 )
