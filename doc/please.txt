@@ -298,7 +298,7 @@ COMMANDS                                           *:Please* *please-commands*
 
     Optionally (when in a source file), you can debug only the test which is
     under the cursor by passing [under_cursor]. The supported languages and
-    test types are the same as for |please.test()|.
+    test types are the same as for |:Please-test|.
 
     See |please.debug()| for the equivalent Lua function.
 
