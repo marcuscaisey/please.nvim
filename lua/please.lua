@@ -512,6 +512,7 @@ function M.clear_history()
 
         history[root] = nil
         write_command_history(history)
+        logging.info('Cleared command history for repository %s', root)
     end)
 end
 
