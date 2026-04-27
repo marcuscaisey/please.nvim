@@ -3,6 +3,9 @@
 please.nvim is a plugin which enables you to interact with Please repositories from the comfort of
 Neovim.
 
+Bug reports and feature requests are welcome. Please open an issue if you find something that does
+not work as expected, or if there is a feature you would like to see added.
+
 ## Features
 
 <details>
