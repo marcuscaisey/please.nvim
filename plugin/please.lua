@@ -136,8 +136,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
         local config = require('_please.config')
         if
-            not (client.name == 'gopls' and config.get().configure_gopls)
-            and not (client.name == 'golangci_lint_ls' and config.get().configure_golangci_lint_langserver)
+            not (client.name == 'gopls' and config.get().lsp.gopls)
+            and not (client.name == 'golangci_lint_ls' and config.get().lsp.golangci_lint_langserver)
         then
             return
         end
@@ -203,8 +203,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
         local config = require('_please.config')
         if
-            not (client.name == 'pyright' and config.get().configure_pyright)
-            and not (client.name == 'basedpyright' and config.get().configure_basedpyright)
+            not (client.name == 'pyright' and config.get().lsp.pyright)
+            and not (client.name == 'basedpyright' and config.get().lsp.basedpyright)
         then
             return
         end
@@ -244,7 +244,7 @@ vim.api.nvim_create_autocmd('BufWritePost', {
         end
 
         local config = require('_please.config')
-        local puku_command = config.get().puku_command
+        local puku_command = config.get().formatting.puku_command
         if not puku_command then
             return
         end

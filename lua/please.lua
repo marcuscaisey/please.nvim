@@ -1,13 +1,31 @@
 local M = {}
 
----@inlinedoc
 ---@class please.Opts
----@field max_history_items integer? The maximum number of history items to store for each repository. Defaults to 20.
----@field configure_gopls boolean? Whether to configure the gopls language server for use in a Please repository. Defaults to true.
----@field configure_golangci_lint_langserver boolean? Whether to configure the golangci-lint-langserver language server for use in a Please repository. Defaults to true.
----@field configure_basedpyright boolean? Whether to configure the basedpyright language server for use in a Please repository. Defaults to true.
----@field configure_pyright boolean? Whether to configure the pyright language server for use in a Please repository. Defaults to true.
----@field puku_command string[]? Command to execute puku. Defaults to nil which means that puku formatting is not enabled.
+---@inlinedoc
+---@field formatting please.FormattingOpts? Options affecting formatting. See [please.FormattingOpts].
+---@field history please.HistoryOpts? Options affecting [:Please-history]. See [please.HistoryOpts].
+---@field lsp please.LSPOpts? Options affecting LSP. See [please.LSPOpts].
+---@field package max_history_items integer? Deprecated. Use `history.max_items` instead. See [please.HistoryOpts].
+---@field package configure_gopls boolean?  Deprecated. Use `lsp.gopls` instead. See [please.LSPOpts].
+---@field package configure_golangci_lint_langserver boolean? Deprecated. Use `lsp.golangci_lint_langserver` instead. See [please.LSPOpts].
+---@field package configure_basedpyright boolean? Deprecated. Use `lsp.basedpyright` instead. See [please.LSPOpts].
+---@field package configure_pyright boolean? Deprecated. Use `lsp.pyright` instead. See [please.LSPOpts].
+---@field package puku_command string[]? Deprecated. Use `formatting.puku_command` instead. See [please.FormattingOpts].
+
+---Options affecting formatting.
+---@class please.FormattingOpts
+---@field puku_command string[]? Command to execute puku. Defaults to `nil` which means that puku formatting is not enabled.
+
+---Options affecting [:Please-history].
+---@class please.HistoryOpts
+---@field max_items integer? The maximum number of history items to store for each repository. Defaults to `20`.
+
+---Options affecting LSP.
+---@class please.LSPOpts
+---@field gopls boolean? Whether to configure the gopls language server for use in a Please repository. Defaults to `true`.
+---@field golangci_lint_langserver boolean? Whether to configure the golangci-lint-langserver language server for use in a Please repository. Defaults to `true`.
+---@field basedpyright boolean? Whether to configure the basedpyright language server for use in a Please repository. Defaults to `true`.
+---@field pyright boolean? Whether to configure the pyright language server for use in a Please repository. Defaults to `true`.
 
 ---Updates the configuration with the provided {opts}.
 ---
@@ -19,17 +37,55 @@ local M = {}
 ---```lua
 ---local please = require('please')
 ---please.setup({
----    max_history_items = 20,
----    configure_gopls = true,
----    configure_golangci_lint_langserver = true,
----    configure_basedpyright = true,
----    configure_pyright = true,
----    puku_command = nil,
+---    formatting = { puku_command = nil },
+---    history = { max_items = 20 },
+---    lsp = {
+---        gopls = true,
+---        golangci_lint_langserver = true,
+---        basedpyright = true,
+---        pyright = true,
+---    },
 ---})
 ---```
 ---@param opts please.Opts
 function M.setup(opts)
     local config = require('_please.config')
+
+    opts = vim.tbl_deep_extend('keep', opts, {
+        formatting = { puku_command = opts.puku_command },
+        history = { max_items = opts.max_history_items },
+        lsp = {
+            gopls = opts.configure_gopls,
+            golangci_lint_langserver = opts.configure_golangci_lint_langserver,
+            basedpyright = opts.configure_basedpyright,
+            pyright = opts.configure_pyright,
+        },
+    })
+
+    local deprecated_opt_replacements = {
+        max_history_items = 'history.max_items',
+        configure_gopls = 'lsp.gopls',
+        configure_golangci_lint_langserver = 'lsp.golangci_lint_langserver',
+        configure_basedpyright = 'lsp.basedpyright',
+        configure_pyright = 'lsp.pyright',
+        puku_command = 'formatting.puku_command',
+    }
+    for old, new in pairs(deprecated_opt_replacements) do
+        if opts[old] == nil then
+            goto continue
+        end
+        local value = vim.inspect(opts[old])
+        local section, name = new:match('(%a+)%.(%a+)')
+        vim.deprecate(
+            string.format('please.setup({ %s = %s })', old, value),
+            string.format('please.setup({ %s = { %s = %s } })', section, name, value),
+            '2.0.0',
+            'please.nvim'
+        )
+        opts[old] = nil
+        ::continue::
+    end
+
     config.update(opts)
 end
 
@@ -108,7 +164,7 @@ local function save_command(root, command)
             :filter(function(history_item)
                 return history_item.description ~= command.description
             end)
-            :take(config.get().max_history_items - 1)
+            :take(config.get().history.max_items - 1)
             :totable()
     else
         history[root] = {}

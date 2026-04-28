@@ -7,12 +7,14 @@ vim.pack.add({ 'https://github.com/marcuscaisey/please.nvim' })
 -- vim.cmd('set runtimepath^=.')
 local please = require('please')
 please.setup({
-    -- max_history_items = 20,
-    -- configure_gopls = true,
-    -- configure_golangci_lint_langserver = true,
-    -- configure_basedpyright = true,
-    -- configure_pyright = true,
-    puku_command = { 'plz', 'puku' },
+    formatting = { puku_command = { 'plz', 'puku' } },
+    -- history = { max_items = 20 },
+    -- lsp = {
+    --     gopls = true,
+    --     golangci_lint_langserver = true,
+    --     basedpyright = true,
+    --     pyright = true,
+    -- },
 })
 vim.keymap.set('n', '<leader>pb', '<Cmd>Please build<CR>')
 vim.keymap.set('n', '<leader>pr', '<Cmd>Please run<CR>')

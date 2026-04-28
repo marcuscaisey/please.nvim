@@ -169,7 +169,7 @@ restarts it with the following configuration changes:
     references with standard library packages will refer to the correct
     location for the Go toolchain configured for the repository.
 
-This behaviour can be disabled by passing `configure_gopls = false` to
+This behaviour can be disabled by passing `lsp = { gopls = false }` to
 |please.setup()|.
 
 See also:
@@ -190,7 +190,7 @@ Please repository and restarts it with the following configuration changes:
     repository.
 
 This behaviour can be disabled by passing
-`configure_golangci_lint_langserver = false` to |please.setup()|.
+`lsp = { golangci_lint_langserver = false }` to |please.setup()|.
 
 See also:
   • https://github.com/nametake/golangci-lint-langserver
@@ -208,7 +208,7 @@ making the following setting changes:
     symlink the downloaded packages into `plz-out/python/venv` so this means
     that `basedpyright` will be able to find them.
 
-This behaviour can be disabled by passing `configure_basedpyright = false` to
+This behaviour can be disabled by passing `lsp = { basedpyright = false }` to
 |please.setup()|.
 
 See also:
@@ -228,7 +228,7 @@ following setting changes:
     symlink the downloaded packages into `plz-out/python/venv` so this means
     that pyright` will be able to find them.
 
-This behaviour can be disabled by passing `configure_pyright = false` to
+This behaviour can be disabled by passing `lsp = { pyright = false }` to
 |please.setup()|.
 
 See also:
@@ -239,14 +239,14 @@ See also:
 ==============================================================================
 PUKU                                                             *please-puku*
 
-If `puku_command` has been set via |please.setup()|, please.nvim will run
-`puku fmt` when a Go file is saved. Puku is a tool for maintaining Go build
-targets and `puku fmt` updates BUILD files based on the imports in Go source
-files.
+If `formatting.puku_command` has been set via |please.setup()|, please.nvim
+will run `puku fmt` when a Go file is saved. Puku is a tool for maintaining Go
+build targets and `puku fmt` updates BUILD files based on the imports in Go
+source files.
 
-To configure a different `puku_command` for different repositories, consider
-enabling |'exrc'| and calling |please.setup()| with a different `puku_command`
-in `.nvim.lua`.
+To configure a different `formatting.puku_command` for different repositories,
+consider enabling |'exrc'| and calling |please.setup()| with a different
+`formatting.puku_command` in `.nvim.lua`.
 
 See also:
   • https://github.com/please-build/puku
@@ -381,6 +381,39 @@ COMMANDS                                           *:Please* *please-commands*
 ==============================================================================
 Lua module: please                                                *please-lua*
 
+*please.FormattingOpts*
+    Options affecting formatting.
+
+    Fields: ~
+      • {puku_command}  (`string[]?`) Command to execute puku. Defaults to
+                        `nil` which means that puku formatting is not enabled.
+
+*please.HistoryOpts*
+    Options affecting |:Please-history|.
+
+    Fields: ~
+      • {max_items}  (`integer?`) The maximum number of history items to store
+                     for each repository. Defaults to `20`.
+
+*please.LSPOpts*
+    Options affecting LSP.
+
+    Fields: ~
+      • {gopls}                     (`boolean?`) Whether to configure the
+                                    gopls language server for use in a Please
+                                    repository. Defaults to `true`.
+      • {golangci_lint_langserver}  (`boolean?`) Whether to configure the
+                                    golangci-lint-langserver language server
+                                    for use in a Please repository. Defaults
+                                    to `true`.
+      • {basedpyright}              (`boolean?`) Whether to configure the
+                                    basedpyright language server for use in a
+                                    Please repository. Defaults to `true`.
+      • {pyright}                   (`boolean?`) Whether to configure the
+                                    pyright language server for use in a
+                                    Please repository. Defaults to `true`.
+
+
 setup({opts})                                                 *please.setup()*
     Updates the configuration with the provided {opts}.
 
@@ -392,34 +425,25 @@ setup({opts})                                                 *please.setup()*
     Example: >lua
         local please = require('please')
         please.setup({
-           max_history_items = 20,
-           configure_gopls = true,
-           configure_golangci_lint_langserver = true,
-           configure_basedpyright = true,
-           configure_pyright = true,
-           puku_command = nil,
+           formatting = { puku_command = nil },
+           history = { max_items = 20 },
+           lsp = {
+               gopls = true,
+               golangci_lint_langserver = true,
+               basedpyright = true,
+               pyright = true,
+           },
         })
 <
 
     Parameters: ~
       • {opts}  (`table`) A table with the following fields:
-                • {max_history_items} (`integer?`) The maximum number of
-                  history items to store for each repository. Defaults to 20.
-                • {configure_gopls} (`boolean?`) Whether to configure the
-                  gopls language server for use in a Please repository.
-                  Defaults to true.
-                • {configure_golangci_lint_langserver} (`boolean?`) Whether to
-                  configure the golangci-lint-langserver language server for
-                  use in a Please repository. Defaults to true.
-                • {configure_basedpyright} (`boolean?`) Whether to configure
-                  the basedpyright language server for use in a Please
-                  repository. Defaults to true.
-                • {configure_pyright} (`boolean?`) Whether to configure the
-                  pyright language server for use in a Please repository.
-                  Defaults to true.
-                • {puku_command} (`string[]?`) Command to execute puku.
-                  Defaults to nil which means that puku formatting is not
-                  enabled.
+                • {formatting} (`please.FormattingOpts?`) Options affecting
+                  formatting. See |please.FormattingOpts|.
+                • {history} (`please.HistoryOpts?`) Options affecting
+                  |:Please-history|. See |please.HistoryOpts|.
+                • {lsp} (`please.LSPOpts?`) Options affecting LSP. See
+                  |please.LSPOpts|.
 
 build()                                                       *please.build()*
     Builds a target.
