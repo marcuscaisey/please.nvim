@@ -246,10 +246,7 @@ describe('get_test_at_cursor', function()
                     }
                 ]], -- go
                 cursor_position = { 2, 4 }, -- inside TestFunction1
-                expected_test = {
-                    name = 'TestFunction1',
-                    selector = '^TestFunction1$',
-                },
+                expected_test = { name = 'TestFunction1', selector = '^TestFunction1$' },
             },
             {
                 name = 'test function with subtests - pascal case name',
@@ -413,10 +410,7 @@ describe('get_test_at_cursor', function()
                     }
                 ]], -- go
                 cursor_position = { 21, 12 }, -- inside t.Run
-                expected_test = {
-                    name = 'TestFunctionWithTableTests',
-                    selector = '^TestFunctionWithTableTests$',
-                },
+                expected_test = { name = 'TestFunctionWithTableTests', selector = '^TestFunctionWithTableTests$' },
             },
             {
                 name = 'test function with table tests - test cases defined with var',
@@ -654,10 +648,7 @@ describe('get_test_at_cursor', function()
                     }
                 ]], -- go
                 cursor_position = { 2, 4 }, -- inside TestMethod1
-                expected_test = {
-                    name = 'TestMethod1',
-                    selector = '/^TestMethod1$',
-                },
+                expected_test = { name = 'TestMethod1', selector = '/^TestMethod1$' },
             },
             {
                 name = 'testify suite method with suite name - struct literal',
@@ -672,10 +663,7 @@ describe('get_test_at_cursor', function()
                     }
                 ]], -- go
                 cursor_position = { 6, 4 }, -- inside TestMethod1
-                expected_test = {
-                    name = 'TestSuite/TestMethod1',
-                    selector = '^TestSuite$/^TestMethod1$',
-                },
+                expected_test = { name = 'TestSuite/TestMethod1', selector = '^TestSuite$/^TestMethod1$' },
             },
             {
                 name = 'testify suite method with suite name - embedded pointer',
@@ -728,10 +716,7 @@ describe('get_test_at_cursor', function()
                     }
                 ]], -- go
                 cursor_position = { 6, 4 }, -- inside TestMethod5
-                expected_test = {
-                    name = 'TestSuite/TestMethod5',
-                    selector = '^TestSuite$/^TestMethod5$',
-                },
+                expected_test = { name = 'TestSuite/TestMethod5', selector = '^TestSuite$/^TestMethod5$' },
             },
             {
                 name = 'testify suite method with suite name - multiple runs',
@@ -750,10 +735,7 @@ describe('get_test_at_cursor', function()
                     }
                 ]], -- go
                 cursor_position = { 10, 4 }, -- inside TestMethod6
-                expected_test = {
-                    name = 'TestMethod6',
-                    selector = '/^TestMethod6$',
-                },
+                expected_test = { name = 'TestMethod6', selector = '/^TestMethod6$' },
             },
             {
                 name = 'testify suite method with subtests - pascal case name',
@@ -917,10 +899,7 @@ describe('get_test_at_cursor', function()
                     }
                 ]], -- go
                 cursor_position = { 21, 12 }, -- inside t.Run
-                expected_test = {
-                    name = 'TestMethodWithTableTests',
-                    selector = '/^TestMethodWithTableTests$',
-                },
+                expected_test = { name = 'TestMethodWithTableTests', selector = '/^TestMethodWithTableTests$' },
             },
             {
                 name = 'testify suite method with table tests - test cases defined with var',
@@ -1165,10 +1144,7 @@ describe('get_test_at_cursor', function()
                             self.fail("oh no")
                 ]], -- python
                 cursor_position = { 4, 8 }, -- inside test_method_1
-                expected_test = {
-                    name = 'TestCase.test_method_1',
-                    selector = 'TestCase.test_method_1',
-                },
+                expected_test = { name = 'TestCase.test_method_1', selector = 'TestCase.test_method_1' },
             },
             {
                 name = 'unittest test method - decorator',
@@ -1281,18 +1257,9 @@ describe('get_target_at_cursor', function()
         }
 
         local test_cases = {
-            {
-                name = 'first char',
-                cursor_position = { 1, 0 },
-            },
-            {
-                name = 'middle row',
-                cursor_position = { 2, 0 },
-            },
-            {
-                name = 'last char',
-                cursor_position = { 4, 0 },
-            },
+            { name = 'first char', cursor_position = { 1, 0 } },
+            { name = 'middle row', cursor_position = { 2, 0 } },
+            { name = 'last char', cursor_position = { 4, 0 } },
         }
 
         for _, case in ipairs(test_cases) do
@@ -1405,22 +1372,10 @@ describe('get_target_at_cursor', function()
         }
 
         local test_cases = {
-            {
-                name = 'before first row',
-                cursor_position = { 1, 0 },
-            },
-            {
-                name = 'before first char',
-                cursor_position = { 2, 0 },
-            },
-            {
-                name = 'after last char',
-                cursor_position = { 5, 1 },
-            },
-            {
-                name = 'after last row',
-                cursor_position = { 6, 0 },
-            },
+            { name = 'before first row', cursor_position = { 1, 0 } },
+            { name = 'before first char', cursor_position = { 2, 0 } },
+            { name = 'after last char', cursor_position = { 5, 1 } },
+            { name = 'after last row', cursor_position = { 6, 0 } },
         }
 
         for _, case in ipairs(test_cases) do

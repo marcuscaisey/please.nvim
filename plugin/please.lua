@@ -59,13 +59,8 @@ local function build_defs_filetype_matcher(path)
 end
 
 vim.filetype.add({
-    extension = {
-        build = build_defs_filetype_matcher,
-        build_defs = build_defs_filetype_matcher,
-    },
-    pattern = {
-        ['%.plzconfig.*'] = 'dosini',
-    },
+    extension = { build = build_defs_filetype_matcher, build_defs = build_defs_filetype_matcher },
+    pattern = { ['%.plzconfig.*'] = 'dosini' },
 })
 
 local build_file_names_by_root = {} ---@type table<string, string[]>
@@ -231,10 +226,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
         client.settings = vim.tbl_deep_extend('force', client.settings, {
             [section] = {
-                analysis = {
-                    extraPaths = extra_paths,
-                    exclude = exclude,
-                },
+                analysis = { extraPaths = extra_paths, exclude = exclude },
             },
         })
         client:notify('workspace/didChangeConfiguration', { settings = vim.NIL })
@@ -285,10 +277,7 @@ local function complete_arg(prefix, candidates)
 end
 
 ---@type table<string, string[]>
-local cmd_opts = {
-    test = { 'under_cursor' },
-    debug = { 'under_cursor' },
-}
+local cmd_opts = { test = { 'under_cursor' }, debug = { 'under_cursor' } }
 local var_arg_cmds = { 'command' }
 local hidden_cmds = { 'setup' }
 

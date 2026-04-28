@@ -43,12 +43,7 @@ function RunnerSpy:new(success)
     if success == nil then
         success = true
     end
-    local o = {
-        _root = nil,
-        _args = nil,
-        _called = false,
-        _minimise_called = false,
-    }
+    local o = { _root = nil, _args = nil, _called = false, _minimise_called = false }
     stub(runner.Runner, 'start', function(root, args, opts)
         o._root = root
         o._args = args
@@ -85,13 +80,7 @@ local SelectFake = {}
 SelectFake.__index = SelectFake
 
 function SelectFake:new()
-    local o = {
-        _called = false,
-        _items = nil,
-        _formatted_items = nil,
-        _opts = nil,
-        _on_choice = nil,
-    }
+    local o = { _called = false, _items = nil, _formatted_items = nil, _opts = nil, _on_choice = nil }
     stub(vim.ui, 'select', function(items, opts, on_choice)
         o._items = items
         o._opts = opts
@@ -142,11 +131,7 @@ local InputFake = {}
 InputFake.__index = InputFake
 
 function InputFake:new()
-    local o = {
-        _called = false,
-        _opts = nil,
-        _on_confirm = nil,
-    }
+    local o = { _called = false, _opts = nil, _on_confirm = nil }
     stub(vim.ui, 'input', function(opts, on_confirm)
         o._opts = opts
         o._on_confirm = on_confirm
@@ -174,13 +159,7 @@ local DebugLauncherSpy = {}
 DebugLauncherSpy.__index = DebugLauncherSpy
 
 function DebugLauncherSpy:new(lang)
-    local o = {
-        _lang = lang,
-        _root = nil,
-        _target = nil,
-        _extra_args = nil,
-        _called = false,
-    }
+    local o = { _lang = lang, _root = nil, _target = nil, _extra_args = nil, _called = false }
     debug.launchers[lang] = function(root, target, extra_args)
         o._root = root
         o._target = target
