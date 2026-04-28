@@ -72,7 +72,7 @@ local build_file_names_by_root = {} ---@type table<string, string[]>
 
 vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
     desc = 'Set filetype to please if file is a build file',
-    group = vim.api.nvim_create_augroup('please.nvim_set_build_file_filetype', {}),
+    group = vim.api.nvim_create_augroup('please.set_build_file_filetype', {}),
     callback = function(ev)
         local root = vim.fs.root(ev.match, '.plzconfig')
         if not root then
@@ -126,7 +126,7 @@ local seen_go_clients = {}
 
 vim.api.nvim_create_autocmd('LspAttach', {
     desc = 'Configure gopls and golangci-lint-langserver for use in a Please repository',
-    group = vim.api.nvim_create_augroup('please.nvim_go_lsp_config', {}),
+    group = vim.api.nvim_create_augroup('please.go_lsp_config', {}),
     pattern = '*.go',
     callback = function(ev)
         if seen_go_clients[ev.data.client_id] then
@@ -193,7 +193,7 @@ local seen_python_clients = {}
 
 vim.api.nvim_create_autocmd('LspAttach', {
     desc = 'Configure pyright and basedpyright for use in a Please repository',
-    group = vim.api.nvim_create_augroup('please.nvim_python_lsp_config', {}),
+    group = vim.api.nvim_create_augroup('please.python_lsp_config', {}),
     pattern = '*.py',
     callback = function(ev)
         if seen_python_clients[ev.data.client_id] then
@@ -243,7 +243,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
 vim.api.nvim_create_autocmd('BufWritePost', {
     desc = 'Run puku fmt on saved file in a Please repository',
-    group = vim.api.nvim_create_augroup('please.nvim_puku_fmt', {}),
+    group = vim.api.nvim_create_augroup('please.puku_fmt', {}),
     pattern = '*.go',
     callback = function(ev)
         local root = vim.fs.root(ev.match, '.plzconfig')

@@ -91,15 +91,15 @@ local function open_win(bufnr, augroup)
     local indent = padding_left_right + math.floor((fg_width - #msg) / 2)
     vim.api.nvim_buf_set_lines(bg_bufnr, 0, 1, false, { string.rep(' ', indent) .. msg })
 
-    local ns = vim.api.nvim_create_namespace('please.nvim')
+    local namespace = vim.api.nvim_create_namespace('please.runner')
     local bg_higroup = 'CursorLine'
-    vim.hl.range(bg_bufnr, ns, bg_higroup, { 0, indent }, { 0, indent + 17 }) -- Press q to quit
-    vim.hl.range(bg_bufnr, ns, bg_higroup, { 0, indent + 18 }, { 0, indent + 39 }) -- Press m to minimise
-    vim.hl.range(bg_bufnr, ns, bg_higroup, { 0, indent + 40 }, { 0, indent + 84 }) -- Execute :Please maximise_popup to maximise
+    vim.hl.range(bg_bufnr, namespace, bg_higroup, { 0, indent }, { 0, indent + 17 }) -- Press q to quit
+    vim.hl.range(bg_bufnr, namespace, bg_higroup, { 0, indent + 18 }, { 0, indent + 39 }) -- Press m to minimise
+    vim.hl.range(bg_bufnr, namespace, bg_higroup, { 0, indent + 40 }, { 0, indent + 84 }) -- Execute :Please maximise_popup to maximise
     local command_higroup = '@markup.raw'
-    vim.hl.range(bg_bufnr, ns, command_higroup, { 0, indent + 7 }, { 0, indent + 8 }) -- q
-    vim.hl.range(bg_bufnr, ns, command_higroup, { 0, indent + 25 }, { 0, indent + 26 }) -- m
-    vim.hl.range(bg_bufnr, ns, command_higroup, { 0, indent + 49 }, { 0, indent + 71 }) -- :Please maximise_popup
+    vim.hl.range(bg_bufnr, namespace, command_higroup, { 0, indent + 7 }, { 0, indent + 8 }) -- q
+    vim.hl.range(bg_bufnr, namespace, command_higroup, { 0, indent + 25 }, { 0, indent + 26 }) -- m
+    vim.hl.range(bg_bufnr, namespace, command_higroup, { 0, indent + 49 }, { 0, indent + 71 }) -- :Please maximise_popup
 
     vim.api.nvim_create_autocmd('WinLeave', {
         desc = 'Close the foreground and background windows when the foreground window is left',
@@ -142,7 +142,7 @@ function Runner.start(root, args, opts)
         true -- scratch
     )
 
-    local augroup = vim.api.nvim_create_augroup('please.nvim_runner' .. bufnr, {})
+    local augroup = vim.api.nvim_create_augroup('please.runner_' .. bufnr, {})
 
     vim.cmd.stopinsert() -- Make sure that we're not in insert or terminal mode otherwise the cursor gets stuck.
     local winid = open_win(bufnr, augroup)
