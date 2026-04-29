@@ -214,7 +214,7 @@ function Runner.start(root, args, opts)
     vim.api.nvim_create_autocmd('WinLeave', {
         desc = 'Set minimised flag and save cursor position',
         group = augroup,
-        buffer = runner._bufnr,
+        buffer = bufnr,
         callback = function()
             runner._minimised = true
             runner._prev_cursor_position = vim.api.nvim_win_get_cursor(0)
