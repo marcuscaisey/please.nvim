@@ -252,11 +252,11 @@ end
 ---
 ---See [:Please-build] for the equivalent `:Please` command.
 function M.build()
+    require('_please.logging').log_call('please.build')
+
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
     local query = require('_please.query')
-
-    logging.log_call('please.build')
 
     logging.log_errors('Failed to build', function()
         local filepath = assert(get_filepath())
@@ -283,11 +283,11 @@ end
 ---
 ---See [:Please-run] for the equivalent `:Please` command.
 function M.run()
+    require('_please.logging').log_call('please.run')
+
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
     local query = require('_please.query')
-
-    logging.log_call('please.run')
 
     logging.log_errors('Failed to run', function()
         local filepath = assert(get_filepath())
@@ -336,11 +336,11 @@ end
 ---See [:Please-test] for the equivalent `:Please` command.
 ---@param opts please.TestOptions? optional keyword arguments
 function M.test(opts)
+    require('_please.logging').log_call('please.test')
+
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
     local query = require('_please.query')
-
-    logging.log_call('please.test')
 
     logging.log_errors('Failed to test', function()
         opts = opts or {}
@@ -427,12 +427,12 @@ end
 ---See [:Please-debug] for the equivalent `:Please` command.
 ---@param opts please.DebugOptions? optional keyword arguments
 function M.debug(opts)
+    require('_please.logging').log_call('please.debug')
+
     local debug = require('_please.debug')
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
     local query = require('_please.query')
-
-    logging.log_call('please.debug')
 
     logging.log_errors('Failed to debug', function()
         opts = opts or {}
@@ -497,9 +497,9 @@ end
 ---See [:Please-command] for the equivalent `:Please` command.
 ---@param ... string Arguments to pass to plz
 function M.command(...)
-    local logging = require('_please.logging')
+    require('_please.logging').log_call('please.command')
 
-    logging.log_call('please.command')
+    local logging = require('_please.logging')
 
     local args = { ... }
     logging.log_errors('Failed to run command', function()
@@ -516,9 +516,9 @@ end
 ---
 ---See [:Please-history] for the equivalent `:Please` command.
 function M.history()
-    local logging = require('_please.logging')
+    require('_please.logging').log_call('please.history')
 
-    logging.log_call('please.history')
+    local logging = require('_please.logging')
 
     logging.log_errors('Failed to show command history', function()
         local path = get_filepath() or assert(vim.uv.cwd())
@@ -553,9 +553,9 @@ end
 ---
 ---See [:Please-clear_history] for the equivalent `:Please` command.
 function M.clear_history()
-    local logging = require('_please.logging')
+    require('_please.logging').log_call('please.clear_history')
 
-    logging.log_call('please.clear_history')
+    local logging = require('_please.logging')
 
     logging.log_errors('Failed to clear command history', function()
         local path = get_filepath() or assert(vim.uv.cwd())
@@ -578,9 +578,9 @@ end
 ---
 ---See [:Please-set_profile] for the equivalent `:Please` command.
 function M.set_profile()
-    local logging = require('_please.logging')
+    require('_please.logging').log_call('please.set_profile')
 
-    logging.log_call('please.set_profile')
+    local logging = require('_please.logging')
 
     logging.log_errors('Failed to set profile', function()
         local path = get_filepath() or assert(vim.uv.cwd())
@@ -632,10 +632,11 @@ end
 ---
 ---See [:Please-maximise_popup] for the equivalent `:Please` command.
 function M.maximise_popup()
+    require('_please.logging').log_call('please.maximise_popup')
+
     local logging = require('_please.logging')
     local runner = require('_please.runner')
 
-    logging.log_call('please.maximise_popup')
     if runner.current then
         runner.current:maximise()
     else
@@ -650,11 +651,11 @@ end
 ---
 ---See [:Please-jump_to_target] for the equivalent `:Please` command.
 function M.jump_to_target()
+    require('_please.logging').log_call('please.jump_to_target')
+
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
     local query = require('_please.query')
-
-    logging.log_call('please.jump_to_target')
 
     logging.log_errors('Failed to jump to target', function()
         local filepath = assert(get_filepath())
@@ -678,10 +679,10 @@ end
 ---
 ---See [:Please-look_up_target] for the equivalent `:Please` command.
 function M.look_up_target()
+    require('_please.logging').log_call('please.look_up_target')
+
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
-
-    logging.log_call('please.look_up_target')
 
     logging.log_errors('Failed to look up target', function()
         local path = get_filepath() or assert(vim.uv.cwd())
@@ -721,11 +722,11 @@ end
 ---
 ---See [:Please-yank] for the equivalent `:Please` command.
 function M.yank()
+    require('_please.logging').log_call('please.yank')
+
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
     local query = require('_please.query')
-
-    logging.log_call('please.yank')
 
     logging.log_errors('Failed to yank', function()
         local filepath = assert(get_filepath())
