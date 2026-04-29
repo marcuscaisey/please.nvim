@@ -221,26 +221,7 @@ describe('build', function()
             runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
         end)
 
-        it('should add entry to command history', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local select_fake = SelectFake:new()
-
-            -- GIVEN we've built a target
-            vim.cmd('edit ' .. root .. '/foo2.txt')
-            please.build()
-            -- WHEN we call history
-            please.history()
-            -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again:')
-            select_fake:assert_items({ 'plz build //:foo1_and_foo2' })
-            -- WHEN we select the build command
-            select_fake:choose_item('plz build //:foo1_and_foo2')
-            -- THEN the target is built again
-            runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
-        end)
-
-        it('should prompt user to choose which target to build if there is more than one', function()
+        it('should prompt to choose which target to build if there is more than one', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
@@ -272,26 +253,25 @@ describe('build', function()
             -- THEN the target under the cursor is built
             runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
         end)
+    end)
 
-        it('should add entry to command history', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local select_fake = SelectFake:new()
+    it('should add entry to command history', function()
+        local root = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+        local select_fake = SelectFake:new()
 
-            -- GIVEN we've built a target
-            vim.cmd('edit ' .. root .. '/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 6, 4 }) -- inside definition of :foo1_and_foo2
-            please.build()
-            -- WHEN we call history
-            please.history()
-            -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again:')
-            select_fake:assert_items({ 'plz build //:foo1_and_foo2' })
-            -- WHEN we select the build command
-            select_fake:choose_item('plz build //:foo1_and_foo2')
-            -- THEN the target is built again
-            runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
-        end)
+        -- GIVEN we've built a target
+        vim.cmd('edit ' .. root .. '/foo2.txt')
+        please.build()
+        -- WHEN we call history
+        please.history()
+        -- THEN we're prompted to pick a command to run again
+        select_fake:assert_prompt('Pick command to run again:')
+        select_fake:assert_items({ 'plz build //:foo1_and_foo2' })
+        -- WHEN we select the build command
+        select_fake:choose_item('plz build //:foo1_and_foo2')
+        -- THEN the target is built again
+        runner_spy:assert_called_with(root, { 'build', '//:foo1_and_foo2' })
     end)
 end)
 
@@ -336,28 +316,7 @@ describe('run', function()
             runner_spy:assert_called_with(root, { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' })
         end)
 
-        it('should add entry to command history', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local input_fake = InputFake:new()
-            local select_fake = SelectFake:new()
-
-            -- GIVEN that we've run a build target
-            vim.cmd('edit ' .. root .. '/foo2.txt')
-            please.run()
-            input_fake:enter_input('--foo foo --bar bar')
-            -- WHEN we call history
-            please.history()
-            -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again:')
-            select_fake:assert_items({ 'plz run //:foo1_and_foo2 -- --foo foo --bar bar' })
-            -- WHEN we select the run command
-            select_fake:choose_item('plz run //:foo1_and_foo2 -- --foo foo --bar bar')
-            -- THEN the target is run again with the same arguments
-            runner_spy:assert_called_with(root, { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' })
-        end)
-
-        it('should prompt user to choose which target to run if there is more than one', function()
+        it('should prompt to choose which target to run if there is more than one', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
@@ -399,28 +358,27 @@ describe('run', function()
             -- THEN the target is run with those arguments
             runner_spy:assert_called_with(root, { 'run', '//:foo1', '--', '--foo', 'foo', '--bar', 'bar' })
         end)
+    end)
 
-        it('should add entry to command history', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local input_fake = InputFake:new()
-            local select_fake = SelectFake:new()
+    it('should add entry to command history', function()
+        local root = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+        local input_fake = InputFake:new()
+        local select_fake = SelectFake:new()
 
-            -- GIVEN we've run a build target
-            vim.cmd('edit ' .. root .. '/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- in definition of :foo1
-            please.run()
-            input_fake:enter_input('--foo foo --bar bar')
-            -- WHEN we call history
-            please.history()
-            -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again:')
-            select_fake:assert_items({ 'plz run //:foo1 -- --foo foo --bar bar' })
-            -- WHEN we select the run command
-            select_fake:choose_item('plz run //:foo1 -- --foo foo --bar bar')
-            -- THEN the target is run again with the same arguments
-            runner_spy:assert_called_with(root, { 'run', '//:foo1', '--', '--foo', 'foo', '--bar', 'bar' })
-        end)
+        -- GIVEN that we've run a build target
+        vim.cmd('edit ' .. root .. '/foo2.txt')
+        please.run()
+        input_fake:enter_input('--foo foo --bar bar')
+        -- WHEN we call history
+        please.history()
+        -- THEN we're prompted to pick a command to run again
+        select_fake:assert_prompt('Pick command to run again:')
+        select_fake:assert_items({ 'plz run //:foo1_and_foo2 -- --foo foo --bar bar' })
+        -- WHEN we select the run command
+        select_fake:choose_item('plz run //:foo1_and_foo2 -- --foo foo --bar bar')
+        -- THEN the target is run again with the same arguments
+        runner_spy:assert_called_with(root, { 'run', '//:foo1_and_foo2', '--', '--foo', 'foo', '--bar', 'bar' })
     end)
 
     it('should not include program args in command history entry when none are passed as input', function()
@@ -501,26 +459,7 @@ describe('test', function()
             runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test' })
         end)
 
-        it('should add entry to command history', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local select_fake = SelectFake:new()
-
-            -- GIVEN we've tested a file
-            vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
-            please.test()
-            -- WHEN we call history
-            please.history()
-            -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again:')
-            select_fake:assert_items({ 'plz test //foo:foo1_and_foo2_test' })
-            -- WHEN we select the test command
-            select_fake:choose_item('plz test //foo:foo1_and_foo2_test')
-            -- THEN the target is tested again
-            runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test' })
-        end)
-
-        it('should prompt user to choose which target to test if there is more than one', function()
+        it('should prompt to choose which target to test if there is more than one', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
@@ -571,25 +510,6 @@ describe('test', function()
                 -- THEN the test is run again
                 runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
             end)
-
-            it('should prompt user to choose which target to test if there is more than one', function()
-                local root = create_temp_tree()
-                local runner_spy = RunnerSpy:new()
-                local select_fake = SelectFake:new()
-
-                -- GIVEN we're editing a test file referenced by multiple build targets and the cursor is inside a test function
-                vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
-                vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
-                -- WHEN we call test with under_cursor=true
-                please.test({ under_cursor = true })
-                -- THEN we're prompted to choose which target to test
-                select_fake:assert_prompt('Select target to test:')
-                select_fake:assert_items({ '//foo:foo1_and_foo2_test', '//foo:foo1_test' })
-                -- WHEN we select one of the targets
-                select_fake:choose_item('//foo:foo1_and_foo2_test')
-                -- THEN the test is run
-                runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test', '^TestFails$' })
-            end)
         end)
     end)
 
@@ -606,26 +526,25 @@ describe('test', function()
             -- THEN the target is tested
             runner_spy:assert_called_with(root, { 'test', '//foo:foo1_test' })
         end)
+    end)
 
-        it('should add entry to command history', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local select_fake = SelectFake:new()
+    it('should add entry to command history', function()
+        local root = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+        local select_fake = SelectFake:new()
 
-            -- GIVEN we've tested a build target
-            vim.cmd('edit ' .. root .. '/foo/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1_test
-            please.test()
-            -- WHEN we call history
-            please.history()
-            -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again:')
-            select_fake:assert_items({ 'plz test //foo:foo1_test' })
-            -- WHEN we select the test command
-            select_fake:choose_item('plz test //foo:foo1_test')
-            -- THEN the target is tested again
-            runner_spy:assert_called_with(root, { 'test', '//foo:foo1_test' })
-        end)
+        -- GIVEN we've tested a file
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        please.test()
+        -- WHEN we call history
+        please.history()
+        -- THEN we're prompted to pick a command to run again
+        select_fake:assert_prompt('Pick command to run again:')
+        select_fake:assert_items({ 'plz test //foo:foo1_and_foo2_test' })
+        -- WHEN we select the test command
+        select_fake:choose_item('plz test //foo:foo1_and_foo2_test')
+        -- THEN the target is tested again
+        runner_spy:assert_called_with(root, { 'test', '//foo:foo1_and_foo2_test' })
     end)
 end)
 
@@ -715,68 +634,7 @@ describe('debug', function()
             debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', {})
         end)
 
-        it('should debug non-test target which uses file as input', function()
-            local root = create_temp_tree()
-            local input_fake = InputFake:new()
-            local runner_spy = RunnerSpy:new()
-            local debug_launcher_spy = DebugLauncherSpy:new('go')
-
-            -- GIVEN we're editing a file which is an input to a non-test target
-            vim.cmd('edit ' .. root .. '/foo/foo.go')
-            -- WHEN we call debug
-            please.debug()
-            -- THEN we're prompted to enter arguments for the program
-            input_fake:assert_prompt('Enter program arguments: ')
-            -- WHEN we enter some program arguments
-            input_fake:enter_input('--foo foo --bar bar')
-            -- THEN the target which the file is an input for is built with dbg config
-            runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo' })
-            -- THEN the runner is minimised
-            runner_spy:assert_minimise_called()
-            -- THEN the debug launcher is called with those arguments
-            debug_launcher_spy:assert_called_with(root, '//foo', { '--', '--foo', 'foo', '--bar', 'bar' })
-        end)
-
-        it('should not minimise runner when building target fails', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new(false)
-            local debug_launcher_spy = DebugLauncherSpy:new('go')
-
-            -- GIVEN we're editing a file
-            vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
-            -- WHEN we call debug
-            please.debug()
-            -- THEN the runner is not minimised
-            runner_spy:assert_minimise_not_called()
-            -- THEN the debug launcher is not called
-            debug_launcher_spy:assert_not_called()
-        end)
-
-        it('should add entry to command history', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local select_fake = SelectFake:new()
-            local debug_launcher_spy = DebugLauncherSpy:new('go')
-
-            -- GIVEN we've debugged a file
-            vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
-            please.debug()
-            -- WHEN we call history
-            please.history()
-            -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again:')
-            select_fake:assert_items({ 'plz debug //foo:foo1_and_foo2_test' })
-            -- WHEN we select the debug command
-            select_fake:choose_item('plz debug //foo:foo1_and_foo2_test')
-            -- THEN the target is built again with dbg config
-            runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
-            -- THEN the runner is minimised
-            runner_spy:assert_minimise_called()
-            -- THEN the debug launcher is called
-            debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', {})
-        end)
-
-        it('should prompt user to choose which target to debug if there is more than one', function()
+        it('should prompt to choose which target to debug if there is more than one', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
@@ -818,22 +676,6 @@ describe('debug', function()
                 debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', { '^TestFails$' })
             end)
 
-            it('should not minimise runner when building target fails', function()
-                local root = create_temp_tree()
-                local runner_spy = RunnerSpy:new(false)
-                local debug_launcher_spy = DebugLauncherSpy:new('go')
-
-                -- GIVEN we're editing a test file and the cursor is inside a test function
-                vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
-                vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
-                -- WHEN we call debug with under_cursor=true
-                please.debug({ under_cursor = true })
-                -- THEN the runner is minimised
-                runner_spy:assert_minimise_not_called()
-                -- THEN the debug launcher is called
-                debug_launcher_spy:assert_not_called()
-            end)
-
             it('should add entry to command history', function()
                 local root = create_temp_tree()
                 local runner_spy = RunnerSpy:new()
@@ -852,30 +694,6 @@ describe('debug', function()
                 -- WHEN we select the debug command
                 select_fake:choose_item('plz debug //foo:foo1_and_foo2_test ^TestFails$')
                 -- THEN the test target is built with dbg config
-                runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
-                -- THEN the runner is minimised
-                runner_spy:assert_minimise_called()
-                -- THEN the debug launcher is called
-                debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', { '^TestFails$' })
-            end)
-
-            it('should prompt user to choose which target to debug if there is more than one', function()
-                local root = create_temp_tree()
-                local runner_spy = RunnerSpy:new()
-                local select_fake = SelectFake:new()
-                local debug_launcher_spy = DebugLauncherSpy:new('go')
-
-                -- GIVEN we're editing a test file referenced by multiple build targets and the cursor is inside a test function
-                vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
-                vim.api.nvim_win_set_cursor(0, { 9, 4 }) -- inside body of TestFails
-                -- WHEN we call debug with under_cursor=true
-                please.debug({ under_cursor = true })
-                -- THEN we're prompted to choose which target to debug
-                select_fake:assert_prompt('Select target to debug:')
-                select_fake:assert_items({ '//foo:foo1_and_foo2_test', '//foo:foo1_test' })
-                -- WHEN we select one of the targets
-                select_fake:choose_item('//foo:foo1_and_foo2_test')
-                -- THEN the target is built again with dbg config
                 runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
                 -- THEN the runner is minimised
                 runner_spy:assert_minimise_called()
@@ -903,72 +721,67 @@ describe('debug', function()
             -- THEN the debug launcher is called
             debug_launcher_spy:assert_called_with(root, '//foo:foo1_test', {})
         end)
+    end)
 
-        it('should debug non-test target under cursor', function()
-            local root = create_temp_tree()
-            local input_fake = InputFake:new()
-            local runner_spy = RunnerSpy:new()
-            local debug_launcher_spy = DebugLauncherSpy:new('go')
+    it('should prompt for arguments for non-test target', function()
+        local root = create_temp_tree()
+        local input_fake = InputFake:new()
+        local runner_spy = RunnerSpy:new()
+        local debug_launcher_spy = DebugLauncherSpy:new('go')
 
-            -- GIVEN we're editing a BUILD file and our cursor is inside a non-test BUILD target definition
-            vim.cmd('edit ' .. root .. '/foo/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 6, 4 }) -- inside definition of //foo
-            -- WHEN we call debug
-            please.debug()
-            -- THEN we're prompted to enter arguments for the program
-            input_fake:assert_prompt('Enter program arguments: ')
-            -- WHEN we enter some program arguments
-            input_fake:enter_input('--foo foo --bar bar')
-            -- THEN the target is built with dbg config
-            runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo' })
-            -- THEN the runner is minimised
-            runner_spy:assert_minimise_called()
-            -- THEN the debug launcher is called with those arguments
-            debug_launcher_spy:assert_called_with(root, '//foo', { '--', '--foo', 'foo', '--bar', 'bar' })
-        end)
+        -- GIVEN we're editing a file which is an input to a non-test target
+        vim.cmd('edit ' .. root .. '/foo/foo.go')
+        -- WHEN we call debug
+        please.debug()
+        -- THEN we're prompted to enter arguments for the program
+        input_fake:assert_prompt('Enter program arguments: ')
+        -- WHEN we enter some program arguments
+        input_fake:enter_input('--foo foo --bar bar')
+        -- THEN the target which the file is an input for is built with dbg config
+        runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo' })
+        -- THEN the runner is minimised
+        runner_spy:assert_minimise_called()
+        -- THEN the debug launcher is called with those arguments
+        debug_launcher_spy:assert_called_with(root, '//foo', { '--', '--foo', 'foo', '--bar', 'bar' })
+    end)
 
-        it('should not minimise runner when building target fails', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local debug_launcher_spy = DebugLauncherSpy:new('go')
+    it('should not minimise runner when building target fails', function()
+        local root = create_temp_tree()
+        local runner_spy = RunnerSpy:new(false)
+        local debug_launcher_spy = DebugLauncherSpy:new('go')
 
-            -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
-            vim.cmd('edit ' .. root .. '/foo/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 12, 4 }) -- inside definition of :foo1_test
-            -- WHEN we call debug
-            please.debug()
-            -- THEN the target is built with dbg config
-            runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
-            -- THEN the runner is minimised
-            runner_spy:assert_minimise_called()
-            -- THEN the debug launcher is called
-            debug_launcher_spy:assert_called_with(root, '//foo:foo1_test', {})
-        end)
+        -- GIVEN we're editing a file
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        -- WHEN we call debug
+        please.debug()
+        -- THEN the runner is not minimised
+        runner_spy:assert_minimise_not_called()
+        -- THEN the debug launcher is not called
+        debug_launcher_spy:assert_not_called()
+    end)
 
-        it('should add entry to command history', function()
-            local root = create_temp_tree()
-            local runner_spy = RunnerSpy:new()
-            local select_fake = SelectFake:new()
-            local debug_launcher_spy = DebugLauncherSpy:new('go')
+    it('should add entry to command history', function()
+        local root = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+        local select_fake = SelectFake:new()
+        local debug_launcher_spy = DebugLauncherSpy:new('go')
 
-            -- GIVEN we've debugged a build target
-            vim.cmd('edit ' .. root .. '/foo/BUILD')
-            vim.api.nvim_win_set_cursor(0, { 12, 4 }) -- inside definition of :foo1_test
-            please.debug()
-            -- WHEN we call history
-            please.history()
-            -- THEN we're prompted to pick a command to run again
-            select_fake:assert_prompt('Pick command to run again:')
-            select_fake:assert_items({ 'plz debug //foo:foo1_test' })
-            -- WHEN we select the debug command
-            select_fake:choose_item('plz debug //foo:foo1_test')
-            -- THEN the target is built with dbg config
-            runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_test' })
-            -- THEN the runner is minimised
-            runner_spy:assert_minimise_called()
-            -- THEN the debug launcher is called
-            debug_launcher_spy:assert_called_with(root, '//foo:foo1_test', {})
-        end)
+        -- GIVEN we've debugged a file
+        vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
+        please.debug()
+        -- WHEN we call history
+        please.history()
+        -- THEN we're prompted to pick a command to run again
+        select_fake:assert_prompt('Pick command to run again:')
+        select_fake:assert_items({ 'plz debug //foo:foo1_and_foo2_test' })
+        -- WHEN we select the debug command
+        select_fake:choose_item('plz debug //foo:foo1_and_foo2_test')
+        -- THEN the target is built again with dbg config
+        runner_spy:assert_called_with(root, { 'build', '--config', 'dbg', '//foo:foo1_and_foo2_test' })
+        -- THEN the runner is minimised
+        runner_spy:assert_minimise_called()
+        -- THEN the debug launcher is called
+        debug_launcher_spy:assert_called_with(root, '//foo:foo1_and_foo2_test', {})
     end)
 end)
 
@@ -1176,7 +989,7 @@ describe('jump_to_target', function()
         assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
     end)
 
-    it('should prompt user to choose which target to jump to if there is more than one', function()
+    it('should prompt to choose which target to jump to if there is more than one', function()
         local root = create_temp_tree()
         local select_fake = SelectFake:new()
 
@@ -1305,7 +1118,7 @@ describe('yank', function()
             assert.equal('//:foo1_and_foo2', vim.fn.getreg('*'), 'incorrect value in * register')
         end)
 
-        it("should prompt user to choose which target's build label to yank if there is more than one", function()
+        it("should prompt to choose which target's build label to yank if there is more than one", function()
             local root = create_temp_tree()
             local select_fake = SelectFake:new()
 
