@@ -102,12 +102,11 @@ local function open_win(bufnr, augroup)
     vim.hl.range(bg_bufnr, namespace, command_higroup, { 0, indent + 49 }, { 0, indent + 71 }) -- :Please maximise_popup
 
     vim.api.nvim_create_autocmd('WinLeave', {
-        desc = 'Close the foreground and background windows when the foreground window is left',
+        desc = 'Close the background window when the foreground window is left',
         group = augroup,
         buffer = bufnr,
         once = true,
         callback = function()
-            vim.api.nvim_win_close(fg_winid, false)
             vim.api.nvim_win_close(bg_winid, false)
         end,
     })
@@ -212,12 +211,13 @@ function Runner.start(root, args, opts)
     end, { buffer = bufnr })
 
     vim.api.nvim_create_autocmd('WinLeave', {
-        desc = 'Set minimised flag and save cursor position',
+        desc = 'Close the foreground window, set minimised flag, and save cursor position',
         group = augroup,
         buffer = bufnr,
         callback = function()
             runner._minimised = true
-            runner._prev_cursor_position = vim.api.nvim_win_get_cursor(0)
+            runner._prev_cursor_position = vim.api.nvim_win_get_cursor(runner._winid)
+            vim.api.nvim_win_close(runner._winid, false)
         end,
     })
 
