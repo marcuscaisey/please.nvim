@@ -86,7 +86,7 @@ function M.setup(opts)
         ::continue::
     end
 
-    config.update(opts)
+    config.set(opts)
 end
 
 local default_profile = os.getenv('PLZ_CONFIG_PROFILE')

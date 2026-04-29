@@ -18,7 +18,7 @@ local M = {}
 ---@field pyright boolean Whether to configure the pyright language server for use in a Please repository.
 
 ---@type _please.config.Config
-local config = {
+local default_config = {
     formatting = { puku_command = nil },
     history = { max_items = 20 },
     lsp = {
@@ -29,8 +29,10 @@ local config = {
     },
 }
 
+local config = default_config
+
 ---@param opts please.Opts
-function M.update(opts)
+function M.set(opts)
     vim.validate('opts', opts, 'table')
     vim.validate('opts.history.max_items', vim.tbl_get(opts, 'history', 'max_items'), 'number', true)
     vim.validate('opts.lsp.gopls', vim.tbl_get(opts, 'lsp', 'gopls'), 'boolean', true)
@@ -43,7 +45,7 @@ function M.update(opts)
     vim.validate('opts.lsp.basedpyright', vim.tbl_get(opts, 'lsp', 'basedpyright'), 'boolean', true)
     vim.validate('opts.lsp.pyright', vim.tbl_get(opts, 'lsp', 'pyright'), 'boolean', true)
     vim.validate('opts.formatting.puku_command', vim.tbl_get(opts, 'formatting', 'puku_command'), 'table', true)
-    config = vim.tbl_deep_extend('force', config, opts)
+    config = vim.tbl_deep_extend('force', default_config, opts)
 end
 
 ---@return _please.config.Config
