@@ -1,5 +1,6 @@
 local stub = require('luassert.stub')
 local please = require('please')
+local config = require('_please.config')
 local debug = require('_please.debug')
 local runner = require('_please.runner')
 local logging = require('_please.logging')
@@ -34,6 +35,8 @@ vim.g.clipboard = {
         end,
     },
 }
+
+local default_opts = config.get()
 
 local RunnerSpy = {}
 RunnerSpy.__index = RunnerSpy
@@ -897,17 +900,17 @@ describe('history', function()
 
         -- GIVEN we've built three targets, one after the other
         please.setup({ max_history_items = 2 })
+        finally(function()
+            please.setup(default_opts)
+        end)
         for _, filename in ipairs({ 'foo1.txt', 'foo2.txt', 'foo3.txt' }) do
             vim.cmd('edit ' .. root .. '/' .. filename)
             please.build()
         end
-        please.setup({ max_history_items = 20 })
         -- WHEN we call history
         please.history()
         -- THEN the commands to build the two most recently built target are ordered from most to least recent
         select_fake:assert_items({ 'plz build //:foo3', 'plz build //:foo2' })
-
-        please.setup({ max_history_items = 20 })
     end)
 end)
 
