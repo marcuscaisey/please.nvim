@@ -1,7 +1,7 @@
 subinclude("///go//build_defs:go")
 
 go_test(
-    name = "example_test",
+    name = "tests",
     srcs = [
         "example_test.go",
         "suite_in_another_file_test.go",
@@ -9,9 +9,4 @@ go_test(
     external = True,
     labels = ["manual"],
     deps = ["///third_party/go/github.com_stretchr_testify//suite"],
-)
-
-go_library(
-    name = "example",
-    srcs = ["example.go"],
 )

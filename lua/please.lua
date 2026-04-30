@@ -2,6 +2,7 @@ local M = {}
 
 ---@class please.Opts
 ---@inlinedoc
+---@field coverage please.CoverageOpts? Options affecting [:Please-cover]. See [please.CoverageOpts].
 ---@field formatting please.FormattingOpts? Options affecting formatting. See [please.FormattingOpts].
 ---@field history please.HistoryOpts? Options affecting [:Please-history]. See [please.HistoryOpts].
 ---@field lsp please.LSPOpts? Options affecting LSP. See [please.LSPOpts].
@@ -11,6 +12,15 @@ local M = {}
 ---@field package configure_basedpyright boolean? Deprecated. Use `lsp.basedpyright` instead. See [please.LSPOpts].
 ---@field package configure_pyright boolean? Deprecated. Use `lsp.pyright` instead. See [please.LSPOpts].
 ---@field package puku_command string[]? Deprecated. Use `formatting.puku_command` instead. See [please.FormattingOpts].
+
+---Options affecting [:Please-cover].
+---@class please.CoverageOpts
+---@field highlighting please.CoverageHighlightingOpts? Options affecting highlighting. See [please.CoverageHighlightingOpts].
+
+---Options affecting coverage highlighting.
+---@class please.CoverageHighlightingOpts
+---@field lines boolean? Whether to highlight covered and uncovered lines. Defaults to `false`.
+---@field line_numbers boolean? Whether to highlight the line numbers of covered and uncovered lines. Defaults to `true`.
 
 ---Options affecting formatting.
 ---@class please.FormattingOpts
@@ -37,6 +47,9 @@ local M = {}
 ---```lua
 ---local please = require('please')
 ---please.setup({
+---    coverage = {
+---        highlighting = { lines = false, line_numbers = true },
+---    },
 ---    formatting = { puku_command = nil },
 ---    history = { max_items = 20 },
 ---    lsp = {
@@ -138,7 +151,7 @@ local function write_command_history(history)
 end
 
 ---@nodoc
----@alias _please.Command _please.SimpleCommand | _please.DebugCommand
+---@alias _please.Command _please.SimpleCommand | _please.DebugCommand | _please.CoverCommand
 
 ---@nodoc
 ---@class _please.SimpleCommand
@@ -152,6 +165,14 @@ end
 ---@field lang string
 ---@field target string
 ---@field extra_args string[]
+---@field description string
+
+---@nodoc
+---@class _please.CoverCommand
+---@field type 'cover'
+---@field target string
+---@field test_selector string?
+---@field quickfix boolean
 ---@field description string
 
 ---@param root string
@@ -327,11 +348,11 @@ end
 ---If the current file is a `BUILD` file, tests the target which is under the cursor. Otherwise, tests the target which
 ---takes the current file as an input.
 ---
----Optionally (when in a source file), you can run only the test which is under the cursor.
----This is supported for the following languages:
----- Go - test functions, subtests, table tests, testify suite methods, testify suite subtests, testify suite table
----  tests
----- Python - unittest test classes, unittest test methods
+---Optionally, when in a source file, you can run only the test under the cursor. This is supported for the following
+---languages:
+---  - Go - test functions, subtests, table tests, testify suite methods, testify suite subtests, testify suite table
+---    tests
+---  - Python - unittest test classes, unittest test methods
 ---
 ---See [:Please-test] for the equivalent `:Please` command.
 ---@param opts please.TestOptions? optional keyword arguments
@@ -370,6 +391,295 @@ function M.test(opts)
     end)
 end
 
+---@class _please.Coverage
+---@nodoc
+---@field tests table<string, table<string, string>>
+---@field files table<string, string>
+---@field stats _please.CoverageStats
+
+---@class _please.CoverageStats
+---@nodoc
+---@field total_coverage 	number
+---@field coverage_by_file	table<string, number>
+---@field coverage_by_directory	table<string, number>
+---@field incremental _please.CoverageIncrementalStats?
+
+---@class _please.CoverageIncrementalStats
+---@nodoc
+---@field modified_files integer
+---@field modified_lines integer
+---@field covered_lines integer
+---@field percentage number
+
+---@enum _please.LineCoverage
+local LineCoverage = {
+    NOT_EXECUTABLE = 'N', -- Line isn't executable (eg. comment, blank)
+    UNREACHABLE = 'X', -- Line is executable but we've determined it can't be reached. So far not used.
+    UNCOVERED = 'U', -- Line is executable but isn't covered.
+    COVERED = 'C', -- Line is executable and covered.
+}
+
+---@class _please.CoverageState
+---@nodoc
+---@field enabled boolean
+---@field root string
+---@field coverage _please.Coverage
+---@field covered_bufnrs integer[]
+
+local coverage_namespace = vim.api.nvim_create_namespace('please.coverage')
+local coverage_augroup = vim.api.nvim_create_augroup('please.coverage', {})
+local current_coverage_state ---@type _please.CoverageState?
+
+---@param root string
+---@param coverage _please.Coverage
+local function start_coverage_highlighting(root, coverage)
+    local config = require('_please.config')
+
+    local covered_bufnrs = {} ---@type integer[]
+    current_coverage_state = {
+        enabled = true,
+        root = root,
+        coverage = coverage,
+        covered_bufnrs = covered_bufnrs,
+    }
+
+    local covered_line_higroup = 'PleaseCoverageCoveredLine'
+    local uncovered_line_higroup = 'PleaseCoverageUncoveredLine'
+    local covered_line_nr_higroup = 'PleaseCoverageCoveredLineNr'
+    local uncovered_line_nr_higroup = 'PleaseCoverageUncoveredLineNr'
+    vim.api.nvim_set_hl(0, covered_line_higroup, { default = true, link = 'DiffAdd' })
+    vim.api.nvim_set_hl(0, uncovered_line_higroup, { default = true, link = 'DiffDelete' })
+    vim.api.nvim_set_hl(0, covered_line_nr_higroup, { default = true, link = 'DiagnosticOk' })
+    vim.api.nvim_set_hl(0, uncovered_line_nr_higroup, { default = true, link = 'DiagnosticError' })
+
+    local highlight_lines = config.get().coverage.highlighting.lines
+    local highlight_line_numbers = config.get().coverage.highlighting.line_numbers
+    if not highlight_lines and not highlight_line_numbers then
+        return
+    end
+
+    local covered_paths = vim.tbl_map(function(file)
+        return vim.fs.joinpath(root, file)
+    end, vim.tbl_keys(coverage.files))
+
+    local covered_bufs = {} ---@type table<integer, boolean>
+    vim.api.nvim_create_autocmd('BufEnter', {
+        desc = 'Highlight lines and line numbers of covered and uncovered lines',
+        group = coverage_augroup,
+        pattern = covered_paths,
+        callback = function(ev)
+            if covered_bufs[ev.buf] then
+                return
+            end
+            covered_bufs[ev.buf] = true
+            table.insert(covered_bufnrs, ev.buf)
+
+            local path = vim.fs.relpath(root, ev.match)
+            local file_coverage = coverage.files[path]
+            for line = 1, #file_coverage do
+                local line_coverage = file_coverage:sub(line, line)
+                local line_hl_group ---@type string?
+                local number_hl_group ---@type string?
+                if line_coverage == LineCoverage.UNCOVERED then
+                    line_hl_group = highlight_lines and uncovered_line_higroup or nil
+                    number_hl_group = highlight_line_numbers and uncovered_line_nr_higroup or nil
+                elseif line_coverage == LineCoverage.COVERED then
+                    line_hl_group = highlight_lines and covered_line_higroup or nil
+                    number_hl_group = highlight_line_numbers and covered_line_nr_higroup or nil
+                else
+                    goto continue
+                end
+                vim.api.nvim_buf_set_extmark(ev.buf, coverage_namespace, line - 1, 0, {
+                    number_hl_group = number_hl_group,
+                    line_hl_group = line_hl_group,
+                })
+                ::continue::
+            end
+        end,
+    })
+
+    local winids = vim.api.nvim_list_wins()
+    for _, winid in ipairs(winids) do
+        local bufnr = vim.api.nvim_win_get_buf(winid)
+        vim.api.nvim_exec_autocmds('BufEnter', {
+            buffer = bufnr,
+            group = coverage_augroup,
+        })
+    end
+end
+
+local function stop_coverage_highlighting()
+    if not current_coverage_state then
+        return
+    end
+
+    current_coverage_state.enabled = false
+    vim.api.nvim_clear_autocmds({ group = coverage_augroup })
+    for _, buf in ipairs(current_coverage_state.covered_bufnrs) do
+        if vim.api.nvim_buf_is_valid(buf) then
+            vim.api.nvim_buf_clear_namespace(buf, coverage_namespace, 0, -1)
+        end
+    end
+end
+
+---@param root string
+---@param coverage _please.Coverage
+---@return vim.quickfix.entry[]
+local function coverage_quickfix_items(root, coverage)
+    local qflist = {} ---@type vim.quickfix.entry[]
+    for path, covered_percent in pairs(coverage.stats.coverage_by_file) do
+        ---@type vim.quickfix.entry
+        local entry = {
+            filename = vim.fs.joinpath(root, path),
+            text = string.format('%.2f%% covered', covered_percent):gsub('%.?0+%%', '%%'),
+        }
+        table.insert(qflist, entry)
+    end
+    table.sort(qflist, function(a, b)
+        return a.filename < b.filename
+    end)
+    return qflist
+end
+
+---@param root string
+---@param target string
+---@param test_selector string?
+---@param quickfix boolean
+local function run_cover_command(root, target, test_selector, quickfix)
+    local logging = require('_please.logging')
+
+    local args = { 'cover', target }
+    if test_selector then
+        table.insert(args, test_selector)
+    end
+
+    stop_coverage_highlighting()
+
+    start_runner(root, args, {
+        on_exit = function(code, runner)
+            logging.log_errors('Failed to cover', function()
+                local test_failed_code = 7
+                if code ~= 0 and code ~= test_failed_code then
+                    return
+                end
+
+                local coverage_path = vim.fs.joinpath(root, 'plz-out/log/coverage.json')
+                local coverage_blob = vim.fn.readblob(coverage_path)
+                local coverage = vim.json.decode(coverage_blob) ---@type _please.Coverage
+
+                start_coverage_highlighting(root, coverage)
+
+                if quickfix then
+                    local items = coverage_quickfix_items(root, coverage)
+                    vim.fn.setqflist({}, ' ', {
+                        items = items,
+                        -- TODO: Delete after nvim 0.11 support dropped. nr is annotated incorrectly in nvim 0.11.
+                        ---@diagnostic disable-next-line: assign-type-mismatch
+                        nr = '$',
+                        title = '[please.nvim] Test Coverage',
+                    })
+                    vim.cmd.copen() -- This causes the runner to be minimised
+                    runner:maximise()
+                end
+            end)
+        end,
+    })
+end
+
+---@param root string
+---@param target string
+---@param test_selector string?
+---@param quickfix boolean
+local function save_and_run_cover_command(root, target, test_selector, quickfix)
+    save_command(root, {
+        type = 'cover',
+        target = target,
+        test_selector = test_selector,
+        quickfix = quickfix,
+        description = table.concat({ 'plz cover', target, test_selector }, ' '),
+    })
+    run_cover_command(root, target, test_selector, quickfix)
+end
+
+---@class please.cover.Opts
+---@inlinedoc
+---@field under_cursor boolean? Run the test under the cursor
+---@field quickfix boolean? Populate the quickfix list with the coverage results and open the quickfix list
+
+---Tests a target, calculates coverage, and highlights the covered and uncovered lines.
+---
+---If the current file is a `BUILD` file, tests the target which is under the cursor. Otherwise, tests the target which
+---takes the current file as an input.
+---
+---Optionally, when in a source file, you can run only the test under the cursor. The supported languages and test types
+---are the same as for [please.test()].
+---
+---Call [please.toggle_coverage_highlighting()] to toggle highlighting off and on.
+---
+---Some coverage related behaviour can be configured with [please.setup()]. See the `coverage` option.
+---
+---See [:Please-cover] for the equivalent `:Please` command.
+---@param opts please.cover.Opts? Optional keyword arguments
+function M.cover(opts)
+    require('_please.logging').log_call('please.cover')
+
+    local logging = require('_please.logging')
+    local parsing = require('_please.parsing')
+    local query = require('_please.query')
+
+    logging.log_errors('Failed to cover', function()
+        opts = opts or {}
+
+        vim.validate('opts', opts, 'table')
+        vim.validate('opts.under_cursor', opts.under_cursor, 'boolean', true)
+        vim.validate('opts.quickfix', opts.quickfix, 'boolean', true)
+
+        local filepath = assert(get_filepath())
+        local root = assert(get_repo_root(filepath))
+
+        local targets = {} ---@type string[]
+        if vim.bo.filetype == 'please' then
+            local target = assert(parsing.get_target_at_cursor(root))
+            targets = { target.build_label }
+        else
+            targets = assert(query.whatinputs(root, filepath))
+        end
+
+        local selector ---@type string?
+        if opts.under_cursor then
+            local test = assert(parsing.get_test_at_cursor())
+            selector = test.selector
+        end
+
+        select_if_many(targets, { prompt = 'Select target to cover:' }, function(target)
+            save_and_run_cover_command(root, target, selector, opts.quickfix or false)
+        end)
+    end)
+end
+
+---Toggles coverage highlighting.
+---
+---See [:Please-toggle_coverage_highlighting] for the equivalent `:Please` command.
+function M.toggle_coverage_highlighting()
+    require('_please.logging').log_call('please.toggle_coverage_highlighting')
+
+    local logging = require('_please.logging')
+
+    logging.log_errors('Failed to toggle coverage highlighting', function()
+        if not current_coverage_state then
+            error('coverage has not been calculated')
+        end
+
+        if current_coverage_state.enabled then
+            stop_coverage_highlighting()
+            logging.info('Disabled coverage highlighting')
+        else
+            start_coverage_highlighting(current_coverage_state.root, current_coverage_state.coverage)
+            logging.info('Enabled coverage highlighting')
+        end
+    end)
+end
+
 ---@param root string
 ---@param lang string
 ---@param target string
@@ -380,8 +690,8 @@ local function run_debug_command(root, lang, target, extra_args)
 
     local launcher = debug.launchers[lang]
     start_runner(root, { 'build', '--config', 'dbg', target }, {
-        on_exit = function(success, runner)
-            if not success then
+        on_exit = function(code, runner)
+            if code ~= 0 then
                 return
             end
             runner:minimise()
@@ -421,8 +731,8 @@ end
 ---- Go (Delve)
 ---- Python (debugpy)
 ---
----Optionally (when in a source file), you can debug only the test which is under the cursor. The supported languages
----and test types are the same as for [please.test()].
+---Optionally, when in a source file, you can run only the test under the cursor. The supported languages and test types
+---are the same as for [please.test()].
 ---
 ---See [:Please-debug] for the equivalent `:Please` command.
 ---@param opts please.DebugOptions? optional keyword arguments
@@ -541,6 +851,8 @@ function M.history()
                     save_and_run_simple_command(root, command.args)
                 elseif command.type == 'debug' then
                     save_and_run_debug_command(root, command.lang, command.target, command.extra_args)
+                elseif command.type == 'cover' then
+                    save_and_run_cover_command(root, command.target, command.test_selector, command.quickfix)
                 else
                     error('unknown command type: ' .. vim.inspect(command))
                 end

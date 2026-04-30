@@ -16,6 +16,7 @@ added.
 Features ~
   • Build, run, test, and debug a target with |:Please-build|, |:Please-run|,
     |:Please-test|, and |:Please-debug|.
+  • Display test coverage for a target with |:Please-cover|.
   • Run an arbitrary plz command in a popup with |:Please-command|.
   • Display history of previous commands and run any of them again with
     |:Please-history|.
@@ -60,14 +61,16 @@ please.nvim supports the latest two Neovim minor versions. CI tests against
 the minimum supported version and the latest patch of each supported minor.
 
 Additional dependencies are required for some features:
-  • https://github.com/tree-sitter/tree-sitter-go for
-    |:Please-test-under_cursor| and |:Please-debug-under_cursor| in Go files
-  • https://github.com/tree-sitter/tree-sitter-python for
-    |:Please-test-under_cursor| and |:Please-debug-under_cursor| in Python
-    files, |:Please-jump_to_target|, |:Please-look_up_target|, and
-    |:Please-build|, |:Please-run|, |:Please-test|, |:Please-debug|, and
-    |:Please-yank| in BUILD files
-  • https://github.com/mfussenegger/nvim-dap for |:Please-debug|
+  • https://github.com/tree-sitter/tree-sitter-go enables
+    |:Please-test-under_cursor|, |:Please-cover-under_cursor|, and
+    |:Please-debug-under_cursor| in Go files.
+  • https://github.com/tree-sitter/tree-sitter-python enables:
+    • |:Please-test-under_cursor|, |:Please-cover-under_cursor|, and
+      |:Please-debug-under_cursor| in Python files.
+    • |:Please-jump_to_target| and |:Please-look_up_target|.
+    • |:Please-build|, |:Please-run|, |:Please-test|, |:Please-debug|, and
+      |:Please-yank| in BUILD files.
+  • https://github.com/mfussenegger/nvim-dap enables |:Please-debug|.
 
 Execute `:checkhealth please` to verify that the required dependencies are
 available and to see whether any feature-specific dependencies are missing.
@@ -101,11 +104,14 @@ command to get you started.
     vim.keymap.set('n', '<leader>pb', '<Cmd>Please build<CR>')
     vim.keymap.set('n', '<leader>pr', '<Cmd>Please run<CR>')
     vim.keymap.set('n', '<leader>pt', '<Cmd>Please test<CR>')
-    vim.keymap.set('n', '<leader>pct', '<Cmd>Please test under_cursor<CR>')
+    vim.keymap.set('n', '<leader>pT', '<Cmd>Please test under_cursor<CR>')
+    vim.keymap.set('n', '<leader>pc', '<Cmd>Please cover quickfix<CR>')
+    vim.keymap.set('n', '<leader>pC', '<Cmd>Please cover quickfix under_cursor<CR>')
+    vim.keymap.set('n', '<leader>pv', '<Cmd>Please toggle_coverage_highlighting<CR>')
     vim.keymap.set('n', '<leader>pd', '<Cmd>Please debug<CR>')
-    vim.keymap.set('n', '<leader>pcd', '<Cmd>Please debug under_cursor<CR>')
+    vim.keymap.set('n', '<leader>pD', '<Cmd>Please debug under_cursor<CR>')
     vim.keymap.set('n', '<leader>ph', '<Cmd>Please history<CR>')
-    vim.keymap.set('n', '<leader>pch', '<Cmd>Please clear_history<CR>')
+    vim.keymap.set('n', '<leader>pH', '<Cmd>Please clear_history<CR>')
     vim.keymap.set('n', '<leader>pp', '<Cmd>Please set_profile<CR>')
     vim.keymap.set('n', '<leader>pm', '<Cmd>Please maximise_popup<CR>')
     vim.keymap.set('n', '<leader>pj', '<Cmd>Please jump_to_target<CR>')
@@ -279,14 +285,43 @@ COMMANDS                                           *:Please* *please-commands*
     cursor. Otherwise, tests the target which takes the current file as an
     input.
 
-    Optionally (when in a source file), you can run only the test which is
-    under the cursor by passing [under_cursor]. This is supported for the
-    following languages:
+    Pass [under_cursor] when in a source file to run only the test under the
+    cursor. This is supported for the following languages:
     • Go - test functions, subtests, table tests, testify suite methods,
       testify suite subtests, testify suite table tests
     • Python - unittest test classes, unittest test methods
 
     See |please.test()| for the equivalent Lua function.
+
+                                  *:Please-cover* *:Please-cover-under_cursor*
+:Please cover [under_cursor] [quickfix]
+    Tests a target, calculates coverage, and highlights the covered and
+    uncovered lines.
+
+    If the current file is a `BUILD` file, tests the target which is under the
+    cursor. Otherwise, tests the target which takes the current file as an
+    input.
+
+    Pass [under_cursor] when in a source file to run only the test under the
+    cursor. The supported languages and test types are the same as for
+    |:Please-test|.
+
+    Pass [quickfix] to populate the quickfix list with the coverage results
+    and open the quickfix list.
+
+    Execute |:Please-toggle_coverage_highlighting| to toggle highlighting off
+    and on.
+
+    Some coverage related behaviour can be configured with |please.setup()|.
+    See the `coverage` option.
+
+    See |please.cover()| for the equivalent Lua function.
+
+:Please toggle_coverage_highlighting    *:Please-toggle_coverage_highlighting*
+    Toggles coverage highlighting.
+
+    See |please.toggle_coverage_highlighting()| for the equivalent Lua
+    function.
 
 :Please debug [under_cursor]      *:Please-debug* *:Please-debug-under_cursor*
     Debugs a target.
@@ -300,9 +335,9 @@ COMMANDS                                           *:Please* *please-commands*
     • Go (Delve)
     • Python (debugpy)
 
-    Optionally (when in a source file), you can debug only the test which is
-    under the cursor by passing [under_cursor]. The supported languages and
-    test types are the same as for |:Please-test|.
+    Pass [under_cursor] when in a source file to run only the test under the
+    cursor. The supported languages and test types are the same as for
+    |:Please-test|.
 
     See |please.debug()| for the equivalent Lua function.
 
@@ -379,7 +414,40 @@ COMMANDS                                           *:Please* *please-commands*
     See |please.toggle_debug_logging()| for the equivalent Lua function.
 
 ==============================================================================
+HIGHLIGHT GROUPS                                     *please-highlight-groups*
+
+These are the highlights groups used by please.nvim.
+
+PleaseCoverageCoveredLine                       *hl-PleaseCoverageCoveredLine*
+    Covered line highlighted by |:Please-cover|.
+
+PleaseCoverageUncoveredLine                   *hl-PleaseCoverageUncoveredLine*
+    Uncovered line highlighted by |:Please-cover|.
+
+PleaseCoverageCoveredLineNr                   *hl-PleaseCoverageCoveredLineNr*
+    Covered line number highlighted by |:Please-cover|.
+
+PleaseCoverageUncoveredLineNr               *hl-PleaseCoverageUncoveredLineNr*
+    Uncovered line number highlighted by |:Please-cover|.
+
+==============================================================================
 Lua module: please                                                *please-lua*
+
+*please.CoverageHighlightingOpts*
+    Options affecting coverage highlighting.
+
+    Fields: ~
+      • {lines}         (`boolean?`) Whether to highlight covered and
+                        uncovered lines. Defaults to `false`.
+      • {line_numbers}  (`boolean?`) Whether to highlight the line numbers of
+                        covered and uncovered lines. Defaults to `true`.
+
+*please.CoverageOpts*
+    Options affecting |:Please-cover|.
+
+    Fields: ~
+      • {highlighting}  (`please.CoverageHighlightingOpts?`) Options affecting
+                        highlighting. See |please.CoverageHighlightingOpts|.
 
 *please.FormattingOpts*
     Options affecting formatting.
@@ -425,6 +493,9 @@ setup({opts})                                                 *please.setup()*
     Example: >lua
         local please = require('please')
         please.setup({
+           coverage = {
+               highlighting = { lines = false, line_numbers = true },
+           },
            formatting = { puku_command = nil },
            history = { max_items = 20 },
            lsp = {
@@ -438,6 +509,8 @@ setup({opts})                                                 *please.setup()*
 
     Parameters: ~
       • {opts}  (`table`) A table with the following fields:
+                • {coverage} (`please.CoverageOpts?`) Options affecting
+                  |:Please-cover|. See |please.CoverageOpts|.
                 • {formatting} (`please.FormattingOpts?`) Options affecting
                   formatting. See |please.FormattingOpts|.
                 • {history} (`please.HistoryOpts?`) Options affecting
@@ -470,8 +543,8 @@ test({opts})                                                   *please.test()*
     cursor. Otherwise, tests the target which takes the current file as an
     input.
 
-    Optionally (when in a source file), you can run only the test which is
-    under the cursor. This is supported for the following languages:
+    Optionally, when in a source file, you can run only the test under the
+    cursor. This is supported for the following languages:
     • Go - test functions, subtests, table tests, testify suite methods,
       testify suite subtests, testify suite table tests
     • Python - unittest test classes, unittest test methods
@@ -481,6 +554,38 @@ test({opts})                                                   *please.test()*
     Parameters: ~
       • {opts}  (`table?`) optional keyword arguments
                 • {under_cursor} (`boolean`) run the test under the cursor
+
+cover({opts})                                                 *please.cover()*
+    Tests a target, calculates coverage, and highlights the covered and
+    uncovered lines.
+
+    If the current file is a `BUILD` file, tests the target which is under the
+    cursor. Otherwise, tests the target which takes the current file as an
+    input.
+
+    Optionally, when in a source file, you can run only the test under the
+    cursor. The supported languages and test types are the same as for
+    |please.test()|.
+
+    Call |please.toggle_coverage_highlighting()| to toggle highlighting off
+    and on.
+
+    Some coverage related behaviour can be configured with |please.setup()|.
+    See the `coverage` option.
+
+    See |:Please-cover| for the equivalent `:Please` command.
+
+    Parameters: ~
+      • {opts}  (`table?`) Optional keyword arguments
+                • {under_cursor} (`boolean?`) Run the test under the cursor
+                • {quickfix} (`boolean?`) Populate the quickfix list with the
+                  coverage results and open the quickfix list
+
+toggle_coverage_highlighting()         *please.toggle_coverage_highlighting()*
+    Toggles coverage highlighting.
+
+    See |:Please-toggle_coverage_highlighting| for the equivalent `:Please`
+    command.
 
 debug({opts})                                                 *please.debug()*
     Debugs a target.
@@ -494,9 +599,9 @@ debug({opts})                                                 *please.debug()*
     • Go (Delve)
     • Python (debugpy)
 
-    Optionally (when in a source file), you can debug only the test which is
-    under the cursor. The supported languages and test types are the same as
-    for |please.test()|.
+    Optionally, when in a source file, you can run only the test under the
+    cursor. The supported languages and test types are the same as for
+    |please.test()|.
 
     See |:Please-debug| for the equivalent `:Please` command.
 
