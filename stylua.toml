@@ -1,2 +1,3 @@
+syntax = 'LuaJIT'
 indent_type = 'Spaces'
 quote_style = 'AutoPreferSingle'
