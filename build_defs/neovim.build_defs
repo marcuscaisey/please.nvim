@@ -118,6 +118,7 @@ def neovim_plugin(name:str, deps:list=[], help_srcs:list=[], visibility:list=["P
             data = data,
             cmd = f"mkdir -p doc && {nvim_path} -l tools/gen_vimdoc/gen_vimdoc.lua doc/{name}.txt $SRCS",
         )
+        help_gen = canonicalise(help_gen)
 
         gentest(
             name = f"{name}_help_gen_test",
