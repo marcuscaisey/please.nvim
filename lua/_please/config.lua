@@ -1,6 +1,6 @@
 local M = {}
 
----@class _please.config.Config
+---@class _please.config.Config : please.Opts
 ---@field formatting _please.config.FormattingConfig Configuration affecting formatting.
 ---@field history _please.config.HistoryConfig Configuration affecting [:Please-history].
 ---@field lsp _please.config.LSPConfig Configuration affecting LSP.
