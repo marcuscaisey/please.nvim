@@ -32,6 +32,15 @@ not work as expected, or if there is a feature you would like to see added.
     <img src="https://github.com/user-attachments/assets/49e3f704-50ab-4150-b00b-baab3a364f17" />
 </details>
 <details>
+    <summary>Display test coverage for a target with <code>:Please cover</code></summary>
+    <p><strong>In Source File</strong></p>
+    <img src="https://github.com/user-attachments/assets/bbb5c951-36f1-406b-aebe-632306a0fe8b" />
+    <p><strong>Run Test Under Cursor</strong></p>
+    <img src="https://github.com/user-attachments/assets/02abbd6f-dd49-4b79-8f17-ea65ea73a5a7" />
+    <p><strong>In BUILD File</strong></p>
+    <img src="https://github.com/user-attachments/assets/0aff7011-d2ab-40f0-8115-aabd8278d2ae" />
+</details>
+<details>
     <summary>Debug a target with <code>:Please debug</code></summary>
     <p><strong>In Source File</strong></p>
     <img src="https://github.com/user-attachments/assets/208aad09-6390-494d-9596-78981fd33f18" />
@@ -96,13 +105,16 @@ version and the latest patch of each supported minor.
 
 Additional dependencies are required for some features:
 
-- [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go) for `:Please test under_cursor`
-  and `:Please debug under_cursor` in Go files
-- [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python) for `:Please test
-under_cursor` and `:Please debug under_cursor` in Python files, `:Please jump_to_target`, `:Please
-look_up_target`, and `:Please build`, `:Please run`, `:Please test`, `:Please debug`, and `:Please
-yank` in BUILD files
-- [nvim-dap](https://github.com/mfussenegger/nvim-dap) for `:Please debug`
+- [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go) enables
+  `:Please test under_cursor`, `:Please cover under_cursor`, and `:Please debug under_cursor` in Go
+  files.
+- [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python) enables:
+  - `:Please test under_cursor`, `:Please cover under_cursor`, and `:Please debug under_cursor` in
+    Python files.
+  - `:Please jump_to_target` and `:Please look_up_target`.
+  - `:Please build`, `:Please run`, `:Please test`, `:Please debug`, and `:Please yank` in BUILD
+    files.
+- [nvim-dap](https://github.com/mfussenegger/nvim-dap) enables `:Please debug`.
 
 Execute `:checkhealth please` to verify that the required dependencies are available and to see
 whether any feature-specific dependencies are missing.

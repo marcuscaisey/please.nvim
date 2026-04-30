@@ -277,7 +277,7 @@ local function complete_arg(prefix, candidates)
 end
 
 ---@type table<string, string[]>
-local cmd_opts = { test = { 'under_cursor' }, debug = { 'under_cursor' } }
+local cmd_opts = { test = { 'under_cursor' }, debug = { 'under_cursor' }, cover = { 'under_cursor', 'quickfix' } }
 local var_arg_cmds = { 'command' }
 local hidden_cmds = { 'setup' }
 

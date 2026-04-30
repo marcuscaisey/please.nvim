@@ -1,7 +1,8 @@
 doc/tags
 
+.nvim.lua
+__pycache__
+
 # Entries below this point are managed by Please (DO NOT EDIT)
 plz-out
 .plzconfig.local
-
-.nvim.lua

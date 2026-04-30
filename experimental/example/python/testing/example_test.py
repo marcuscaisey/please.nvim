@@ -1,6 +1,5 @@
 import unittest
 
-
 def decorator(f):
     return f
 

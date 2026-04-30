@@ -6,6 +6,8 @@ local M = {
     current = nil,
 }
 
+---@alias _please.runner.OnExitHandler fun(code:integer, runner:_please.runner.Runner)
+
 ---A Please command runner that displays its output in a floating window.
 ---@class _please.runner.Runner
 ---@field package _bufnr integer
@@ -14,7 +16,7 @@ local M = {
 ---@field package _stopped boolean
 ---@field package _job_id integer
 ---@field package _job_exited boolean
----@field package _on_exit fun(success:boolean, runner:_please.runner.Runner)?
+---@field package _on_exit _please.runner.OnExitHandler?
 ---@field package _minimised boolean
 ---@field package _prev_cursor_position integer[]
 local Runner = {}
@@ -120,7 +122,7 @@ local function move_cursor_to_last_line()
 end
 
 ---@class _please.runner.RunnerOpts
----@field on_exit fun(success:boolean, runner:_please.runner.Runner)?
+---@field on_exit _please.runner.OnExitHandler?
 
 ---Runs a command and displays it in a floating window.
 ---@param root string
@@ -183,7 +185,7 @@ function Runner.start(root, args, opts)
             print_to_term(format('\n' .. colour .. 'Exited with code %d', code))
             if runner._on_exit then
                 vim.schedule(function()
-                    runner._on_exit(success, runner)
+                    runner._on_exit(code, runner)
                 end)
             end
         end,

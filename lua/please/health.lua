@@ -50,17 +50,22 @@ end
 local function check_tree_sitter()
     vim.health.start('Tree-Sitter')
     local lang_needed_fors = {
-        python = '|:Please-test-under_cursor| and |:Please-debug-under_cursor| in Python files, |:Please-jump_to_target|, |:Please-look_up_target|, and |:Please-build|, |:Please-run|, |:Please-test|, |:Please-debug|, and |:Please-yank| in BUILD files',
-        go = '|:Please-test-under_cursor| and |:Please-debug-under_cursor| in Go files',
+        python = [[
+Needed for:
+  - |:Please-test-under_cursor|, |:Please-cover-under_cursor|, and
+    |:Please-debug-under_cursor| in Python files.
+  - |:Please-jump_to_target| and |:Please-look_up_target|.
+  - |:Please-build|, |:Please-run|, |:Please-test|, |:Please-debug|, and
+    |:Please-yank| in BUILD files.]],
+        go = [[
+Needed for |:Please-test-under_cursor|, |:Please-cover-under_cursor|, and
+|:Please-debug-under_cursor| in Go files.]],
     }
     for lang, needed_for in pairs(lang_needed_fors) do
         if vim.treesitter.language.add(lang) then
             vim.health.ok(string.format('%s parser available', lang))
         else
-            vim.health.warn(
-                string.format('%s parser not available. Needed for %s.', lang, needed_for),
-                ':help treesitter-parsers'
-            )
+            vim.health.warn(string.format('%s parser not available.\n%s', lang, needed_for), ':help treesitter-parsers')
         end
     end
 end
@@ -71,7 +76,7 @@ local function check_debugging()
         vim.health.ok(string.format('nvim-dap available'))
     else
         vim.health.warn(
-            'nvim-dap not available. Needed for |:Please-debug|.',
+            'nvim-dap not available.\nNeeded for |:Please-debug|.',
             'Install nvim-dap: https://github.com/mfussenegger/nvim-dap'
         )
     end
