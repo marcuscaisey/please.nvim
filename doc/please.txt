@@ -27,8 +27,8 @@ Features ~
   • `please` configured as the `'filetype'` for build files: `*.build`,
     `*.build_defs`, and the build file names set as `parse.buildfilename` in
     `.plzconfig` (defaults to `BUILD` and `BUILD.plz`).
-  • `ini` configured as the |'filetype'| for `.plzconfig` files to enable better
-    syntax highlighting.
+  • `ini` configured as the |'filetype'| for `.plzconfig` files to enable
+    better syntax highlighting.
   • `please` LSP client configured to use `plz tool lps` for `please` files.
     See |please-lsp-client|.
   • Python tree-sitter parser configured to be used for please files to enable
