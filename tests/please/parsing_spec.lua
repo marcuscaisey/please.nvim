@@ -209,7 +209,7 @@ describe('locate_target', function()
     end
 end)
 
-describe('get_test_at_cursor', function()
+describe('test_under_cursor', function()
     ---@alias test_case {name:string, filetype:string, file:string, cursor_position:integer[], expected_test:{name:string, selector:string}}
     ---@param test_cases test_case[]
     local function run_tests(test_cases)
@@ -223,7 +223,7 @@ describe('get_test_at_cursor', function()
                 vim.api.nvim_set_option_value('filetype', tc.filetype, { buf = 0 })
                 vim.api.nvim_win_set_cursor(0, tc.cursor_position)
 
-                local test, err = parsing.get_test_at_cursor()
+                local test, err = parsing.test_under_cursor()
 
                 assert.is_nil(err, 'expected no error to be returned')
                 assert.same(tc.expected_test, test, 'incorrect test returned')
@@ -1196,7 +1196,7 @@ describe('get_test_at_cursor', function()
 
         vim.cmd('edit ' .. root .. '/hello.rb')
 
-        local tests, err = parsing.get_test_at_cursor()
+        local tests, err = parsing.test_under_cursor()
 
         assert.equal(err, 'finding tests is not supported for ruby files')
         assert.is_nil(tests, 'expected no tests to be returned')
@@ -1214,21 +1214,21 @@ describe('get_test_at_cursor', function()
         vim.cmd('edit ' .. root .. '/' .. 'foo_test.go')
         vim.api.nvim_win_set_cursor(0, { 2, 4 })
 
-        local tests, err = parsing.get_test_at_cursor()
+        local tests, err = parsing.test_under_cursor()
 
         assert.equal(err, 'cursor is not in a test')
         assert.is_nil(tests, 'expected no tests to be returned')
     end)
 end)
 
-describe('get_target_at_cursor', function()
+describe('target_under_cursor', function()
     local function run_test(case)
         local root = temptree.create(case.tree)
 
         vim.cmd('edit ' .. root .. '/' .. case.file)
         vim.api.nvim_win_set_cursor(0, case.cursor_position)
 
-        local target, err = parsing.get_target_at_cursor(root)
+        local target, err = parsing.target_under_cursor(root)
 
         if case.expected_build_label then
             assert.equal(case.expected_build_label, target and target.build_label, 'incorrect build label')
@@ -1391,7 +1391,7 @@ describe('get_target_at_cursor', function()
     end)
 end)
 
-describe('get_build_label_at_cursor', function()
+describe('build_label_under_cursor', function()
     ---@class TestCase
     ---@field name string
     ---@field file string
@@ -1420,7 +1420,7 @@ describe('get_build_label_at_cursor', function()
             assert.equal(test_case.expected_cursor_value, actual_cursor_value, 'incorrect cursor value')
         end
 
-        local actual_build_label = parsing.get_build_label_at_cursor()
+        local actual_build_label = parsing.build_label_under_cursor()
 
         if test_case.expected_build_label then
             assert.equal(test_case.expected_build_label, actual_build_label, 'incorrect build label')

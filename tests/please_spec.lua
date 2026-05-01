@@ -569,7 +569,7 @@ end)
 
 ---@param path string
 ---@return extmark[]
-local function get_extmarks(path)
+local function extmarks(path)
     local bufnr = vim.fn.bufnr(path)
     local nvim_extmarks = vim.api.nvim_buf_get_extmarks(bufnr, -1, 0, -1, { details = true })
     local extmarks = {} ---@type extmark[]
@@ -932,22 +932,22 @@ describe('cover', function()
         -- WHEN we cover a target
         please.cover()
         -- THEN the current buffer contains no extmarks
-        local foo2_test_go_extmarks = get_extmarks(root .. '/foo/foo2_test.go')
+        local foo2_test_go_extmarks = extmarks(root .. '/foo/foo2_test.go')
         assert.same({}, foo2_test_go_extmarks, 'expected no extmarks in foo/foo2_test.go')
         -- THEN the buffers of the other open windows contain extmarks highlighting the covered and uncovered line numbers
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
-        local bar_go_extmarks = get_extmarks(root .. '/foo/bar.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
+        local bar_go_extmarks = extmarks(root .. '/foo/bar.go')
         assert.same(expected_foo_go_extmarks, foo_go_extmarks, 'incorrect extmarks in foo/foo.go')
         assert.same(expected_bar_go_extmarks, bar_go_extmarks, 'incorrect extmarks in foo/bar.go')
         -- WHEN we open another file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/baz.go')
         -- THEN the buffer contains extmarks highlighting the covered and uncovered line numbers
-        local baz_go_extmarks = get_extmarks(root .. '/foo/baz.go')
+        local baz_go_extmarks = extmarks(root .. '/foo/baz.go')
         assert.same(expected_baz_go_extmarks, baz_go_extmarks, 'incorrect extmarks in foo/baz.go')
         -- WHEN we open another file which coverage was not calculated for
         vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
         -- THEN the buffer contains no extmarks
-        local foo1_test_go_extmarks = get_extmarks(root .. '/foo/foo1_test.go')
+        local foo1_test_go_extmarks = extmarks(root .. '/foo/foo1_test.go')
         assert.same({}, foo1_test_go_extmarks, 'expected no extmarks in foo/foo1_test.go')
     end)
 
@@ -961,7 +961,7 @@ describe('cover', function()
         -- WHEN we open a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- THEN the buffer contains extmarks highlighting the covered and uncovered line numbers
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same(expected_foo_go_extmarks, foo_go_extmarks, 'incorrect extmarks in foo/foo.go')
     end)
 
@@ -976,8 +976,8 @@ describe('cover', function()
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         vim.cmd('edit ' .. root .. '/foo/bar.go')
         -- THEN neither buffer contains any extmarks
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
-        local bar_go_extmarks = get_extmarks(root .. '/foo/bar.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
+        local bar_go_extmarks = extmarks(root .. '/foo/bar.go')
         assert.same({}, foo_go_extmarks, 'expected no extmarks in foo/foo.go')
         assert.same({}, bar_go_extmarks, 'expected no extmarks in foo/bar.go')
     end)
@@ -1014,7 +1014,7 @@ describe('cover', function()
         -- WHEN we open a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- THEN the buffer contains extmarks highlighting the covered and uncovered lines
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same(expected_foo_go_extmarks, foo_go_extmarks, 'incorrect extmarks in foo/foo.go')
     end)
 
@@ -1049,7 +1049,7 @@ describe('cover', function()
         -- WHEN we open a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- THEN the buffer contains extmarks highlighting the covered and uncovered lines and line numbers
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same(expected_foo_go_extmarks, foo_go_extmarks, 'incorrect extmarks in foo/foo.go')
     end)
 
@@ -1072,7 +1072,7 @@ describe('cover', function()
         -- WHEN we open a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- THEN the buffer contains no extmarks
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same({}, foo_go_extmarks, 'expected no extmarks in foo/foo.go')
     end)
 
@@ -1086,7 +1086,7 @@ describe('cover', function()
         -- GIVEN we've opened a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- GIVEN the buffer contains extmarks
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.is_true(#foo_go_extmarks > 0, 'expected extmarks in foo/foo.go')
         -- GIVEN the files that coverage will be calculated for has changed
         vim.fn.writefile(foobaz_go_coverage_json_lines, root .. '/plz-out/log/coverage.json')
@@ -1096,15 +1096,15 @@ describe('cover', function()
         -- WHEN we open a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foobaz.go')
         -- THEN the buffer contains extmarks highlighting the covered and uncovered line numbers
-        local foobaz_go_extmarks = get_extmarks(root .. '/foo/foobaz.go')
+        local foobaz_go_extmarks = extmarks(root .. '/foo/foobaz.go')
         assert.same(expected_foobaz_go_extmarks, foobaz_go_extmarks, 'incorrect extmarks in foo/foobaz.go')
         -- THEN the extmarks have been removed from the previously highlighted buffer
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same({}, foo_go_extmarks, 'expected no extmarks in foo/foo.go')
         -- WHEN we open the file that was previously highlighted
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- THEN the buffer contains no extmarks
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same({}, foo_go_extmarks, 'expected no extmarks in foo/foo.go')
     end)
 
@@ -1119,7 +1119,7 @@ describe('cover', function()
         -- GIVEN we've opened a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- GIVEN the buffer contains extmarks
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.is_true(#foo_go_extmarks > 0, 'expected extmarks in foo/foo.go')
         -- GIVEN the files that coverage will be calculated for has changed
         vim.fn.writefile(foobaz_go_coverage_json_lines, root .. '/plz-out/log/coverage.json')
@@ -1135,10 +1135,10 @@ describe('cover', function()
         -- WHEN we open a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foobaz.go')
         -- THEN the buffer contains extmarks highlighting the covered and uncovered line numbers
-        local foobaz_go_extmarks = get_extmarks(root .. '/foo/foobaz.go')
+        local foobaz_go_extmarks = extmarks(root .. '/foo/foobaz.go')
         assert.same(expected_foobaz_go_extmarks, foobaz_go_extmarks, 'incorrect extmarks in foo/foobaz.go')
         -- THEN the extmarks have been removed from the previously highlighted buffer
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same({}, foo_go_extmarks, 'expected no extmarks in foo/foo.go')
     end)
 end)
@@ -1249,32 +1249,32 @@ describe('toggle_coverage_highlighting', function()
         -- GIVEN we've opened a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- GIVEN the buffer contains extmarks
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.is_true(#foo_go_extmarks > 0, 'expected extmarks in foo/foo.go')
         -- GIVEN we've opened another file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/bar.go')
         -- GIVEN the buffer contains extmarks
-        local bar_go_extmarks = get_extmarks(root .. '/foo/bar.go')
+        local bar_go_extmarks = extmarks(root .. '/foo/bar.go')
         assert.is_true(#bar_go_extmarks > 0, 'expected extmarks in foo/bar.go')
         -- WHEN we call toggle_coverage_highlighting
         please.toggle_coverage_highlighting()
         -- THEN the extmarks have been removed from the current buffer
-        local bar_go_extmarks = get_extmarks(root .. '/foo/bar.go')
+        local bar_go_extmarks = extmarks(root .. '/foo/bar.go')
         assert.same({}, bar_go_extmarks, 'expected no extmarks in foo/bar.go')
         -- WHEN we open the file that was previously highlighted
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- THEN the buffer contains no extmarks
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same({}, foo_go_extmarks, 'expected no extmarks in foo/foo.go')
         -- WHEN we open another file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/baz.go')
         -- THEN the buffer contains no extmarks
-        local baz_go_extmarks = get_extmarks(root .. '/foo/baz.go')
+        local baz_go_extmarks = extmarks(root .. '/foo/baz.go')
         assert.same({}, baz_go_extmarks, 'expected no extmarks in foo/baz.go')
         -- WHEN we open another file which coverage was not calculated for
         vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
         -- THEN the buffer contains no extmarks
-        local foo1_test_go_extmarks = get_extmarks(root .. '/foo/foo2_test.go')
+        local foo1_test_go_extmarks = extmarks(root .. '/foo/foo2_test.go')
         assert.same({}, foo1_test_go_extmarks, 'expected no extmarks in foo/foo2_test.go')
     end)
 
@@ -1290,22 +1290,22 @@ describe('toggle_coverage_highlighting', function()
         -- GIVEN we've opened a file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/foo.go')
         -- GIVEN the buffer contains no extmarks
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same({}, foo_go_extmarks, 'expected extmarks in foo/foo.go')
         -- WHEN we call toggle_coverage_highlighting
         please.toggle_coverage_highlighting()
         -- THEN the buffer contains extmarks highlighting the covered and uncovered line numbers
-        local foo_go_extmarks = get_extmarks(root .. '/foo/foo.go')
+        local foo_go_extmarks = extmarks(root .. '/foo/foo.go')
         assert.same(expected_foo_go_extmarks, foo_go_extmarks, 'incorrect extmarks in foo/foo.go')
         -- WHEN we open another file that coverage was calculated for
         vim.cmd('edit ' .. root .. '/foo/bar.go')
         -- THEN the buffer contains extmarks highlighting the covered and uncovered line numbers
-        local bar_go_extmarks = get_extmarks(root .. '/foo/bar.go')
+        local bar_go_extmarks = extmarks(root .. '/foo/bar.go')
         assert.same(expected_bar_go_extmarks, bar_go_extmarks, 'incorrect extmarks in foo/bar.go')
         -- WHEN we open another file which coverage was not calculated for
         vim.cmd('edit ' .. root .. '/foo/foo2_test.go')
         -- THEN the buffer contains no extmarks
-        local foo1_test_go_extmarks = get_extmarks(root .. '/foo/foo2_test.go')
+        local foo1_test_go_extmarks = extmarks(root .. '/foo/foo2_test.go')
         assert.same({}, foo1_test_go_extmarks, 'expected no extmarks in foo/foo2_test.go')
     end)
 end)

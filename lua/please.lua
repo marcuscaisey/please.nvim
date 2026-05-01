@@ -247,7 +247,7 @@ local function select_if_many(items, opts, on_choice)
     end
 end
 
-local function get_filepath()
+local function current_filepath()
     local filepath = vim.api.nvim_buf_get_name(0)
     if filepath == '' then
         return nil, 'no file open'
@@ -258,7 +258,7 @@ end
 ---@param path string
 ---@return string?
 ---@return string?
-local function get_repo_root(path)
+local function current_repo_root(path)
     local root = vim.fs.root(path, '.plzconfig')
     if root then
         return root
@@ -280,12 +280,12 @@ function M.build()
     local query = require('_please.query')
 
     logging.log_errors('Failed to build', function()
-        local filepath = assert(get_filepath())
-        local root = assert(get_repo_root(filepath))
+        local filepath = assert(current_filepath())
+        local root = assert(current_repo_root(filepath))
 
         local targets
         if vim.bo.filetype == 'please' then
-            local target = assert(parsing.get_target_at_cursor(root))
+            local target = assert(parsing.target_under_cursor(root))
             targets = { target.build_label }
         else
             targets = assert(query.whatinputs(root, filepath))
@@ -311,12 +311,12 @@ function M.run()
     local query = require('_please.query')
 
     logging.log_errors('Failed to run', function()
-        local filepath = assert(get_filepath())
-        local root = assert(get_repo_root(filepath))
+        local filepath = assert(current_filepath())
+        local root = assert(current_repo_root(filepath))
 
         local targets
         if vim.bo.filetype == 'please' then
-            local target = assert(parsing.get_target_at_cursor(root))
+            local target = assert(parsing.target_under_cursor(root))
             targets = { target.build_label }
         else
             targets = assert(query.whatinputs(root, filepath))
@@ -369,17 +369,17 @@ function M.test(opts)
         vim.validate('opts', opts, 'table')
         vim.validate('opts.under_cursor', opts.under_cursor, 'boolean', true)
 
-        local filepath = assert(get_filepath())
-        local root = assert(get_repo_root(filepath))
+        local filepath = assert(current_filepath())
+        local root = assert(current_repo_root(filepath))
 
         local targets = {} ---@type string[]
         local extra_args = {} ---@type string[]
         if opts.under_cursor then
-            local test = assert(parsing.get_test_at_cursor())
+            local test = assert(parsing.test_under_cursor())
             extra_args = { test.selector }
             targets = assert(query.whatinputs(root, filepath))
         elseif vim.bo.filetype == 'please' then
-            local target = assert(parsing.get_target_at_cursor(root))
+            local target = assert(parsing.target_under_cursor(root))
             targets = { target.build_label }
         else
             targets = assert(query.whatinputs(root, filepath))
@@ -634,12 +634,12 @@ function M.cover(opts)
         vim.validate('opts.under_cursor', opts.under_cursor, 'boolean', true)
         vim.validate('opts.quickfix', opts.quickfix, 'boolean', true)
 
-        local filepath = assert(get_filepath())
-        local root = assert(get_repo_root(filepath))
+        local filepath = assert(current_filepath())
+        local root = assert(current_repo_root(filepath))
 
         local targets = {} ---@type string[]
         if vim.bo.filetype == 'please' then
-            local target = assert(parsing.get_target_at_cursor(root))
+            local target = assert(parsing.target_under_cursor(root))
             targets = { target.build_label }
         else
             targets = assert(query.whatinputs(root, filepath))
@@ -647,7 +647,7 @@ function M.cover(opts)
 
         local selector ---@type string?
         if opts.under_cursor then
-            local test = assert(parsing.get_test_at_cursor())
+            local test = assert(parsing.test_under_cursor())
             selector = test.selector
         end
 
@@ -750,19 +750,19 @@ function M.debug(opts)
         vim.validate('opts', opts, 'table')
         vim.validate('opts.under_cursor', opts.under_cursor, 'boolean', true)
 
-        local filepath = assert(get_filepath())
-        local root = assert(get_repo_root(filepath))
+        local filepath = assert(current_filepath())
+        local root = assert(current_repo_root(filepath))
 
         local targets = {} ---@type string[]
         local lang = '' ---@type string
         local extra_args = {} ---@type string[]
         if opts.under_cursor then
-            local test = assert(parsing.get_test_at_cursor())
+            local test = assert(parsing.test_under_cursor())
             extra_args = { test.selector }
             targets = assert(query.whatinputs(root, filepath))
             lang = vim.bo.filetype
         elseif vim.bo.filetype == 'please' then
-            local target = assert(parsing.get_target_at_cursor(root))
+            local target = assert(parsing.target_under_cursor(root))
             targets = { target.build_label }
             lang = target.rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
         else
@@ -816,8 +816,8 @@ function M.command(...)
         if #args == 0 then
             error('no arguments provided')
         end
-        local path = get_filepath() or assert(vim.uv.cwd())
-        local root = assert(get_repo_root(path))
+        local path = current_filepath() or assert(vim.uv.cwd())
+        local root = assert(current_repo_root(path))
         save_and_run_simple_command(root, args)
     end)
 end
@@ -833,8 +833,8 @@ function M.history()
     local logging = require('_please.logging')
 
     logging.log_errors('Failed to show command history', function()
-        local path = get_filepath() or assert(vim.uv.cwd())
-        local root = assert(get_repo_root(path))
+        local path = current_filepath() or assert(vim.uv.cwd())
+        local root = assert(current_repo_root(path))
 
         local history = read_command_history()
         if not history[root] then
@@ -842,12 +842,12 @@ function M.history()
             return
         end
 
-        local function get_description(command)
+        local function format_item(command)
             return command.description
         end
         select(
             history[root],
-            { prompt = 'Pick command to run again:', format_item = get_description },
+            { prompt = 'Pick command to run again:', format_item = format_item },
             function(command)
                 if command.type == 'simple' then
                     save_and_run_simple_command(root, command.args)
@@ -872,8 +872,8 @@ function M.clear_history()
     local logging = require('_please.logging')
 
     logging.log_errors('Failed to clear command history', function()
-        local path = get_filepath() or assert(vim.uv.cwd())
-        local root = assert(get_repo_root(path))
+        local path = current_filepath() or assert(vim.uv.cwd())
+        local root = assert(current_repo_root(path))
 
         local history = read_command_history()
         if not history[root] then
@@ -897,8 +897,8 @@ function M.set_profile()
     local logging = require('_please.logging')
 
     logging.log_errors('Failed to set profile', function()
-        local path = get_filepath() or assert(vim.uv.cwd())
-        local root = assert(get_repo_root(path))
+        local path = current_filepath() or assert(vim.uv.cwd())
+        local root = assert(current_repo_root(path))
 
         local profiles = {} ---@type string[]
 
@@ -972,8 +972,8 @@ function M.jump_to_target()
     local query = require('_please.query')
 
     logging.log_errors('Failed to jump to target', function()
-        local filepath = assert(get_filepath())
-        local root = assert(get_repo_root(filepath))
+        local filepath = assert(current_filepath())
+        local root = assert(current_repo_root(filepath))
         local targets = assert(query.whatinputs(root, filepath))
         select_if_many(targets, { prompt = 'Select target to jump to:' }, function(target)
             local target = assert(parsing.locate_target(root, target))
@@ -999,8 +999,8 @@ function M.look_up_target()
     local parsing = require('_please.parsing')
 
     logging.log_errors('Failed to look up target', function()
-        local path = get_filepath() or assert(vim.uv.cwd())
-        local root = assert(get_repo_root(path))
+        local path = current_filepath() or assert(vim.uv.cwd())
+        local root = assert(current_repo_root(path))
 
         ---@param target string
         local function look_up_target(target)
@@ -1014,7 +1014,7 @@ function M.look_up_target()
             vim.api.nvim_win_set_cursor(0, target.position)
         end
 
-        local build_label_at_cursor = parsing.get_build_label_at_cursor()
+        local build_label_at_cursor = parsing.build_label_under_cursor()
         if build_label_at_cursor then
             look_up_target(build_label_at_cursor)
             return
@@ -1043,12 +1043,12 @@ function M.yank()
     local query = require('_please.query')
 
     logging.log_errors('Failed to yank', function()
-        local filepath = assert(get_filepath())
-        local root = assert(get_repo_root(filepath))
+        local filepath = assert(current_filepath())
+        local root = assert(current_repo_root(filepath))
 
         local targets = {}
         if vim.bo.filetype == 'please' then
-            local target = assert(parsing.get_target_at_cursor(root))
+            local target = assert(parsing.target_under_cursor(root))
             targets = { target.build_label }
         else
             targets = assert(query.whatinputs(root, filepath))

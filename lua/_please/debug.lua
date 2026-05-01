@@ -7,7 +7,7 @@ local M = {
     launchers = {},
 }
 
-local function get_free_port()
+local function free_port()
     local tcp = assert(vim.uv.new_tcp())
     -- binding to port 0 lets the OS assign an ephemeral port which we can lookup with getsocketname
     tcp:bind('127.0.0.1', 0)
@@ -37,7 +37,7 @@ local function setup_debug_adapter()
     dap.adapters.plz = function(callback, config)
         logging.log_call('dap.adapters.plz')
 
-        local port = get_free_port()
+        local port = free_port()
 
         local cmd =
             { plz, '--repo_root', config.root, 'debug', '--port', port, config.target, unpack(config.extra_args or {}) }

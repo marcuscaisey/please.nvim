@@ -167,8 +167,8 @@ end
 ---@param root string: an absolute path to the repo root
 ---@return {build_label: string, rule: string}?
 ---@return string? errmsg
-function M.get_target_at_cursor(root)
-    logging.log_call('parsing.get_target_at_cursor')
+function M.target_under_cursor(root)
+    logging.log_call('parsing.target_under_cursor')
 
     check_parser_installed('please')
 
@@ -184,10 +184,10 @@ function M.get_target_at_cursor(root)
     return nil, 'cursor is not in a build target definition'
 end
 
----Returns the build label at the cursor if there is one, otherwise nil.
+---Returns the build label under the cursor if there is one, otherwise nil.
 ---@return string?
-function M.get_build_label_at_cursor()
-    logging.log_call('parsing.get_build_label_at_cursor')
+function M.build_label_under_cursor()
+    logging.log_call('parsing.build_label_under_cursor')
     local line = vim.fn.line('.') -- 1-based
     local col = vim.fn.col('.') -- 1-based
     local regex = vim.regex(
@@ -737,15 +737,15 @@ local parsers_by_root_node_type_by_filetype = {
     },
 }
 
----Returns the test at the current cursor position.
+---Returns the test under the cursor.
 ---Current supported languages are:
 ---- Go - test functions, subtests, table tests, testify suite methods, testify suite subtests, testify suite table
 ---       tests
 ---- Python - unittest test classes, unittest test methods
 ---@return {name:string, selector:string}?
 ---@return string? errmsg
-function M.get_test_at_cursor()
-    logging.log_call('parsing.get_test_at_cursor')
+function M.test_under_cursor()
+    logging.log_call('parsing.test_under_cursor')
 
     local parsers_by_root_node_type = parsers_by_root_node_type_by_filetype[vim.bo.filetype]
     if not parsers_by_root_node_type then
