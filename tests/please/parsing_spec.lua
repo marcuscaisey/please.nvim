@@ -1246,7 +1246,7 @@ describe('target_under_cursor', function()
         end
     end
 
-    describe('should return build label and rule of target when cursor is inside build target definition', function()
+    describe('should return build label and rule of target when cursor is inside target', function()
         local tree = {
             BUILD = [[
                 export_file(
@@ -1295,7 +1295,7 @@ describe('target_under_cursor', function()
         })
     end)
 
-    it('should return build label and rule when there are multiple build targets in the BUILD file', function()
+    it('should return build label and rule when there are multiple targets in the BUILD file', function()
         run_test({
             tree = {
                 BUILD = [[
@@ -1359,7 +1359,7 @@ describe('target_under_cursor', function()
         })
     end)
 
-    describe('should return error when cursor is outside build target definition', function()
+    describe('should return error when cursor is outside target', function()
         local tree = {
             BUILD = [[
 
@@ -1384,7 +1384,7 @@ describe('target_under_cursor', function()
                     tree = tree,
                     file = 'BUILD',
                     cursor_position = case.cursor_position,
-                    expected_err = 'cursor is not in a build target definition',
+                    expected_err = 'cursor is not in a target',
                 })
             end)
         end

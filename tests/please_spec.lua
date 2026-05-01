@@ -237,7 +237,7 @@ describe('build', function()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
 
-            -- GIVEN we're editing a file referenced by multiple build targets
+            -- GIVEN we're editing a file referenced by multiple targets
             vim.cmd('edit ' .. root .. '/foo1.txt')
             -- WHEN we call build
             please.build()
@@ -256,7 +256,7 @@ describe('build', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
 
-            -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+            -- GIVEN we're editing a BUILD file and our cursor is inside a target
             vim.cmd('edit ' .. root .. '/BUILD')
             vim.api.nvim_win_set_cursor(0, { 6, 4 }) -- inside definition of :foo1_and_foo2
             -- WHEN we call build
@@ -333,7 +333,7 @@ describe('run', function()
             local select_fake = SelectFake:new()
             local input_fake = InputFake:new()
 
-            -- GIVEN we're editing a file referenced by multiple build targets
+            -- GIVEN we're editing a file referenced by multiple targets
             vim.cmd('edit ' .. root .. '/foo1.txt')
             -- WHEN we call run
             please.run()
@@ -357,7 +357,7 @@ describe('run', function()
             local runner_spy = RunnerSpy:new()
             local input_fake = InputFake:new()
 
-            -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+            -- GIVEN we're editing a BUILD file and our cursor is inside a target
             vim.cmd('edit ' .. root .. '/BUILD')
             vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- in definition of :foo1
             -- WHEN we call run
@@ -377,7 +377,7 @@ describe('run', function()
         local input_fake = InputFake:new()
         local select_fake = SelectFake:new()
 
-        -- GIVEN that we've run a build target
+        -- GIVEN that we've run a target
         vim.cmd('edit ' .. root .. '/foo2.txt')
         please.run()
         input_fake:enter_input('--foo foo --bar bar')
@@ -397,7 +397,7 @@ describe('run', function()
         local input_fake = InputFake:new()
         local select_fake = SelectFake:new()
 
-        -- GIVEN we've run a build target and passed no arguments
+        -- GIVEN we've run a target and passed no arguments
         vim.cmd('edit ' .. root .. '/BUILD')
         vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- in definition of :foo1
         please.run()
@@ -475,7 +475,7 @@ describe('test', function()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
 
-            -- GIVEN we're editing a file referenced by multiple build targets
+            -- GIVEN we're editing a file referenced by multiple targets
             vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
             -- WHEN we call test
             please.test()
@@ -529,7 +529,7 @@ describe('test', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
 
-            -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+            -- GIVEN we're editing a BUILD file and our cursor is inside a target
             vim.cmd('edit ' .. root .. '/foo/BUILD')
             vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1_test
             -- WHEN we call test
@@ -798,7 +798,7 @@ describe('cover', function()
             local runner_spy = RunnerSpy:new()
             local select_fake = SelectFake:new()
 
-            -- GIVEN we're editing a file referenced by multiple build targets
+            -- GIVEN we're editing a file referenced by multiple targets
             vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
             -- WHEN we call cover
             please.cover()
@@ -910,7 +910,7 @@ describe('cover', function()
             local root = create_temp_tree()
             local runner_spy = RunnerSpy:new()
 
-            -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+            -- GIVEN we're editing a BUILD file and our cursor is inside a target
             vim.cmd('edit ' .. root .. '/foo/BUILD')
             vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1_test
             -- WHEN we call cover
@@ -1402,7 +1402,7 @@ describe('debug', function()
             local select_fake = SelectFake:new()
             local debug_launcher_spy = DebugLauncherSpy:new('go')
 
-            -- GIVEN we're editing a file referenced by multiple build targets
+            -- GIVEN we're editing a file referenced by multiple targets
             vim.cmd('edit ' .. root .. '/foo/foo1_test.go')
             -- WHEN we call debug
             please.debug()
@@ -1471,7 +1471,7 @@ describe('debug', function()
             local runner_spy = RunnerSpy:new()
             local debug_launcher_spy = DebugLauncherSpy:new('go')
 
-            -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+            -- GIVEN we're editing a BUILD file and our cursor is inside a target
             vim.cmd('edit ' .. root .. '/foo/BUILD')
             vim.api.nvim_win_set_cursor(0, { 12, 4 }) -- inside definition of :foo1_test
             -- WHEN we call debug
@@ -1738,16 +1738,16 @@ describe('jump_to_target', function()
         })
     end
 
-    it('should jump from file to build target which uses it as an input', function()
+    it('should jump from file to target which uses it as an input', function()
         local root = create_temp_tree()
 
         -- GIVEN we're editing a file
         vim.cmd('edit ' .. root .. '/foo2.txt')
         -- WHEN we call jump_to_target
         please.jump_to_target()
-        -- THEN the BUILD file containing the build target for the file is opened
+        -- THEN the BUILD file containing the target for the file is opened
         assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
-        -- AND the cursor is moved to the build target
+        -- AND the cursor is moved to the target
         assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
     end)
 
@@ -1755,7 +1755,7 @@ describe('jump_to_target', function()
         local root = create_temp_tree()
         local select_fake = SelectFake:new()
 
-        -- GIVEN we're editing a file referenced by multiple BUILD targets
+        -- GIVEN we're editing a file referenced by multiple targets
         vim.cmd('edit ' .. root .. '/foo1.txt')
         -- WHEN we call jump_to_target
         please.jump_to_target()
@@ -1764,15 +1764,15 @@ describe('jump_to_target', function()
         select_fake:assert_items({ '//:foo1', '//:foo1_and_foo2' })
         -- WHEN we select one of the targets
         select_fake:choose_item('//:foo1_and_foo2')
-        -- THEN the BUILD file containing the chosen build target is opened
+        -- THEN the BUILD file containing the chosen target is opened
         assert.equal(root .. '/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
-        -- AND the cursor is moved to the build target
+        -- AND the cursor is moved to the target
         assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
     end)
 end)
 
 describe('look_up_target', function()
-    it('should jump to build target which uses it as an input', function()
+    it('should jump to target which uses it as an input', function()
         local root = temptree.create({
             '.plzconfig',
             ['pkg/'] = {
@@ -1797,14 +1797,14 @@ describe('look_up_target', function()
         vim.cmd('edit ' .. root .. '/foo1.txt')
         -- WHEN we call look_up_target
         please.look_up_target()
-        -- THEN we're prompted to enter the build target to look up
+        -- THEN we're prompted to enter the target to look up
         input_fake:assert_prompt('Enter target to look up: ')
-        -- WHEN we enter a build target
+        -- WHEN we enter a target
         input_fake:enter_input('//pkg:foo2')
         vim.wait(500)
-        -- THEN the BUILD file containing the build target is opened
+        -- THEN the BUILD file containing the target is opened
         assert.equal(root .. '/pkg/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
-        -- AND the cursor is moved to the build target
+        -- AND the cursor is moved to the target
         assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
     end)
 
@@ -1837,9 +1837,9 @@ describe('look_up_target', function()
         vim.api.nvim_win_set_cursor(0, { 2, 12 }) -- inside //pkg:foo2
         -- WHEN we call look_up_target
         please.look_up_target()
-        -- THEN the BUILD file containing the build target is opened
+        -- THEN the BUILD file containing the target is opened
         assert.equal(root .. '/pkg/BUILD', vim.api.nvim_buf_get_name(0), 'incorrect BUILD file')
-        -- AND the cursor is moved to the build target
+        -- AND the cursor is moved to the target
         assert.same({ 6, 0 }, vim.api.nvim_win_get_cursor(0), 'incorrect cursor position')
     end)
 end)
@@ -1884,7 +1884,7 @@ describe('yank', function()
             local root = create_temp_tree()
             local select_fake = SelectFake:new()
 
-            -- GIVEN we're editing a file referenced by multiple build targets
+            -- GIVEN we're editing a file referenced by multiple targets
             vim.cmd('edit ' .. root .. '/foo1.txt')
             -- WHEN we call yank
             please.yank()
@@ -1903,7 +1903,7 @@ describe('yank', function()
         it('should yank target under cursor', function()
             local root = create_temp_tree()
 
-            -- GIVEN we're editing a BUILD file and our cursor is inside a BUILD target definition
+            -- GIVEN we're editing a BUILD file and our cursor is inside a target
             vim.cmd('edit ' .. root .. '/BUILD')
             vim.api.nvim_win_set_cursor(0, { 2, 4 }) -- inside definition of :foo1
             -- WHEN we call yank

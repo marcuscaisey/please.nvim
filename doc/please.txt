@@ -406,8 +406,8 @@ PUKU                                                             *please-puku*
 
 If `formatting.puku_command` has been set via |please.setup()|, please.nvim
 will run `puku fmt` when a Go file is saved. Puku is a tool for maintaining Go
-build targets and `puku fmt` updates BUILD files based on the imports in Go
-source files.
+targets and `puku fmt` updates BUILD files based on the imports in Go source
+files.
 
 To configure a different `formatting.puku_command` for different repositories,
 consider enabling |'exrc'| and calling |please.setup()| with a different

@@ -87,7 +87,7 @@ def neovim_plugin(name:str, deps:list=[], help_srcs:list=[], visibility:list=["P
     <name>_help_gen and <name>_help_gen_test are only generated if help_srcs is non-empty.
 
     Args:
-        name: Name of the build target.
+        name: Name of the target.
         deps: Dependencies of this target. Optional.
         help_srcs: Lua sources to generate the help file from. Optional.
         visibility: Visibility specification. Defaults to public.
@@ -153,7 +153,7 @@ def neovim_library(name:str, srcs:list, deps:list=[], visibility:list=["PUBLIC"]
     Defines a target which collects Lua files for use by dependent targets.
 
     Args:
-        name: Name of the build target.
+        name: Name of the target.
         srcs: Lua sources for this target.
         deps: Dependencies of this target. Optional.
         visibility: Visibility specification. Defaults to public.
@@ -179,7 +179,7 @@ def neovim_test(name:str, src:str, deps:list=[], labels:list=[], data:list=None,
     nvim-tool = //third_party/neovim:toolchain|nvim
 
     Args:
-        name: Name of the build target.
+        name: Name of the target.
         src: Lua test file to run.
         deps: Dependencies of this target. Optional.
         labels: Labels to apply to this target. Optional.
@@ -228,7 +228,7 @@ def neovim_external_plugin(name:str, github_repo:str, revision:str, hashes:list=
     Downloads a Neovim plugin.
 
     Args:
-        name: Name of the build target.
+        name: Name of the target.
         github_repo: GitHub repository to fetch from (e.g. "marcuscaisey/please.nvim").
         revision: Revision to download. This can be either a release version, commit or branch.
         hashes: List of possible hashes for the downloaded archive. Optional.
@@ -273,7 +273,7 @@ def neovim_tree_sitter_parser(name:str, lang:str, github_repo:str, revision:str,
     Downloads a tree sitter parser and compiles it.
 
     Args:
-        name: Name of the build target.
+        name: Name of the target.
         lang: Language that this parser is for.
         repo: Repository to fetch from (e.g. "marcuscaisey/please.nvim").
         revision: Revision to download. This can be either a release version, commit or branch.

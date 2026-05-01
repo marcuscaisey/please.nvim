@@ -181,7 +181,7 @@ function M.target_under_cursor(root)
         end
     end
 
-    return nil, 'cursor is not in a build target definition'
+    return nil, 'cursor is not in a target'
 end
 
 ---Returns the build label under the cursor if there is one, otherwise nil.

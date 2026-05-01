@@ -119,7 +119,7 @@ def luarocks_package(name:str, package:str=None, version:str, deps:list=[], visi
     luarocks-tool = //third_party/lua:luarocks|luarocks
 
     Args:
-        name: Name of the build target.
+        name: Name of the target.
         package: Name of the package. Defaults to name.
         version: Version to download.
         deps: Dependencies of the package. These should be luarocks_package targets. Optional.
