@@ -34,11 +34,11 @@ not work as expected, or if there is a feature you would like to see added.
 <details>
     <summary>Display test coverage for a target with <code>:Please cover</code></summary>
     <p><strong>In Source File</strong></p>
-    <img src="https://github.com/user-attachments/assets/bbb5c951-36f1-406b-aebe-632306a0fe8b" />
+    <img src="https://github.com/user-attachments/assets/ff9ad8f9-aa2b-40c6-b78c-d8115776415f" />
     <p><strong>Run Test Under Cursor</strong></p>
-    <img src="https://github.com/user-attachments/assets/02abbd6f-dd49-4b79-8f17-ea65ea73a5a7" />
+    <img src="https://github.com/user-attachments/assets/e5370a39-d1ff-4bc5-a6bd-b3f6ea16d489" />
     <p><strong>In BUILD File</strong></p>
-    <img src="https://github.com/user-attachments/assets/0aff7011-d2ab-40f0-8115-aabd8278d2ae" />
+    <img src="https://github.com/user-attachments/assets/a6166252-e2a3-4197-be1e-ad84905ec73d" />
 </details>
 <details>
     <summary>Debug a target with <code>:Please debug</code></summary>
