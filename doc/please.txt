@@ -149,115 +149,6 @@ Recommended additional plugins ~
   • https://github.com/rcarriga/nvim-dap-ui - UI for nvim-dap.
 
 ==============================================================================
-LSP CONFIGURATION                                          *please-lsp-config*
-
-please.nvim configures various aspects of your LSP setup.
-
-                                                           *please-lsp-client*
-Please LSP Client ~
-please.nvim configures the `please` LSP client to use `plz tool lps` for
-`please` files using |vim.lsp.config()|. Call |vim.lsp.enable| to enable it:
->lua
-    vim.lsp.enable('please')
-<
-                                                                *please-gopls*
-gopls ~
-please.nvim detects when `gopls` has been started in a Please repository and
-restarts it with the following configuration changes:
-  • Append `-plz-out` to the `gopls.directoryFilters` setting to exclude
-    `plz-out` from the workspace.
-  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
-    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
-    The go-rules Please plugin allows configuring the `go` executable to use
-    via `plugin.go.gotool` and `gopls` uses the `go` executable found on its
-    `PATH` to determine where the standard library is located. So this `PATH`
-    change means that operations like jumping to a definition or listing
-    references with standard library packages will refer to the correct
-    location for the Go toolchain configured for the repository.
-
-This behaviour can be disabled by passing `lsp = { gopls = false }` to
-|please.setup()|.
-
-See also:
-  • https://go.dev/gopls/settings
-  • https://github.com/please-build/go-rules/blob/master/.plzconfig
-
-                                             *please-golangci-lint-langserver*
-golangci-lint-langserver ~
-please.nvim detects when `golangci-lint-langserver` has been started in a
-Please repository and restarts it with the following configuration changes:
-  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
-    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
-    The go-rules Please plugin allows configuring the `go` executable to use
-    via `plugin.go.gotool` and `golangci-lint-langserver` uses the `go`
-    executable found on its `PATH` to determine where the standard library is
-    located. So this `PATH` change means that checks will be performed against
-    the standard library packages in the Go toolchain configured for the
-    repository.
-
-This behaviour can be disabled by passing
-`lsp = { golangci_lint_langserver = false }` to |please.setup()|.
-
-See also:
-  • https://github.com/nametake/golangci-lint-langserver
-  • https://github.com/please-build/go-rules/blob/master/.plzconfig
-
-                                                         *please-basedpyright*
-basedpyright ~
-please.nvim detects when `basedpyright` has been started in a Please
-repository and sends a `workspace/didChangeConfiguration` notification after
-making the following setting changes:
-  • Append `plz-out` to `basedpyright.analysis.exclude` to exclude `plz-out`
-    from the workspace.
-  • Prepend `plz-out/python/venv` to `basedpyright.analysis.extraPaths`. The
-    `python_wheel` and `pip_library` rules from the python-rules Please plugin
-    symlink the downloaded packages into `plz-out/python/venv` so this means
-    that `basedpyright` will be able to find them.
-
-This behaviour can be disabled by passing `lsp = { basedpyright = false }` to
-|please.setup()|.
-
-See also:
-  • https://docs.basedpyright.com/latest/configuration/language-server-settings
-  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
-  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
-
-                                                              *please-pyright*
-pyright ~
-please.nvim detects when `pyright` has been started in a Please repository and
-sends a `workspace/didChangeConfiguration` notification after making the
-following setting changes:
-  • Append `plz-out` to `python.analysis.exclude` to exclude `plz-out`
-    from the workspace.
-  • Prepend `plz-out/python/venv` to `python.analysis.extraPaths`. The
-    `python_wheel` and `pip_library` rules from the python-rules Please plugin
-    symlink the downloaded packages into `plz-out/python/venv` so this means
-    that pyright` will be able to find them.
-
-This behaviour can be disabled by passing `lsp = { pyright = false }` to
-|please.setup()|.
-
-See also:
-  • https://microsoft.github.io/pyright/#/settings
-  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
-  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
-
-==============================================================================
-PUKU                                                             *please-puku*
-
-If `formatting.puku_command` has been set via |please.setup()|, please.nvim
-will run `puku fmt` when a Go file is saved. Puku is a tool for maintaining Go
-build targets and `puku fmt` updates BUILD files based on the imports in Go
-source files.
-
-To configure a different `formatting.puku_command` for different repositories,
-consider enabling |'exrc'| and calling |please.setup()| with a different
-`formatting.puku_command` in `.nvim.lua`.
-
-See also:
-  • https://github.com/please-build/puku
-
-==============================================================================
 COMMANDS                                           *:Please* *please-commands*
 
 :Please build                                                  *:Please-build*
@@ -412,6 +303,115 @@ COMMANDS                                           *:Please* *please-commands*
     arguments. This should provide enough information to debug most issues.
 
     See |please.toggle_debug_logging()| for the equivalent Lua function.
+
+==============================================================================
+LSP CONFIGURATION                                          *please-lsp-config*
+
+please.nvim configures various aspects of your LSP setup.
+
+                                                           *please-lsp-client*
+Please LSP Client ~
+please.nvim configures the `please` LSP client to use `plz tool lps` for
+`please` files using |vim.lsp.config()|. Call |vim.lsp.enable| to enable it:
+>lua
+    vim.lsp.enable('please')
+<
+                                                                *please-gopls*
+gopls ~
+please.nvim detects when `gopls` has been started in a Please repository and
+restarts it with the following configuration changes:
+  • Append `-plz-out` to the `gopls.directoryFilters` setting to exclude
+    `plz-out` from the workspace.
+  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
+    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
+    The go-rules Please plugin allows configuring the `go` executable to use
+    via `plugin.go.gotool` and `gopls` uses the `go` executable found on its
+    `PATH` to determine where the standard library is located. So this `PATH`
+    change means that operations like jumping to a definition or listing
+    references with standard library packages will refer to the correct
+    location for the Go toolchain configured for the repository.
+
+This behaviour can be disabled by passing `lsp = { gopls = false }` to
+|please.setup()|.
+
+See also:
+  • https://go.dev/gopls/settings
+  • https://github.com/please-build/go-rules/blob/master/.plzconfig
+
+                                             *please-golangci-lint-langserver*
+golangci-lint-langserver ~
+please.nvim detects when `golangci-lint-langserver` has been started in a
+Please repository and restarts it with the following configuration changes:
+  • Prepend the bin directory of the Go toolchain (i.e. `$GOROOT/bin`)
+    configured by the `plugin.go.gotool` `.plzconfig` setting to its `PATH`.
+    The go-rules Please plugin allows configuring the `go` executable to use
+    via `plugin.go.gotool` and `golangci-lint-langserver` uses the `go`
+    executable found on its `PATH` to determine where the standard library is
+    located. So this `PATH` change means that checks will be performed against
+    the standard library packages in the Go toolchain configured for the
+    repository.
+
+This behaviour can be disabled by passing
+`lsp = { golangci_lint_langserver = false }` to |please.setup()|.
+
+See also:
+  • https://github.com/nametake/golangci-lint-langserver
+  • https://github.com/please-build/go-rules/blob/master/.plzconfig
+
+                                                         *please-basedpyright*
+basedpyright ~
+please.nvim detects when `basedpyright` has been started in a Please
+repository and sends a `workspace/didChangeConfiguration` notification after
+making the following setting changes:
+  • Append `plz-out` to `basedpyright.analysis.exclude` to exclude `plz-out`
+    from the workspace.
+  • Prepend `plz-out/python/venv` to `basedpyright.analysis.extraPaths`. The
+    `python_wheel` and `pip_library` rules from the python-rules Please plugin
+    symlink the downloaded packages into `plz-out/python/venv` so this means
+    that `basedpyright` will be able to find them.
+
+This behaviour can be disabled by passing `lsp = { basedpyright = false }` to
+|please.setup()|.
+
+See also:
+  • https://docs.basedpyright.com/latest/configuration/language-server-settings
+  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
+  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
+
+                                                              *please-pyright*
+pyright ~
+please.nvim detects when `pyright` has been started in a Please repository and
+sends a `workspace/didChangeConfiguration` notification after making the
+following setting changes:
+  • Append `plz-out` to `python.analysis.exclude` to exclude `plz-out`
+    from the workspace.
+  • Prepend `plz-out/python/venv` to `python.analysis.extraPaths`. The
+    `python_wheel` and `pip_library` rules from the python-rules Please plugin
+    symlink the downloaded packages into `plz-out/python/venv` so this means
+    that pyright` will be able to find them.
+
+This behaviour can be disabled by passing `lsp = { pyright = false }` to
+|please.setup()|.
+
+See also:
+  • https://microsoft.github.io/pyright/#/settings
+  • https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_didChangeConfiguration
+  • https://github.com/please-build/python-rules/blob/master/build_defs/python.build_defs
+
+==============================================================================
+PUKU                                                             *please-puku*
+
+If `formatting.puku_command` has been set via |please.setup()|, please.nvim
+will run `puku fmt` when a Go file is saved. Puku is a tool for maintaining Go
+build targets and `puku fmt` updates BUILD files based on the imports in Go
+source files.
+
+To configure a different `formatting.puku_command` for different repositories,
+consider enabling |'exrc'| and calling |please.setup()| with a different
+`formatting.puku_command` in `.nvim.lua`.
+
+See also:
+  • https://github.com/please-build/puku
 
 ==============================================================================
 HIGHLIGHT GROUPS                                     *please-highlight-groups*
