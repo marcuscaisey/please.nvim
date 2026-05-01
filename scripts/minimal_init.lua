@@ -5,8 +5,8 @@ vim.o.relativenumber = true
 vim.o.signcolumn = 'yes'
 
 -- please.nvim
-vim.pack.add({ 'https://github.com/marcuscaisey/please.nvim' })
--- vim.cmd('set runtimepath^=.')
+-- vim.pack.add({ 'https://github.com/marcuscaisey/please.nvim' })
+vim.cmd('set runtimepath^=.')
 local please = require('please')
 please.setup({
     -- coverage = {
