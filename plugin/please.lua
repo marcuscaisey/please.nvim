@@ -302,7 +302,7 @@ vim.api.nvim_create_user_command('Please', function(args)
         for _, arg in ipairs(cmd_args) do
             if not vim.list_contains(valid_opts, arg) then
                 local args = { arg, cmd_name, table.concat(valid_opts, '", "') }
-                logging.error("%q is not a valid :Please %s option. Valid options: %q.", unpack(args))
+                logging.error('%q is not a valid :Please %s option. Valid options: %q.', unpack(args))
                 return
             end
             opts[arg] = true
@@ -310,7 +310,7 @@ vim.api.nvim_create_user_command('Please', function(args)
         cmd(opts)
     else
         if #cmd_args > 0 then
-            logging.error(":Please %s does not accept arguments", cmd_name)
+            logging.error(':Please %s does not accept arguments', cmd_name)
             return
         end
         cmd()
