@@ -824,6 +824,8 @@ end
 
 ---Displays a history of previous commands run in the current repository. Selecting one runs it again.
 ---
+---Some history related behaviour can be configured with [please.setup()]. See the `history` option.
+---
 ---See [:Please-history] for the equivalent `:Please` command.
 function M.history()
     require('_please.logging').log_call('please.history')

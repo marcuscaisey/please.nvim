@@ -244,6 +244,9 @@ COMMANDS                                           *:Please* *please-commands*
     Displays a history of previous commands run in the current repository.
     Selecting one runs it again.
 
+    Some history related behaviour can be configured with |please.setup()|.
+    See the `history` option.
+
     See |please.history()| for the equivalent Lua function.
 
 :Please clear_history                                  *:Please-clear_history*
@@ -625,6 +628,9 @@ command({...})                                              *please.command()*
 history()                                                   *please.history()*
     Displays a history of previous commands run in the current repository.
     Selecting one runs it again.
+
+    Some history related behaviour can be configured with |please.setup()|.
+    See the `history` option.
 
     See |:Please-history| for the equivalent `:Please` command.
 
