@@ -991,7 +991,7 @@ describe('cover', function()
             elseif details.number_hl_group == 'PleaseCoverageUncoveredLineNr' then
                 details.line_hl_group = 'PleaseCoverageUncoveredLine'
             else
-                error(string.format('unexpected number_hl_group: %s', details.number_hl_group))
+                error(string.format('unexpected number_hl_group: %q', details.number_hl_group))
             end
             details.number_hl_group = nil
         end
@@ -1027,7 +1027,7 @@ describe('cover', function()
             elseif details.number_hl_group == 'PleaseCoverageUncoveredLineNr' then
                 details.line_hl_group = 'PleaseCoverageUncoveredLine'
             else
-                error(string.format('unexpected number_hl_group: %s', details.number_hl_group))
+                error(string.format('unexpected number_hl_group: %q', details.number_hl_group))
             end
         end
 

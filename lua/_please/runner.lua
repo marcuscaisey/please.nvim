@@ -173,7 +173,7 @@ function Runner.start(root, args, opts)
         on_exit = function(_, code, _)
             runner._job_exited = true
             if runner._minimised and not runner._stopped then
-                logging.info('%s exited with code %d', cmd_string, code)
+                logging.info('%q exited with code %d', cmd_string, code)
             end
             local success = code == 0
             local colour

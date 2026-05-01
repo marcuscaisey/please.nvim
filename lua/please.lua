@@ -693,11 +693,11 @@ local function run_debug_command(root, lang, target, extra_args)
     local launcher = debug.launchers[lang]
     start_runner(root, { 'build', '--config', 'dbg', target }, {
         on_exit = function(code, runner)
-            if code ~= 0 then
-                return
-            end
-            runner:minimise()
             logging.log_errors('Failed to debug', function()
+                if code ~= 0 then
+                    return
+                end
+                runner:minimise()
                 assert(launcher(root, target, extra_args))
             end)
         end,
@@ -842,8 +842,7 @@ function M.history()
 
         local history = read_command_history()
         if not history[root] then
-            logging.error('command history is empty for repo ' .. root)
-            return
+            error(string.format('history is empty for repository %q', root))
         end
 
         local function format_item(command)
@@ -882,7 +881,7 @@ function M.clear_history()
 
         history[root] = nil
         write_command_history(history)
-        logging.info('Cleared command history for repository %s', root)
+        logging.info('Cleared command history for repository %q', root)
     end)
 end
 
@@ -951,11 +950,13 @@ function M.maximise_popup()
     local logging = require('_please.logging')
     local runner = require('_please.runner')
 
-    if runner.current then
-        runner.current:maximise()
-    else
-        logging.error('no popup to maximise')
-    end
+    logging.log_errors('Failed to maximise popup', function()
+        if runner.current then
+            runner.current:maximise()
+        else
+            error('no popup to maximise')
+        end
+    end)
 end
 
 ---Jumps to the location of the target which takes the current file as an input.
@@ -977,7 +978,7 @@ function M.jump_to_target()
         local targets = assert(query.whatinputs(root, filepath))
         select_if_many(targets, { prompt = 'Select target to jump to:' }, function(target)
             local target = assert(parsing.locate_target(root, target))
-            logging.debug('opening %s at %s', target.file, vim.inspect(target.position))
+            logging.debug('Opening %q at %s', target.file, vim.inspect(target.position))
             vim.cmd('edit ' .. target.file)
             vim.api.nvim_win_set_cursor(0, target.position)
         end)
@@ -1004,12 +1005,8 @@ function M.look_up_target()
 
         ---@param target string
         local function look_up_target(target)
-            local target, err = parsing.locate_target(root, target)
-            if err then ---@cast target -?
-                logging.error('Failed to look up target: %s', err)
-                return
-            end
-            logging.debug('opening %s at %s', target.file, vim.inspect(target.position))
+            local target = assert(parsing.locate_target(root, target))
+            logging.debug('Opening %q at %s', target.file, vim.inspect(target.position))
             vim.cmd('edit ' .. target.file)
             vim.api.nvim_win_set_cursor(0, target.position)
         end
@@ -1021,10 +1018,12 @@ function M.look_up_target()
         end
 
         vim.ui.input({ prompt = 'Enter target to look up: ' }, function(target)
-            if not target then
-                return
-            end
-            look_up_target(vim.trim(target))
+            logging.log_errors('Failed to look up target', function()
+                if not target then
+                    return
+                end
+                look_up_target(vim.trim(target))
+            end)
         end)
     end)
 end
@@ -1057,10 +1056,10 @@ function M.yank()
         select_if_many(targets, { prompt = 'Select build label to yank:' }, function(target)
             local registers = { '"', '*' }
             for _, register in ipairs(registers) do
-                logging.debug('setting %s register to %s', register, target)
+                logging.debug('Setting %s register to %q', register, target)
                 vim.fn.setreg(register, target)
             end
-            logging.info('yanked %s', target)
+            logging.info('Yanked %q', target)
         end)
     end)
 end
@@ -1076,9 +1075,9 @@ function M.toggle_debug_logging()
 
     local enabled = logging.toggle_debug()
     if enabled then
-        logging.info('debug logs enabled')
+        logging.info('Enabled debug logging')
     else
-        logging.info('debug logs disabled')
+        logging.info('Disabled debug logging')
     end
 end
 

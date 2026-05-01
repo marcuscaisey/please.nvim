@@ -36,7 +36,7 @@ function M.whatinputs(root, filepath)
 
     local output, err = plz_query(root, { 'whatinputs', filepath })
     if err then ---@cast output -?
-        return nil, string.format('plz query whatinputs %s: %s', filepath, err)
+        return nil, string.format('plz query whatinputs %q: %s', filepath, err)
     end
 
     local targets = vim.split(output, '\n')
@@ -61,7 +61,7 @@ function M.print_field(root, target, field)
 
     local output, err = plz_query(root, { 'print', target, '--field', field })
     if err then ---@cast output -?
-        return nil, string.format('plz query print %s --field %s: %s', target, field, err)
+        return nil, string.format('plz query print %q --field %q: %s', target, field, err)
     end
 
     return output
@@ -77,7 +77,7 @@ function M.is_target_sandboxed(root, target)
 
     local test_value, err = M.print_field(root, target, 'test')
     if err then ---@cast test_value -?
-        return nil, string.format('checking if %s is sandboxed: %s', target, err)
+        return nil, string.format('checking if %q is sandboxed: %s', target, err)
     end
 
     local target_is_test = test_value == 'True'
@@ -85,7 +85,7 @@ function M.is_target_sandboxed(root, target)
 
     local sandbox_value, err = M.print_field(root, target, sandbox_field)
     if err then ---@cast sandbox_value -?
-        return nil, string.format('checking if %s is sandboxed: %s', target, err)
+        return nil, string.format('checking if %q is sandboxed: %s', target, err)
     end
 
     return sandbox_value == 'True'
@@ -101,7 +101,7 @@ function M.config(root, option)
 
     local output, err = plz_query(root, { 'config', option })
     if err then ---@cast output -?
-        return nil, string.format('plz query config %s: %s', option, err)
+        return nil, string.format('plz query config %q: %s', option, err)
     end
 
     return vim.split(output, '\n')
@@ -129,7 +129,7 @@ function M.goroot(root)
         go_cmd = { plz, 'run', gotool }
     elseif vim.startswith(gotool, '/') then
         if vim.fn.executable(gotool) ~= 1 then
-            return nil, string.format('resolving GOROOT: plugin.go.gotool "%s" is not executable', gotool)
+            return nil, string.format('resolving GOROOT: plugin.go.gotool %q is not executable', gotool)
         end
         go_cmd = { gotool }
     else

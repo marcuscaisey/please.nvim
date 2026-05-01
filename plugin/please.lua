@@ -83,7 +83,7 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
                 build_file_names = { 'BUILD', 'BUILD.plz' }
                 local logging = require('_please.logging')
                 logging.debug(
-                    'Resolving build file names in repository "%s": %s. Falling back to %s.',
+                    'Failed to resolve build file names in repository "%s": %s. Falling back to %s.',
                     root,
                     err,
                     vim.inspect(build_file_names)
@@ -147,7 +147,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
         local goroot, err = query.goroot(client.root_dir)
         if err then ---@cast goroot -?
-            logging.debug('configuring %s in repository "%s": %s', client.name, client.root_dir, err)
+            logging.debug('Failed to configure %s in repository %q: %s', client.name, client.root_dir, err)
             return
         end
 
@@ -259,7 +259,7 @@ vim.api.nvim_create_autocmd('BufWritePost', {
             end
         end)
         if not ok then
-            logging.debug('Failed to format BUILD files with "%s": %s', table.concat(cmd, ' '), err)
+            logging.debug('Failed to format BUILD files with %q: %s', table.concat(cmd, ' '), err)
         end
     end,
 })
@@ -290,7 +290,7 @@ vim.api.nvim_create_user_command('Please', function(args)
 
     local cmd = please[cmd_name]
     if not cmd or vim.tbl_contains(hidden_cmds, cmd_name) then
-        logging.error("'%s' is not a 'Please' command", cmd_name)
+        logging.error('%q is not a :Please command', cmd_name)
         return
     end
 
@@ -301,8 +301,8 @@ vim.api.nvim_create_user_command('Please', function(args)
         local opts = {}
         for _, arg in ipairs(cmd_args) do
             if not vim.list_contains(valid_opts, arg) then
-                local args = { arg, cmd_name, table.concat(valid_opts, "', '") }
-                logging.error("'%s' is not a valid 'Please %s' option. Valid options: '%s'.", unpack(args))
+                local args = { arg, cmd_name, table.concat(valid_opts, '", "') }
+                logging.error("%q is not a valid :Please %s option. Valid options: %q.", unpack(args))
                 return
             end
             opts[arg] = true
@@ -310,7 +310,7 @@ vim.api.nvim_create_user_command('Please', function(args)
         cmd(opts)
     else
         if #cmd_args > 0 then
-            logging.error("'Please %s' does not accept arguments", cmd_name)
+            logging.error(":Please %s does not accept arguments", cmd_name)
             return
         end
         cmd()

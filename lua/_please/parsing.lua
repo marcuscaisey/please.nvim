@@ -107,7 +107,7 @@ function M.locate_target(root, target)
     if not build_file_names then
         local build_file_names_from_config, err = query.config(root, 'parse.buildfilename')
         if err then ---@cast build_file_names_from_config -?
-            return nil, string.format('locating target "%s": %s', target, err)
+            return nil, string.format('locating target %q: %s', target, err)
         end
         build_file_names = build_file_names_from_config
         build_file_names_by_root[root] = build_file_names
@@ -121,7 +121,7 @@ function M.locate_target(root, target)
         end
     end
     if not pkg then
-        return nil, string.format('locating target "%s": not a valid build label', target)
+        return nil, string.format('locating target %q: not a valid build label', target)
     end
     local pkg_path = vim.fs.joinpath(root, pkg)
     for _, build_file_name in ipairs(build_file_names) do
@@ -143,7 +143,7 @@ function M.locate_target(root, target)
         end
     end
 
-    return nil, string.format('locating target "%s": no BUILD file exists for package "%s"', target, pkg)
+    return nil, string.format('locating target %q: no BUILD file exists for package "%s"', target, pkg)
 end
 
 local function cursor_in_node_range(node)

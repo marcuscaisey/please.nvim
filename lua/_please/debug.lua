@@ -24,7 +24,7 @@ local function setup_debug_adapter()
         return
     end
 
-    logging.debug('setting up plz debug adapter')
+    logging.debug('Setting up plz debug adapter')
 
     local ok, dap = pcall(require, 'dap')
     if not ok then
@@ -44,7 +44,7 @@ local function setup_debug_adapter()
 
         local function stdout(err, data)
             if err then
-                logging.warn('error reading stdout from plz debug: %s', err)
+                logging.warn('Error reading stdout from plz debug: %s', err)
             end
             if data then
                 vim.schedule(function()
@@ -56,7 +56,7 @@ local function setup_debug_adapter()
         local stderr_lines = {}
         local function stderr(err, data)
             if err then
-                logging.warn('error reading stderr from plz debug: %s', err)
+                logging.warn('Error reading stderr from plz debug: %s', err)
             end
             if data then
                 table.insert(stderr_lines, data)
@@ -74,7 +74,7 @@ local function setup_debug_adapter()
 
         local ok, err = pcall(vim.system, cmd, { stdout = stdout, stderr = stderr }, on_exit)
         if not ok then
-            logging.error('Failed to start debugger with "%s": %s', table.concat(cmd, ' '), err)
+            logging.error('Failed to start debugger with %q: %s', table.concat(cmd, ' '), err)
             return
         end
 
