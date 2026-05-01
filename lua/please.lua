@@ -375,16 +375,17 @@ function M.test(opts)
         local root = assert(current_repo_root(filepath))
 
         local targets = {} ---@type string[]
-        local extra_args = {} ---@type string[]
-        if opts.under_cursor then
-            local test = assert(parsing.test_under_cursor())
-            extra_args = { test.selector }
-            targets = assert(query.whatinputs(root, filepath))
-        elseif vim.bo.filetype == 'please' then
+        if vim.bo.filetype == 'please' then
             local target = assert(parsing.target_under_cursor(root))
             targets = { target.build_label }
         else
             targets = assert(query.whatinputs(root, filepath))
+        end
+
+        local extra_args = {} ---@type string[]
+        if opts.under_cursor then
+            local test = assert(parsing.test_under_cursor())
+            extra_args = { test.selector }
         end
 
         select_if_many(targets, { prompt = 'Select target to test:' }, function(target)
@@ -759,19 +760,19 @@ function M.debug(opts)
 
         local targets = {} ---@type string[]
         local lang = '' ---@type string
-        local extra_args = {} ---@type string[]
-        if opts.under_cursor then
-            local test = assert(parsing.test_under_cursor())
-            extra_args = { test.selector }
-            targets = assert(query.whatinputs(root, filepath))
-            lang = vim.bo.filetype
-        elseif vim.bo.filetype == 'please' then
+        if vim.bo.filetype == 'please' then
             local target = assert(parsing.target_under_cursor(root))
             targets = { target.build_label }
             lang = target.rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
         else
             targets = assert(query.whatinputs(root, filepath))
             lang = vim.bo.filetype
+        end
+
+        local extra_args = {} ---@type string[]
+        if opts.under_cursor then
+            local test = assert(parsing.test_under_cursor())
+            extra_args = { test.selector }
         end
 
         if not debug.launchers[lang] then
