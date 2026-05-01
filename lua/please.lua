@@ -266,6 +266,25 @@ local function current_repo_root(path)
     return nil, "Couldn't locate the repo root. Are you sure you're inside a plz repo?"
 end
 
+---@param root string
+---@param path string
+---@param filetype string
+---@return string[]?
+---@return string? errmsg
+local function targets_for_file(root, path, filetype)
+    local parsing = require('_please.parsing')
+    local query = require('_please.query')
+    if filetype == 'please' then
+        local target, err = parsing.target_under_cursor(root)
+        if err then ---@cast target -?
+            return nil, err
+        end
+        return { target.build_label }
+    else
+        return query.whatinputs(root, path)
+    end
+end
+
 ---Builds a target.
 ---
 ---If the current file is a `BUILD` file, builds the target which is under the cursor. Otherwise, builds the target
@@ -276,20 +295,11 @@ function M.build()
     require('_please.logging').log_call('please.build')
 
     local logging = require('_please.logging')
-    local parsing = require('_please.parsing')
-    local query = require('_please.query')
 
     logging.log_errors('Failed to build', function()
         local filepath = assert(current_filepath())
         local root = assert(current_repo_root(filepath))
-
-        local targets
-        if vim.bo.filetype == 'please' then
-            local target = assert(parsing.target_under_cursor(root))
-            targets = { target.build_label }
-        else
-            targets = assert(query.whatinputs(root, filepath))
-        end
+        local targets = assert(targets_for_file(root, filepath, vim.bo.filetype))
 
         select_if_many(targets, { prompt = 'Select target to build:' }, function(target)
             save_and_run_simple_command(root, { 'build', target })
@@ -307,20 +317,11 @@ function M.run()
     require('_please.logging').log_call('please.run')
 
     local logging = require('_please.logging')
-    local parsing = require('_please.parsing')
-    local query = require('_please.query')
 
     logging.log_errors('Failed to run', function()
         local filepath = assert(current_filepath())
         local root = assert(current_repo_root(filepath))
-
-        local targets
-        if vim.bo.filetype == 'please' then
-            local target = assert(parsing.target_under_cursor(root))
-            targets = { target.build_label }
-        else
-            targets = assert(query.whatinputs(root, filepath))
-        end
+        local targets = assert(targets_for_file(root, filepath, vim.bo.filetype))
 
         select_if_many(targets, { prompt = 'Select target to run:' }, function(target)
             vim.ui.input({ prompt = 'Enter program arguments: ' }, function(input)
@@ -363,7 +364,6 @@ function M.test(opts)
 
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
-    local query = require('_please.query')
 
     logging.log_errors('Failed to test', function()
         opts = opts or {}
@@ -373,14 +373,7 @@ function M.test(opts)
 
         local filepath = assert(current_filepath())
         local root = assert(current_repo_root(filepath))
-
-        local targets = {} ---@type string[]
-        if vim.bo.filetype == 'please' then
-            local target = assert(parsing.target_under_cursor(root))
-            targets = { target.build_label }
-        else
-            targets = assert(query.whatinputs(root, filepath))
-        end
+        local targets = assert(targets_for_file(root, filepath, vim.bo.filetype))
 
         local extra_args = {} ---@type string[]
         if opts.under_cursor then
@@ -628,7 +621,6 @@ function M.cover(opts)
 
     local logging = require('_please.logging')
     local parsing = require('_please.parsing')
-    local query = require('_please.query')
 
     logging.log_errors('Failed to cover', function()
         opts = opts or {}
@@ -639,14 +631,7 @@ function M.cover(opts)
 
         local filepath = assert(current_filepath())
         local root = assert(current_repo_root(filepath))
-
-        local targets = {} ---@type string[]
-        if vim.bo.filetype == 'please' then
-            local target = assert(parsing.target_under_cursor(root))
-            targets = { target.build_label }
-        else
-            targets = assert(query.whatinputs(root, filepath))
-        end
+        local targets = assert(targets_for_file(root, filepath, vim.bo.filetype))
 
         local selector ---@type string?
         if opts.under_cursor then
@@ -757,15 +742,13 @@ function M.debug(opts)
 
         local filepath = assert(current_filepath())
         local root = assert(current_repo_root(filepath))
+        local targets = assert(targets_for_file(root, filepath, vim.bo.filetype))
 
-        local targets = {} ---@type string[]
         local lang = '' ---@type string
         if vim.bo.filetype == 'please' then
             local target = assert(parsing.target_under_cursor(root))
-            targets = { target.build_label }
             lang = target.rule:match('(%w+)_.+') -- assumes that rules will be formatted like $lang_xxx
         else
-            targets = assert(query.whatinputs(root, filepath))
             lang = vim.bo.filetype
         end
 
@@ -1039,20 +1022,11 @@ function M.yank()
     require('_please.logging').log_call('please.yank')
 
     local logging = require('_please.logging')
-    local parsing = require('_please.parsing')
-    local query = require('_please.query')
 
     logging.log_errors('Failed to yank', function()
         local filepath = assert(current_filepath())
         local root = assert(current_repo_root(filepath))
-
-        local targets = {}
-        if vim.bo.filetype == 'please' then
-            local target = assert(parsing.target_under_cursor(root))
-            targets = { target.build_label }
-        else
-            targets = assert(query.whatinputs(root, filepath))
-        end
+        local targets = assert(targets_for_file(root, filepath, vim.bo.filetype))
 
         select_if_many(targets, { prompt = 'Select build label to yank:' }, function(target)
             local registers = { '"', '*' }
