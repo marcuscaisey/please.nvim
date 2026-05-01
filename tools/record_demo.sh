@@ -12,6 +12,6 @@ for arg in "${@:2}"; do
 done
 
 asciinema record \
-    --command "plz run //tools:minimal_nvim -- ${nvim_args[*]}" \
+    --command "plz minimal_nvim -- ${nvim_args[*]}" \
     --window-size=120x29 \
     --overwrite "$output"

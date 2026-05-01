@@ -38,3 +38,7 @@ numexecutors = 0
 Cmd = run //third_party/binary:puku --
 PositionalLabels = true
 Desc = A tool to update BUILD files in Go packages
+
+[Alias "minimal_nvim"]
+cmd = run //tools:minimal_nvim --
+desc = Launches stable version of Neovim with a minimal config
