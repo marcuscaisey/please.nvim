@@ -1,6 +1,8 @@
 local M = {}
 
----@class please.Opts
+---@alias please.Opts please.setup.Opts
+
+---@class please.setup.Opts
 ---@inlinedoc
 ---@field coverage please.CoverageOpts? Options affecting [:Please-cover]. See [please.CoverageOpts].
 ---@field formatting please.FormattingOpts? Options affecting formatting. See [please.FormattingOpts].
@@ -60,7 +62,7 @@ local M = {}
 ---    },
 ---})
 ---```
----@param opts please.Opts
+---@param opts please.setup.Opts
 function M.setup(opts)
     local config = require('_please.config')
 
@@ -113,7 +115,7 @@ local profiles_by_root = setmetatable({}, {
 
 ---@param root string
 ---@param args string[]
----@param opts _please.runner.RunnerOpts?
+---@param opts _please.runner.Runner.start.Opts?
 local function start_runner(root, args, opts)
     local runner = require('_please.runner')
     local profile = profiles_by_root[root]
@@ -337,7 +339,9 @@ function M.run()
     end)
 end
 
----@class please.TestOptions
+---@alias please.TestOptions please.test.Opts
+
+---@class please.test.Opts
 ---@inlinedoc
 ---@field under_cursor boolean run the test under the cursor
 
@@ -353,7 +357,7 @@ end
 ---  - Python - unittest test classes, unittest test methods
 ---
 ---See [:Please-test] for the equivalent `:Please` command.
----@param opts please.TestOptions? optional keyword arguments
+---@param opts please.test.Opts? optional keyword arguments
 function M.test(opts)
     require('_please.logging').log_call('please.test')
 
@@ -715,7 +719,9 @@ local function save_and_run_debug_command(root, lang, target, extra_args)
     run_debug_command(root, lang, target, extra_args)
 end
 
----@class please.DebugOptions
+---@alias please.DebugOptions please.debug.Opts
+
+---@class please.debug.Opts
 ---@inlinedoc
 ---@field under_cursor boolean debug the test under the cursor
 
@@ -733,7 +739,7 @@ end
 ---are the same as for [please.test()].
 ---
 ---See [:Please-debug] for the equivalent `:Please` command.
----@param opts please.DebugOptions? optional keyword arguments
+---@param opts please.debug.Opts? optional keyword arguments
 function M.debug(opts)
     require('_please.logging').log_call('please.debug')
 

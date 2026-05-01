@@ -121,13 +121,13 @@ local function move_cursor_to_last_line()
     vim.api.nvim_feedkeys('G', 'nx', false)
 end
 
----@class _please.runner.RunnerOpts
+---@class _please.runner.Runner.start.Opts
 ---@field on_exit _please.runner.OnExitHandler?
 
 ---Runs a command and displays it in a floating window.
 ---@param root string
 ---@param args string[]
----@param opts _please.runner.RunnerOpts?
+---@param opts _please.runner.Runner.start.Opts?
 ---@return _please.runner.Runner
 function Runner.start(root, args, opts)
     logging.log_call('runner.Runner.start')

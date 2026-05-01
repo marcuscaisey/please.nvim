@@ -1,6 +1,6 @@
 local M = {}
 
----@class _please.config.Config : please.Opts
+---@class _please.config.Config : please.setup.Opts
 ---@field coverage _please.config.CoverageConfig
 ---@field formatting _please.config.FormattingConfig
 ---@field history _please.config.HistoryConfig
@@ -42,7 +42,7 @@ local default_config = {
 
 local config = default_config
 
----@param opts please.Opts
+---@param opts please.setup.Opts
 function M.set(opts)
     vim.validate('opts', opts, 'table')
     vim.validate(
