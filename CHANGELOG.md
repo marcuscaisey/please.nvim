@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/marcuscaisey/please.nvim/compare/v1.1.0...v1.1.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* error if :Please cover or :Please test run with a non-test target ([eeb38d4](https://github.com/marcuscaisey/please.nvim/commit/eeb38d4428d9b1fc24a6dc2307e68e9e78d713b0)), closes [#139](https://github.com/marcuscaisey/please.nvim/issues/139)
+
 ## [1.1.0](https://github.com/marcuscaisey/please.nvim/compare/v1.0.0...v1.1.0) (2026-05-01)
 
 
