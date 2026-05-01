@@ -346,6 +346,17 @@ end
 ---@inlinedoc
 ---@field under_cursor boolean run the test under the cursor
 
+---@param root string
+---@param target string
+local function assert_target_is_test(root, target)
+    local query = require('_please.query')
+    local is_test, err = query.is_test_target(root, target)
+    if err then ---@cast is_test -?
+        error(err)
+    end
+    assert(is_test, string.format('%q is not a test target', target))
+end
+
 ---Tests a target.
 ---
 ---If the current file is a `BUILD` file, tests the target which is under the cursor. Otherwise, tests the target which
@@ -382,7 +393,10 @@ function M.test(opts)
         end
 
         select_if_many(targets, { prompt = 'Select target to test:' }, function(target)
-            save_and_run_simple_command(root, { 'test', target, unpack(extra_args) })
+            logging.log_errors('Failed to test', function()
+                assert_target_is_test(root, target)
+                save_and_run_simple_command(root, { 'test', target, unpack(extra_args) })
+            end)
         end)
     end)
 end
@@ -640,7 +654,10 @@ function M.cover(opts)
         end
 
         select_if_many(targets, { prompt = 'Select target to cover:' }, function(target)
-            save_and_run_cover_command(root, target, selector, opts.quickfix or false)
+            logging.log_errors('Failed to cover', function()
+                assert_target_is_test(root, target)
+                save_and_run_cover_command(root, target, selector, opts.quickfix or false)
+            end)
         end)
     end)
 end
@@ -764,7 +781,10 @@ function M.debug(opts)
 
         select_if_many(targets, { prompt = 'Select target to debug:' }, function(target)
             logging.log_errors('Failed to debug', function()
-                local is_test = assert(query.print_field(root, target, 'test')) == 'True'
+                local is_test, err = query.is_test_target(root, target)
+                if err then ---@cast is_test -?
+                    error(err)
+                end
                 if is_test then
                     save_and_run_debug_command(root, lang, target, extra_args)
                 else

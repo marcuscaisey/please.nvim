@@ -75,6 +75,10 @@ function RunnerSpy:assert_called_with(root, args)
     assert.same(args, self._args, 'incorrect args passed to Runner.start')
 end
 
+function RunnerSpy:assert_not_called()
+    assert.is_false(self._called, 'Runner.start has been called')
+end
+
 function RunnerSpy:assert_minimise_called()
     assert.is_true(self._minimise_called, 'Runner.minimise has not been called')
 end
@@ -416,17 +420,24 @@ describe('test', function()
             '.plzconfig',
             ['foo/'] = {
                 BUILD = [[
-                    filegroup(
+                    gentest(
                         name = "foo1_test",
                         srcs = ["foo1_test.go"],
+                        test_cmd = "",
                     )
 
-                    filegroup(
+                    gentest(
                         name = "foo1_and_foo2_test",
                         srcs = [
                             "foo1_test.go",
                             "foo2_test.go",
                         ],
+                        test_cmd = "",
+                    )
+
+                    filegroup(
+                        name = "foo",
+                        srcs = [],
                     )
                 ]],
                 ['foo1_test.go'] = [[
@@ -539,6 +550,19 @@ describe('test', function()
         end)
     end)
 
+    it('should not test target if target is not a test', function()
+        local root = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+
+        -- GIVEN we're editing a BUILD file and our cursor is inside a non-test target
+        vim.cmd('edit ' .. root .. '/foo/BUILD')
+        vim.api.nvim_win_set_cursor(0, { 17, 4 }) -- inside definition of :foo
+        -- WHEN we call test
+        please.test()
+        -- THEN the target is not tested
+        runner_spy:assert_not_called()
+    end)
+
     it('should add entry to command history', function()
         local root = create_temp_tree()
         local runner_spy = RunnerSpy:new()
@@ -587,17 +611,24 @@ describe('cover', function()
             '.plzconfig',
             ['foo/'] = {
                 BUILD = [[
-                    filegroup(
+                    gentest(
                         name = "foo1_test",
                         srcs = ["foo1_test.go"],
+                        test_cmd = "",
                     )
 
-                    filegroup(
+                    gentest(
                         name = "foo1_and_foo2_test",
                         srcs = [
                             "foo1_test.go",
                             "foo2_test.go",
                         ],
+                        test_cmd = "",
+                    )
+
+                    filegroup(
+                        name = "foo",
+                        srcs = [],
                     )
                 ]],
                 ['foo.go'] = [[
@@ -920,6 +951,19 @@ describe('cover', function()
         end)
     end)
 
+    it('should not cover target if target is not a test', function()
+        local root = create_temp_tree()
+        local runner_spy = RunnerSpy:new()
+
+        -- GIVEN we're editing a BUILD file and our cursor is inside a non-test target
+        vim.cmd('edit ' .. root .. '/foo/BUILD')
+        vim.api.nvim_win_set_cursor(0, { 17, 4 }) -- inside definition of :foo
+        -- WHEN we cover test
+        please.cover()
+        -- THEN the target is not covered
+        runner_spy:assert_not_called()
+    end)
+
     it('should highlight line numbers when plz cover exits with 0 status', function()
         local root = create_temp_tree()
         RunnerSpy:new(0)
@@ -1149,12 +1193,13 @@ describe('toggle_coverage_highlighting', function()
             '.plzconfig',
             ['foo/'] = {
                 BUILD = [[
-                    filegroup(
-                        name = "foo_test",
+                    gentest(
+                        name = "foo1_and_foo2_test",
                         srcs = [
                             "foo1_test.go",
                             "foo2_test.go",
                         ],
+                        test_cmd = "",
                     )
                 ]],
                 ['foo.go'] = [[

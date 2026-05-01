@@ -91,6 +91,22 @@ function M.is_target_sandboxed(root, target)
     return sandbox_value == 'True'
 end
 
+---Returns whether the given target is a test.
+---@param root string: absolute path to the repo root
+---@param target string: target to query
+---@return boolean?
+---@return string? errmsg
+function M.is_test_target(root, target)
+    logging.log_call('query.is_test_target')
+
+    local test_value, err = M.print_field(root, target, 'test')
+    if err then
+        return nil, string.format('checking if %q is a test target: %s', target, err)
+    end
+
+    return test_value == 'True'
+end
+
 ---Wrapper around plz query config which returns the value of the given option.
 ---@param root string: absolute path to the repo root
 ---@param option string: option name
