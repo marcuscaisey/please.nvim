@@ -50,10 +50,9 @@ local function create_file_tree(root, tree, contents)
             end
         else
             local file_path = vim.fs.joinpath(root, path_tail)
-            local f = assert(io.open(file_path, 'w'))
             contents = dedent(contents or '')
-            assert(f:write(contents))
-            assert(f:close())
+            local contents_lines = vim.split(contents, '\n')
+            vim.fn.writefile(contents_lines, file_path)
         end
         return
     end

@@ -133,10 +133,8 @@ local function read_command_history()
     if not vim.uv.fs_stat(command_history_path) then
         return {}
     end
-    local f = assert(io.open(command_history_path))
-    local history_text = assert(f:read('*a'))
-    local history = vim.json.decode(history_text) or {}
-    assert(f:close())
+    local history_blob = vim.fn.readblob(command_history_path)
+    local history = vim.json.decode(history_blob) or {}
     return history
 end
 
@@ -145,9 +143,9 @@ local function write_command_history(history)
     if not vim.uv.fs_stat(data_path) then
         vim.fn.mkdir(data_path, 'p')
     end
-    local f = assert(io.open(command_history_path, 'w'))
-    assert(f:write(vim.json.encode(history)))
-    assert(f:close())
+    local history_blob = vim.json.encode(history)
+    local history_blob_lines = vim.split(history_blob, '\n')
+    vim.fn.writefile(history_blob_lines, command_history_path)
 end
 
 ---@nodoc
@@ -845,21 +843,17 @@ function M.history()
         local function format_item(command)
             return command.description
         end
-        select(
-            history[root],
-            { prompt = 'Pick command to run again:', format_item = format_item },
-            function(command)
-                if command.type == 'simple' then
-                    save_and_run_simple_command(root, command.args)
-                elseif command.type == 'debug' then
-                    save_and_run_debug_command(root, command.lang, command.target, command.extra_args)
-                elseif command.type == 'cover' then
-                    save_and_run_cover_command(root, command.target, command.test_selector, command.quickfix)
-                else
-                    error('unknown command type: ' .. vim.inspect(command))
-                end
+        select(history[root], { prompt = 'Pick command to run again:', format_item = format_item }, function(command)
+            if command.type == 'simple' then
+                save_and_run_simple_command(root, command.args)
+            elseif command.type == 'debug' then
+                save_and_run_debug_command(root, command.lang, command.target, command.extra_args)
+            elseif command.type == 'cover' then
+                save_and_run_cover_command(root, command.target, command.test_selector, command.quickfix)
+            else
+                error('unknown command type: ' .. vim.inspect(command))
             end
-        )
+        end)
     end)
 end
 
