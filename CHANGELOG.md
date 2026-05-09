@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/marcuscaisey/please.nvim/compare/v1.1.1...v1.1.2) (2026-05-09)
+
+
+### Documentation
+
+* simplify plugin description ([27cfe02](https://github.com/marcuscaisey/please.nvim/commit/27cfe025896720223a3567713c05b5ba6d6cb219))
+
 ## [1.1.1](https://github.com/marcuscaisey/please.nvim/compare/v1.1.0...v1.1.1) (2026-05-01)
 
 
