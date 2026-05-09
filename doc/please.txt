@@ -1,12 +1,14 @@
-*please.txt*                A plugin for interacting with Please repositories.
+*please.txt*                                Plugin for the Please build system
 *please.nvim*
                                        Type |gO| to see the table of contents.
 
 ==============================================================================
 INTRODUCTION                                                    *please-intro*
 
-please.nvim enables you to interact with Please repositories from the comfort
-of Neovim.
+please.nvim is a plugin for the Please build system.
+
+See https://please.build or https://github.com/thought-machine/please for more
+information about Please itself.
 
 Bug reports and feature requests are welcome. Please open an issue (via
 https://github.com/marcuscaisey/please.nvim/issues) if you find something that

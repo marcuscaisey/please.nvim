@@ -1,7 +1,9 @@
 # please.nvim [![CI](https://github.com/marcuscaisey/please.nvim/actions/workflows/ci.yaml/badge.svg)](https://github.com/marcuscaisey/please.nvim/actions/workflows/ci.yaml)
 
-please.nvim is a plugin which enables you to interact with Please repositories from the comfort of
-Neovim.
+please.nvim is a Neovim plugin for the Please build system.
+
+See https://please.build or https://github.com/thought-machine/please for more information about
+Please itself.
 
 Bug reports and feature requests are welcome. Please open an issue if you find something that does
 not work as expected, or if there is a feature you would like to see added.
