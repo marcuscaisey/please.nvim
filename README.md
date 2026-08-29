@@ -20,9 +20,9 @@ not work as expected, or if there is a feature you would like to see added.
 <details>
     <summary>Run a target with <code>:Please run</code></summary>
     <p><strong>In Source File</strong></p>
-    <img src="https://github.com/user-attachments/assets/7b938ad3-a062-4fcb-89e7-97c83fd8518b" />
-    <p><strong>In BUILD File</strong></p>
     <img src="https://github.com/user-attachments/assets/33db6101-d42a-4c20-a5d2-806ddf372a14" />
+    <p><strong>In BUILD File</strong></p>
+    <img src="https://github.com/user-attachments/assets/7b938ad3-a062-4fcb-89e7-97c83fd8518b" />
 </details>
 <details>
     <summary>Test a target with <code>:Please test</code></summary>
